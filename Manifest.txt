@@ -1,0 +1,7 @@
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/rawr
+lib/rawr.rb
+test/test_rawr.rb

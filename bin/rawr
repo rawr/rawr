@@ -1,0 +1,201 @@
+#! /usr/bin/env ruby
+
+# rawr package -f config_file
+# rawr packaage <build_configuration.yaml>
+
+require 'fileutils'
+
+def help(message = nil)
+  puts message + "\n-----------------------------------\n" unless message.nil?
+  puts <<-ENDL
+  Usage:
+      rawr -h/--help
+      rawr command [options]
+      
+  Commands:
+      install [-d dir] [-c class_name]
+        -d/--directory: Directory to place Java main file in, defaults to 'src'
+        -c/--class: Name of Java class (with package) to generate, defaults to com.rubyforge.rawr.Main
+        -f/--file: Name of the rawr configuration file, defaults to build_configuration.yaml
+        
+        Installs a main class file into your project that can be used to run the project. Main class file reads from the configuration file that is also created to start the application.
+
+      package [-f config_file]
+        -f/--file: Name of the configuration file to use when generating jar file, defaults to build_configuration.yaml
+        
+        Jar's the files defined in the configuration file and produces an executable jar file that auto-includes all dependant jars when invoked.
+  ENDL
+end
+
+def create_config_file(config_file)
+  puts "Creating rawr configuration file #{config_file.join("/")}"
+  FileUtils.mkdir_p(config_file[0...-1].join("/"))
+  f = File.new(config_file.join("/"), "w+")
+  f << <<-ENDL
+    # Name of the created jar file
+    project_name: change_me
+    
+    # Directory to create and place produced project files in
+    output_dir: package
+
+    # File to invoke when jar is started
+    main_ruby_file: main
+
+    # Location of Ruby source files
+    ruby_source_dir: src
+    
+    # Location of Java source files
+    java_source_dir: src
+    
+    # Directories that should have ALL their .jar contents loaded on the classpath
+    # If you wish to only include specific jars from a directory use classpath_files
+    classpath_dirs:
+       - lib
+    
+    # Individual files that should be loaded on the classpath
+    #classpath_files:
+    #    - lib/jruby-complete.jar
+    #    - lib/swing-layout-1.0.2.jar
+
+    # Directory that should be loaded onto the java.library.path 
+    #native_library_dirs:
+    #    - lib/native
+
+    # Directories which you want the coentents of to be copied to the output directory
+    package_data_dirs:
+        - lib
+
+    # NOT YET IMPLEMENTED
+    # Directories to be added into the jar
+    #jar_data_dirs:
+    #    - data
+
+    # NOT YET IMPLEMENTED
+    #pre_processing_task:
+    #post_processing_task:
+  ENDL
+  
+end
+
+def create_main_file(directory, java_class)
+  resolved_package = java_class[0...-1].join(".")
+  resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
+  resolved_file = "#{resolved_dir}/#{java_class.last}.java"
+  puts "Creating Java class #{resolved_file}"
+  FileUtils.mkdir_p(resolved_dir)
+  
+  f = File.new(resolved_file, "w+")
+  f << <<-ENDL
+  package #{resolved_package}
+
+  import java.io.BufferedInputStream;
+  import java.io.DataInputStream;
+  import java.io.File;
+  import java.io.FileInputStream;
+  import java.io.FileNotFoundException;
+  import java.util.ArrayList;
+  import org.jruby.Ruby;
+  import org.jruby.javasupport.JavaEmbedUtils;
+
+  public class #{java_class.last}
+  {
+      @SuppressWarnings("deprecation") // for the DataInputStream.readLine() call
+      public static void main(String[] args) throws Exception
+      {   
+          Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0));
+                  
+          //TODO: Read this via getResource so it works from within a jar file
+          ArrayList<String> lines = new ArrayList<String>();
+          try
+          {
+              DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(new File("run_configuration"))));
+
+              while(dis.available() != 0)
+              {
+                  lines.add(dis.readLine());
+              }
+              dis = null;
+          }
+          catch(FileNotFoundException e)
+          {
+              System.err.println("Error loading run configuration file 'run_configuration'");
+          }
+
+          if(3 == lines.size())
+          {
+              System.setProperty("java.library.path",lines.get(2));
+          }
+
+          if(2 <= lines.size())
+          {
+              runtime.evalScriptlet("require 'java'\\n" +
+                      "$: << '" + lines.get(0) + "'\\n" +
+                      "begin\\n" +
+                      "require '" + lines.get(0) + "/" + lines.get(1) + "'\\n" +
+                      "rescue LoadError => e\\n" +
+                      "warn \\"Error starting the application\\"\\n" +
+                      "warn e\\n" + 
+                      "end"
+                      );
+          }
+          else
+          {
+              System.err.println("Incorrect format for file 'run_configuration");
+          }
+      }
+  }
+
+
+
+
+  ENDL
+end
+
+if ARGV.empty?
+  help
+else
+  case ARGV[0]
+  when "-h" || "--help"
+    help
+  when "install"
+    directory = "src"
+    java_class = %w{com rubyforge rawr Main}
+    config_file = File.expand_path("build_configuration.yaml").split("/")
+    ARGV.shift
+    until ARGV.empty?
+      case ARGV[0]
+      when "-c" || "--class"
+        if ARGV[1]
+          java_class = ARGV[1].split(".")
+          java_class[-1].capitalize!
+          ARGV.shift; ARGV.shift
+        else
+          help("No class file name given")
+          break
+        end
+      when "-d" || "--directory"
+        if ARGV[1]
+          directory = ARGV[1]
+          ARGV.shift; ARGV.shift
+        else
+          help("No directory name given")
+          break
+        end
+      when "-f" || "--file"
+        if ARGV[1]
+          config_file = File.expand_path(ARGV[1]).split("/")
+          ARGV.shift; ARGV.shift
+        else
+          help("No rawr configuration file name given")
+        end
+      end
+    end
+    
+    create_config_file(config_file)
+    create_main_file(directory, java_class)
+  when "package"
+  
+  else
+    help("Unknown command '#{ARGV[0]}'")
+  end
+end
