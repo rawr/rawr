@@ -194,7 +194,7 @@ else
     create_config_file(config_file)
     create_main_file(directory, java_class)
   when "package"
-  
+    
   else
     help("Unknown command '#{ARGV[0]}'")
   end
