@@ -4,45 +4,27 @@ rawr
 
 == DESCRIPTION:
   
-FIX (describe your package)
-
-== FEATURES/PROBLEMS:
-  
-* FIX (list of features or problems)
+Rawr is a packaging solution for JRuby applications. Rawr comes in two pieces, a
+rawr command that creates a Java "main" file in your application and a
+configuration file that will be used by Rawr to build the final jar and a rake
+file that you can include into your project to do the building of the project.
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  rawr install
+  rake rawr:jar
+  java -jar package/deploy/your_jar_file.jar
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* javac
+* jar
+* rake
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* sudo gem install rawr
 
 == LICENSE:
 
-(The MIT License)
-
-Copyright (c) 2007 FIX
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Rawr is released under the Ruby License.

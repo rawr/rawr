@@ -1,5 +1,4 @@
-== 1.0.0 / 2007-11-11
+== 0.1.0 / 2007-11-17
 
-* 1 major enhancement
-  * Birthday!
+* First release
 

@@ -3,5 +3,5 @@ Manifest.txt
 README.txt
 Rakefile
 bin/rawr
-lib/raketask.rb
+lib/rawr.rb
 test/test_rawr.rb
