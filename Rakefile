@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'hoe'
-require './lib/rawr.rb'
+require 'lib/rawr_version'
 
 Hoe.new('rawr', Rawr::VERSION) do |p|
   p.rubyforge_name = 'rawr'

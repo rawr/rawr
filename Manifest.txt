@@ -4,4 +4,5 @@ README.txt
 Rakefile
 bin/rawr
 lib/rawr.rb
+lib/rawr_version.rb
 test/test_rawr.rb

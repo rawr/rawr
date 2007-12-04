@@ -4,12 +4,15 @@
 # rawr packaage <build_configuration.yaml>
 
 require 'fileutils'
+require 'rubygems'
+require 'rawr_version'
 
 def help(message = nil)
   puts message + "\n-----------------------------------\n" unless message.nil?
   puts <<-ENDL
   Usage:
       rawr -h/--help
+      rawr -v/--version
       rawr command [options]
       
   Commands:
@@ -18,14 +21,13 @@ def help(message = nil)
         -c/--class: Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
         -f/--file: Name of the rawr configuration file, defaults to build_configuration.yaml
         
-        Installs a main class file into your project that can be used to run the project. Main class file reads from the configuration file that is also created to start the application.
+        Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
   ENDL
 end
 
 def create_config_file(config_file, java_class)
   if File.exist? config_file.join("/")
-    puts "Configuration file '#{config_file.join("/")}' exists, aborting"
-    exit
+    puts "Configuration file '#{config_file.join("/")}' exists, skipping"
   else
     puts "Creating rawr configuration file #{config_file.join("/")}"
     FileUtils.mkdir_p(config_file[0...-1].join("/"))
@@ -84,8 +86,7 @@ def create_main_file(directory, java_class)
   resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
   resolved_file = "#{resolved_dir}/#{java_class.last}.java"
   if File.exist? resolved_file
-    puts "Java class '#{resolved_file}' exists, aborting"
-    exit
+    puts "Java class '#{resolved_file}' exists, skipping"
   else
     puts "Creating Java class #{resolved_file}"
     FileUtils.mkdir_p(resolved_dir)
@@ -109,6 +110,7 @@ def create_main_file(directory, java_class)
         public static void main(String[] args) throws Exception
         {   
             Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0));
+            boolean use_defaults = false;
 
             //TODO: Read this via getResource so it works from within a jar file
             ArrayList<String> lines = new ArrayList<String>();
@@ -124,20 +126,16 @@ def create_main_file(directory, java_class)
             }
             catch(FileNotFoundException e)
             {
-                System.err.println("Error loading run configuration file 'run_configuration'");
+                System.err.println("Error loading run configuration file 'run_configuration', using configuration defaults");
+                use_defaults = true;
             }
 
-            if(3 == lines.size())
+            if(use_defaults)
             {
-                System.setProperty("java.library.path",lines.get(2));
-            }
-
-            if(2 <= lines.size())
-            {
-                runtime.evalScriptlet("require 'java'\\n" +
-                        "$: << '" + lines.get(0) + "'\\n" +
+                runtime.evalScriptlet("require 'java'\\n" + 
+                        "$: << 'src'\\n" +
                         "begin\\n" +
-                        "require '" + lines.get(0) + "/" + lines.get(1) + "'\\n" +
+                        "require 'src/main'\\n" +
                         "rescue LoadError => e\\n" +
                         "warn \\"Error starting the application\\"\\n" +
                         "warn e\\n" + 
@@ -146,7 +144,27 @@ def create_main_file(directory, java_class)
             }
             else
             {
-                System.err.println("Incorrect format for file 'run_configuration");
+                if(3 == lines.size())
+                {
+                    System.setProperty("java.library.path",lines.get(2));
+                }
+
+                if(2 <= lines.size())
+                {
+                    runtime.evalScriptlet("require 'java'\\n" +
+                            "$: << '" + lines.get(0) + "'\\n" +
+                            "begin\\n" +
+                            "require '" + lines.get(0) + "/" + lines.get(1) + "'\\n" +
+                            "rescue LoadError => e\\n" +
+                            "warn \\"Error starting the application\\"\\n" +
+                            "warn e\\n" + 
+                            "end"
+                            );
+                }
+                else
+                {
+                    System.err.println("Incorrect format for file 'run_configuration'");
+                }
             }
         }
     }
@@ -154,12 +172,25 @@ def create_main_file(directory, java_class)
   end
 end
 
+def create_rakefile
+  if File.exist? "Rakefile"
+    puts "Rakefile exists, skipping"
+  else
+    puts "Creating Rakefile"
+    f = File.new("Rakefile", "w+")
+    f << "require 'rawr'\n"
+  end
+end
+
+
 if ARGV.empty?
   help
 else
   case ARGV[0]
   when "-h" || "--help"
     help
+  when "-v" || "--version"
+    puts "Rawr version #{Rawr::VERSION}"
   when "install"
     directory = "src"
     java_class = %w{org rubyforge rawr Main}
@@ -196,6 +227,7 @@ else
     
     create_config_file(config_file, java_class)
     create_main_file(directory, java_class)
+    create_rakefile
   else
     help("Unknown command '#{ARGV[0]}'")
   end

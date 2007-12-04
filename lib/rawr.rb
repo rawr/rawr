@@ -1,7 +1,3 @@
-class Rawr
-  VERSION = "0.1.1"
-end
-
 require 'fileutils'
 
 namespace("rawr") do
@@ -26,7 +22,7 @@ namespace("rawr") do
     PACKAGE_DIR = "#{OUTPUT_DIR}/deploy"
 
     CLASSPATH_DIRS = (@config['classpath_dirs'] || []).map {|e| "#{BASE_DIR}/#{e}"}
-    CLASSPATH_FILES = @config['classpath_files']
+    CLASSPATH_FILES = @config['classpath_files'] || []
     NATIVE_LIBRARY_DIRS = (@config['native_library_dirs'] || []).map {|e| "#{BASE_DIR}/#{e}"}
     CLASSPATH = (CLASSPATH_DIRS.map{|cp| Dir.glob("#{cp}**/*.jar")} + CLASSPATH_FILES).flatten
 
