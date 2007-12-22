@@ -2,3 +2,10 @@
 
 * First release
 
+== 0.1.1 / 2007-12-4
+
+* Updated generated Main.java class to assume defaults if a run_configuration file cannot be found.
+
+== 0.1.2 / 2007-12-22
+
+* Updated rawr:jar task to no longer generate a standalone run_configuration file but to instead include the file inside the project jar file. The generated Main.java file now looks for the run_configuration using getResourceAsStream.

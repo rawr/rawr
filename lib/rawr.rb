@@ -17,7 +17,7 @@ namespace("rawr") do
     RUBY_SOURCE_DIR = "#{BASE_DIR}/#{@config['ruby_source_dir']}" || "#{BASE_DIR}/src"
     RUBY_SOURCE = @config['ruby_source_dir'] || "src"
 
-    OUTPUT_DIR = "#{BASE_DIR}/#{@config['output_dir']}" || "package"
+    OUTPUT_DIR = "#{BASE_DIR}/#{@config['output_dir']}" || "#{BASE_DIR}/package"
     BUILD_DIR = "#{OUTPUT_DIR}/bin"
     PACKAGE_DIR = "#{OUTPUT_DIR}/deploy"
 
@@ -65,9 +65,9 @@ namespace("rawr") do
     run_configuration << MAIN_RUBY_FILE + "\n"
     run_configuration << NATIVE_LIBRARY_DIRS.map{|dir| dir.gsub(BASE_DIR + '/', '')}.join(" ")
     run_configuration.close
-
+    
     #add in any data directories into the jar
-    jar_command = "jar cfM #{PACKAGE_DIR}/#{PROJECT_NAME}.jar -C #{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]} #{RUBY_SOURCE} -C #{BUILD_DIR} ."
+    jar_command = "jar cfM #{PACKAGE_DIR}/#{PROJECT_NAME}.jar -C #{PACKAGE_DIR} run_configuration -C #{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]} #{RUBY_SOURCE} -C #{BUILD_DIR} ."
     JAR_DATA_DIRS.each do |dir|
       parts = dir.split("/")
       if 1 == parts.size
@@ -77,7 +77,7 @@ namespace("rawr") do
       end
     end
     sh jar_command
-
+    File.delete("#{PACKAGE_DIR}/run_configuration")
     ((CLASSPATH_DIRS + NATIVE_LIBRARY_DIRS + PACKAGE_DATA_DIRS).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(BASE_DIR + '/', '')}} + CLASSPATH_FILES).flatten.uniq.each do |file|
        FileUtils.mkdir_p("#{PACKAGE_DIR}/#{File.dirname(file).gsub(BASE_DIR + '/', '')}")
        File.copy(file, "#{PACKAGE_DIR}/#{file.gsub(BASE_DIR + '/', '')}") unless File.directory?(file)
