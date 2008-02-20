@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'yaml'
 
 namespace("rawr") do
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
