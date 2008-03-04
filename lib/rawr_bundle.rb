@@ -95,7 +95,7 @@ include FileUtils
   <errTitle></errTitle>
   <jarArgs></jarArgs>
   <chdir></chdir>
-  <customProcName>false</customProcName>
+  <customProcName>true</customProcName>
   <stayAlive>false</stayAlive>
   <icon></icon>
   <jre>
