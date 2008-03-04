@@ -1,5 +1,7 @@
 require 'fileutils'
 require 'yaml'
+require 'rawr_bundle'
+
 
 namespace("rawr") do
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
@@ -25,7 +27,7 @@ namespace("rawr") do
     CLASSPATH_DIRS = (@config['classpath_dirs'] || []).map {|e| "#{BASE_DIR}/#{e}"}
     CLASSPATH_FILES = @config['classpath_files'] || []
     NATIVE_LIBRARY_DIRS = (@config['native_library_dirs'] || []).map {|e| "#{BASE_DIR}/#{e}"}
-    CLASSPATH = (CLASSPATH_DIRS.map{|cp| Dir.glob("#{cp}**/*.jar")} + CLASSPATH_FILES).flatten
+    CLASSPATH = (CLASSPATH_DIRS.map{|cp| Dir.glob("#{cp}**/*.jar")} + CLASSPATH_FILES + ["#{PROJECT_NAME}.jar"]).flatten
 
     MAIN_RUBY_FILE = @config['main_ruby_file'] || "main"
     MAIN_JAVA_FILE = @config['main_java_file'] || "org.rubyforge.rawr.Main"
