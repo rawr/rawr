@@ -83,7 +83,7 @@ namespace("rawr") do
     File.delete("#{PACKAGE_DIR}/run_configuration")
     ((CLASSPATH_DIRS + NATIVE_LIBRARY_DIRS + PACKAGE_DATA_DIRS).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(BASE_DIR + '/', '')}} + CLASSPATH_FILES).flatten.uniq.each do |file|
        FileUtils.mkdir_p("#{PACKAGE_DIR}/#{File.dirname(file).gsub(BASE_DIR + '/', '')}")
-       File.copy(file, "#{PACKAGE_DIR}/#{file.gsub(BASE_DIR + '/', '')}") unless File.directory?(file)
+       FileUtils.copy(file, "#{PACKAGE_DIR}/#{file.gsub(BASE_DIR + '/', '')}") unless File.directory?(file)
     end
   end
 end
