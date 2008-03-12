@@ -18,7 +18,9 @@ namespace("rawr") do
 
     JAVA_SOURCE_DIR = "#{BASE_DIR}/#{@config['java_source_dir']}" || "#{BASE_DIR}/src"
     RUBY_SOURCE_DIR = "#{BASE_DIR}/#{@config['ruby_source_dir']}" || "#{BASE_DIR}/src"
+    RUBY_LIBRARY_DIR = "#{BASE_DIR}/#{@config['ruby_library_dir']}" || "#{BASE_DIR}/lib"
     RUBY_SOURCE = @config['ruby_source_dir'] || "src"
+    RUBY_LIBRARY = @config['ruby_library_dir'] || "lib"
 
     OUTPUT_DIR = "#{BASE_DIR}/#{@config['output_dir']}" || "#{BASE_DIR}/package"
     BUILD_DIR = "#{OUTPUT_DIR}/bin"
@@ -70,7 +72,7 @@ namespace("rawr") do
     run_configuration.close
     
     #add in any data directories into the jar
-    jar_command = "jar cfM #{PACKAGE_DIR}/#{PROJECT_NAME}.jar -C #{PACKAGE_DIR}  run_configuration -C #{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]} #{RUBY_SOURCE} -C #{BUILD_DIR} ."
+    jar_command = "jar cfM #{PACKAGE_DIR}/#{PROJECT_NAME}.jar -C #{PACKAGE_DIR} run_configuration -C #{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]} #{RUBY_SOURCE} -C #{RUBY_LIBRARY_DIR[0...RUBY_LIBRARY_DIR.index(RUBY_LIBRARY)-1]}  #{RUBY_LIBRARY} -C #{BUILD_DIR} ."
     JAR_DATA_DIRS.each do |dir|
       parts = dir.split("/")
       if 1 == parts.size

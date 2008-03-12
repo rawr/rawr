@@ -122,22 +122,24 @@ CONFIG_ENDL
     WEB_START_CONFIG_FILE = "#{PROJECT_NAME}.jnlp"
     unless File.exists? WEB_START_CONFIG_FILE
       File.open(WEB_START_CONFIG_FILE, 'w') do |file|
+        # WARNING: all-permissions needed for security with JRuby!!!!
         file << <<-CONFIG_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
 <jnlp spec="1.0+" codebase="file:///c:/jdc/jnlp/">
 <information>
   <title>#{PROJECT_NAME}</title>
   <vendor>Java Developer Connection</vendor>
-  <homepage href="/__YOUR___HOMEPAGE__HREF___/#{PROJECT_NAME}" />
+  <homepage href="." />
   <description></description>
 </information>
 <offline-allowed/>
 <security>
-  <j2ee-application-client-permissions/>
+  <all-permissions/>
 </security>
 <resources>
   <j2se version="1.5+"/>
-  <jar href="/__YOUR__JAR__HREF__/#{PROJECT_NAME}.jar"/>
+  <jar href="#{PROJECT_NAME}.jar"/>
+  #{classpath_jnlp_jars}
 </resources>
 <application-desc main-class="#{MAIN_JAVA_FILE}" />
 </jnlp>
@@ -145,10 +147,16 @@ CONFIG_ENDL
       end
     end
     copy_deployment_to WEB_PATH
-    cp WEB_START_CONFIG_FILE, WEB_PATH
+    cp WEB_START_CONFIG_FILE, WEB_PATH, :verbose => true
+    sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{PROJECT_NAME}.jar myself"
+    CLASSPATH_FILES.each {|jar| sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{jar} myself"}
+    
   end
 end
 
+def classpath_jnlp_jars
+  CLASSPATH_FILES.map {|jar| "<jar href=\"#{jar}\"/>"}.join("\n")
+end
 
 def copy_deployment_to(destination_path)
   mkdir destination_path unless File.exists? destination_path
