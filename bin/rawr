@@ -49,6 +49,9 @@ def create_config_file(config_file, java_class)
       # Location of Ruby source files
       ruby_source_dir: src
 
+      # Location of Ruby library files
+      ruby_library_dir: lib
+
       # Location of Java source files
       java_source_dir: src
 
