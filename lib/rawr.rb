@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'yaml'
 require 'rawr_bundle'
-
+require 'rbconfig'
 
 namespace("rawr") do
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
@@ -51,10 +51,11 @@ namespace("rawr") do
 
   desc "Compiles all the Java source files in the directory declared in the build_configuration.yaml file. Also generates a manifest file for use in a jar file"
   task :compile => "rawr:prepare" do
-    delimiter = RUBY_PLATFORM =~ /mswin/ ? ';' : ':'
+    
+    delimiter = Config::CONFIG["host_os"] =~ /win/i ? ';' : ':'
     Dir.mkdir(BUILD_DIR + "/META-INF") unless File.directory?(BUILD_DIR + "/META-INF")
     Dir.glob("#{JAVA_SOURCE_DIR}/**/*.java").each do |file|
-      sh "javac -cp \"#{CLASSPATH.join(delimiter)}\" -sourcepath #{JAVA_SOURCE_DIR} -d #{BUILD_DIR} #{file}"
+      sh "javac -cp \"#{CLASSPATH.join(delimiter)}\" -sourcepath \"#{JAVA_SOURCE_DIR}\" -d \"#{BUILD_DIR}\" \"#{file}\""
       f = File.new("#{BUILD_DIR}/META-INF/MANIFEST.MF", "w+")
       f << "Manifest-Version: 1.0\n"
       f << "Class-Path: " << CLASSPATH.map{|file| file.gsub(BASE_DIR + '/', '')}.join(" ") << " . \n"
@@ -72,7 +73,7 @@ namespace("rawr") do
     run_configuration.close
     
     #add in any data directories into the jar
-    jar_command = "jar cfM #{PACKAGE_DIR}/#{PROJECT_NAME}.jar -C #{PACKAGE_DIR} run_configuration -C #{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]} #{RUBY_SOURCE} -C #{RUBY_LIBRARY_DIR[0...RUBY_LIBRARY_DIR.index(RUBY_LIBRARY)-1]}  #{RUBY_LIBRARY} -C #{BUILD_DIR} ."
+    jar_command = "jar cfM \"#{PACKAGE_DIR}/#{PROJECT_NAME}.jar\" -C \"#{PACKAGE_DIR}\" run_configuration -C \"#{RUBY_SOURCE_DIR[0...RUBY_SOURCE_DIR.index(RUBY_SOURCE)-1]}\" \"#{RUBY_SOURCE}\" -C \"#{RUBY_LIBRARY_DIR[0...RUBY_LIBRARY_DIR.index(RUBY_LIBRARY)-1]}\" \"#{RUBY_LIBRARY}\" -C \"#{BUILD_DIR}\" ."
     JAR_DATA_DIRS.each do |dir|
       parts = dir.split("/")
       if 1 == parts.size
