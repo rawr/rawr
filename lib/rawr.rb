@@ -77,9 +77,9 @@ namespace("rawr") do
     JAR_DATA_DIRS.each do |dir|
       parts = dir.split("/")
       if 1 == parts.size
-        jar_command << " -C #{BASE_DIR} #{parts[0]}"
+        jar_command << " -C \"#{BASE_DIR}\" \"#{parts[0]}\""
       else
-        jar_command << " -C #{parts[0...-1].join("/")} #{parts[-1]}"      
+        jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
       end
     end
     sh jar_command
