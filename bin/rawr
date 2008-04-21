@@ -237,7 +237,7 @@ def handle_existing_rakefile
 
   while choice.to_s.strip !~ /[123]/
     print "\nYour choice (1,2, or 3): "
-    choice = gets.to_s.strip
+    choice = gets.to_s.strip[0..0]
   end
   puts "You choose #{choice}!"
   send options[choice].last
