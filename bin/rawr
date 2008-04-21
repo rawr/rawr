@@ -199,11 +199,17 @@ end
 
 def prepend_to_current_rakefile
   puts "rawr will now prepend new rawr task content to your current Rakefile ..."
+  current = IO.read( 'Rakefile')
+  File.open("Rakefile", "w"){ |f|
+    f.puts "require 'rawr'\n"
+    f.puts( current )
+  }
+
 end
 
 def replace_with_new_rakefile
-    puts "rawr will now replace your current Rakefile with a new one ..."
-create_new_rakefile
+  puts "rawr will now replace your current Rakefile with a new one ..."
+  create_new_rakefile
 end
 
 def create_new_rakefile
@@ -211,8 +217,6 @@ def create_new_rakefile
   File.open("Rakefile", "w"){ |f|
     f.puts "require 'rawr'\n"
   }
-
-
 
 end
 
