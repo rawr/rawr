@@ -1,4 +1,4 @@
-#! /usr/bin/env ruby
+#!/usr/bin/env jruby
 
 # rawr package -f config_file
 # rawr packaage <build_configuration.yaml>
