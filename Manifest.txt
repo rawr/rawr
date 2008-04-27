@@ -8,4 +8,8 @@ lib/rawr_bundle.rb
 lib/rawr_version.rb
 lib/app_bundler.rb
 lib/bundler.rb
-test/test_rawr.rb
+lib/platform.rb
+data/GenericJavaApp.icns
+data/JavaApplicationStub
+test/unit/app_bundler_spec.rb
+test/unit/platform_spec.rb
