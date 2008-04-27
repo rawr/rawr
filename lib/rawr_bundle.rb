@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'app_bundler'
 
 include FileUtils
 
@@ -6,72 +7,7 @@ namespace :"rawr:bundle" do
 
   desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
   task :app => [:"rawr:jar"] do
-    mkdir_p "#{OUTPUT_DIR}/native_deploy"
-    MAC_PATH = "#{OUTPUT_DIR}/native_deploy/mac"
-    `rm -rf #{MAC_PATH}` if File.exists? MAC_PATH
-    mkdir_p MAC_PATH
-
-    PROJECT_PATH = "#{MAC_PATH}/#{PROJECT_NAME}.app"
-    mkdir_p PROJECT_PATH
-    mkdir_p "#{PROJECT_PATH}/Contents"
-    mkdir_p "#{PROJECT_PATH}/Contents/MacOS"
-    mkdir_p "#{PROJECT_PATH}/Contents/Resources"
-    JAVA_APP_DEPLOY_PATH = "#{PROJECT_PATH}/Contents/Resources/Java"
-    copy_deployment_to JAVA_APP_DEPLOY_PATH
-
-    File.open "#{PROJECT_PATH}/Contents/Info.plist", "w" do |file|
-      file << <<-ENDL
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
-<plist version="0.9">
-<dict>
-        <key>CFBundleName</key>
-        <string>#{PROJECT_NAME}</string>
-        <key>CFBundleVersion</key>
-        <string>100.0</string>
-        <key>CFBundleAllowMixedLocalizations</key>
-        <string>true</string>
-        <key>CFBundleExecutable</key>
-        <string>JavaApplicationStub</string>
-        <key>CFBundleDevelopmentRegion</key>
-        <string>English</string>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleSignature</key>
-        <string>????</string>
-        <key>CFBundleInfoDictionaryVersion</key>
-        <string>6.0</string>
-        <key>CFBundleIconFile</key>
-        <string>GenericJavaApp.icns</string>
-        <key>Java</key>
-        <dict>
-                <key>MainClass</key>
-                <string>org.rubyforge.rawr.Main</string>
-                <key>JVMVersion</key>
-                <string>1.5*</string>
-                <key>ClassPath</key>
-                        <array>
-                          #{
-                            CLASSPATH.map {|jar| "<string>$JAVAROOT/#{File.basename(jar)}</string>"}.join("\n")
-                           }
-                        </array>
-                <key>Properties</key>
-                <dict>
-                        <key>apple.laf.useScreenMenuBar</key>
-                        <string>true</string>
-                </dict>
-        </dict>
-</dict>
-</plist>
-ENDL
-    end
-
-    File.open "#{PROJECT_PATH}/Contents/PkgInfo", "w" do |file|
-      file << "APPL????"
-    end
-
-    cp "#{File.dirname(__FILE__)}/GenericJavaApp.icns", "#{PROJECT_PATH}/Contents/Resources"
-    cp "#{File.dirname(__FILE__)}/JavaApplicationStub", "#{PROJECT_PATH}/Contents/MacOS"
+    AppBundler.new.deploy
   end
 
   desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
@@ -125,32 +61,38 @@ CONFIG_ENDL
         # WARNING: all-permissions needed for security with JRuby!!!!
         file << <<-CONFIG_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="file:///c:/jdc/jnlp/">
+<jnlp spec="1.0+" codebase="WEB_PAGE" href="#{PROJECT_NAME}.jnlp">
 <information>
   <title>#{PROJECT_NAME}</title>
-  <vendor>Java Developer Connection</vendor>
+  <vendor></vendor>
   <homepage href="." />
   <description></description>
 </information>
+
 <offline-allowed/>
+
 <security>
   <all-permissions/>
 </security>
+
 <resources>
-  <j2se version="1.5+"/>
+  <j2se version="1.6"/>
+  <j2se version="1.5"/>
   <jar href="#{PROJECT_NAME}.jar"/>
   #{classpath_jnlp_jars}
 </resources>
+
 <application-desc main-class="#{MAIN_JAVA_FILE}" />
 </jnlp>
 CONFIG_ENDL
       end
     end
+    
     copy_deployment_to WEB_PATH
     cp WEB_START_CONFIG_FILE, WEB_PATH, :verbose => true
+    
     sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{PROJECT_NAME}.jar myself"
     CLASSPATH_FILES.each {|jar| sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{jar} myself"}
-    
   end
 end
 
@@ -158,11 +100,4 @@ def classpath_jnlp_jars
   CLASSPATH_FILES.map {|jar| "<jar href=\"#{jar}\"/>"}.join("\n")
 end
 
-def copy_deployment_to(destination_path)
-  mkdir destination_path unless File.exists? destination_path
-  relative_package_dir = PACKAGE_DIR.gsub("#{BASE_DIR}/", '')
-  (Dir.glob("#{PACKAGE_DIR}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(BASE_DIR + '/', '')} + CLASSPATH_FILES).flatten.uniq.each do |file|
-     FileUtils.mkdir_p("#{destination_path}/#{File.dirname(file).gsub(relative_package_dir, '')}")
-     FileUtils.copy(file, "#{destination_path}/#{file.gsub(relative_package_dir, '')}") unless File.directory?(file)
-  end
-end
+

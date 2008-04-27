@@ -6,4 +6,6 @@ bin/rawr
 lib/rawr.rb
 lib/rawr_bundle.rb
 lib/rawr_version.rb
+lib/app_bundler.rb
+lib/bundler.rb
 test/test_rawr.rb

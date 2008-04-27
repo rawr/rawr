@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'hoe'
 require 'lib/rawr_version'
+require 'spec/rake/spectask'
 
 Hoe.new('rawr', Rawr::VERSION) do |p|
   p.rubyforge_name = 'rawr'
@@ -15,3 +16,13 @@ Hoe.new('rawr', Rawr::VERSION) do |p|
 end
 
 # vim: syntax=Ruby
+
+namespace :test do
+  desc "Run all spec tests"
+  Spec::Rake::SpecTask.new(:unit) do |t|
+    t.libs << ["lib", "bin", 'test/unit']
+    t.pattern = 'test/unit/*_spec.rb'
+    #t.spec_opts = ["-f s"]
+    t.spec_opts = ['--color']
+  end
+end
