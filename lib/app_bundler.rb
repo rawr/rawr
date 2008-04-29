@@ -2,40 +2,47 @@ require 'fileutils'
 require 'bundler'
 
 module Rawr
-  MAC_PATH = "#{OUTPUT_DIR}/native_deploy/mac"
-  MAC_APP_PATH = "#{MAC_PATH}/#{PROJECT_NAME}.app"
-  JAVA_APP_DEPLOY_PATH = "#{MAC_APP_PATH}/Contents/Resources/Java"
-  
   class AppBundler < Bundler  
     include FileUtils
 
-    def deploy
-      create_clean_deployment_directory_structure
-      copy_deployment_to JAVA_APP_DEPLOY_PATH
+    def deploy(options)
+      @project_name = options[:project_name]
+      @output_dir = options[:output_dir]
+      @classpath = options[:classpath]
+      @package_dir = options[:package_dir]
+      @classpath = options[:classpath]
+      @base_dir = options[:base_dir]
+      
+      @mac_path = "#{@output_dir}/native_deploy/mac"
+      @mac_app_path = "#{@mac_path}/#{@project_name}.app"
+      @java_app_deploy_path = "#{@mac_app_path}/Contents/Resources/Java"
+      
+      create_clean_deployment_directory_structure(@output_dir, @mac_path, @mac_app_path)
+      copy_deployment_to @java_app_deploy_path
       generate_info_plist
       generate_pkg_info
       deploy_artwork
       deploy_app_stub
     end
 
-    def create_clean_deployment_directory_structure
-      mkdir_p "#{OUTPUT_DIR}/native_deploy"
+    def create_clean_deployment_directory_structure(output_dir, mac_path, mac_app_path)
+      mkdir_p "#{output_dir}/native_deploy"
 
-      rm_rf MAC_PATH if File.exists? MAC_PATH
+      rm_rf mac_path if File.exists? mac_path
 
-      mkdir_p MAC_PATH
-      mkdir_p MAC_APP_PATH
-      mkdir_p "#{MAC_APP_PATH}/Contents"
-      mkdir_p "#{MAC_APP_PATH}/Contents/MacOS"
-      mkdir_p "#{MAC_APP_PATH}/Contents/Resources"
+      mkdir_p mac_path
+      mkdir_p mac_app_path
+      mkdir_p "#{mac_app_path}/Contents"
+      mkdir_p "#{mac_app_path}/Contents/MacOS"
+      mkdir_p "#{mac_app_path}/Contents/Resources"
     end
 
     def deploy_artwork
-      cp "#{File.expand_path(File.dirname(__FILE__))}/../data/GenericJavaApp.icns", "#{MAC_APP_PATH}/Contents/Resources"
+      cp "#{File.expand_path(File.dirname(__FILE__))}/../data/GenericJavaApp.icns", "#{@mac_app_path}/Contents/Resources"
     end
     
     def deploy_app_stub
-      stub_destination = "#{MAC_APP_PATH}/Contents/MacOS"
+      stub_destination = "#{@mac_app_path}/Contents/MacOS"
       stub_file = "JavaApplicationStub"
       
       cp "#{File.expand_path(File.dirname(__FILE__))}/../data/#{stub_file}", stub_destination
@@ -43,20 +50,20 @@ module Rawr
     end
 
     def generate_pkg_info
-      File.open "#{MAC_APP_PATH}/Contents/PkgInfo", "w" do |file|
+      File.open "#{@mac_app_path}/Contents/PkgInfo", "w" do |file|
         file << "APPL????"
       end
     end
 
     def generate_info_plist
-      File.open "#{MAC_APP_PATH}/Contents/Info.plist", 'w' do |file|
+      File.open "#{@mac_app_path}/Contents/Info.plist", 'w' do |file|
         file << <<-INFO_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
         <key>CFBundleName</key>
-        <string>#{PROJECT_NAME}</string>
+        <string>#{@project_name}</string>
         <key>CFBundleVersion</key>
         <string>100.0</string>
         <key>CFBundleAllowMixedLocalizations</key>
@@ -81,9 +88,9 @@ module Rawr
                 <string>1.5*</string>
                 <key>ClassPath</key>
                         <array>
-                            <string>$JAVAROOT/#{PROJECT_NAME}.jar</string>
+                            <string>$JAVAROOT/#{@project_name}.jar</string>
                           #{
-                            #CLASSPATH.uniq.map {|jar| "<string>$JAVAROOT/#{CLASSPATH_DIR}/#{File.basename(jar)}</string>"}.join("\n")
+                            #CLASSPATH.uniq.map {|jar| "<string>$JAVAROOT/#{@classpath}/#{File.basename(jar)}</string>"}.join("\n")
                            }
                         </array>
                 <key>Properties</key>

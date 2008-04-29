@@ -7,7 +7,7 @@ namespace :"rawr:bundle" do
   desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
   task :app => [:"rawr:jar"] do
     require 'app_bundler'
-    Rawr::AppBundler.new.deploy
+    Rawr::AppBundler.new.deploy Rawr::Options.instance
   end
 
   desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
