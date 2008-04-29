@@ -99,14 +99,9 @@ def create_main_file(directory, java_class)
 package #{resolved_package};
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.net.URL;
 
 
 import java.util.ArrayList;
@@ -122,13 +117,12 @@ import org.jruby.javasupport.JavaEmbedUtils;
     String config_yaml = "";
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
-       if (ins == null ) {
-          System.err.println( "InputStream ins is null!");
+      if (ins == null ) {
+        System.err.println( "InputStream ins is null!");
       }
-    else {
-
-      config_yaml = grabConfigFileContents(ins);
-    }
+      else {
+        config_yaml = grabConfigFileContents(ins);
+      }
     }
     catch(IOException e)
     {
@@ -156,10 +150,14 @@ import org.jruby.javasupport.JavaEmbedUtils;
       "    require 'src/main'\\n" + 
       "  rescue LoadError => e\\n" + 
       "    warn 'Error starting the application'\\n" + 
-      "    warn e\\n" + 
+      "    warn \"#\{e}\\n#\{e.backtrace.join(\"\\n\")}\"\\n" + 
       "  end\\n" + 
       "end\\n";
     runtime.evalScriptlet( bootRuby );
+  }
+
+  public static URL getResource(String path) {
+    return Main.class.getClassLoader().getResource(path);
   }
 
   private static String grabConfigFileContents(InputStream input) 
