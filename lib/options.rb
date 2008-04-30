@@ -62,6 +62,7 @@ module Rawr
     
     def load_jars_options(config_hash)
       @options ||= {}
+      @options[:classpath] ||= []
       @options[:jars] = {}
       jars_hash = config_hash['jars'] || {}
       jars_hash.each do |name, jar_options|
@@ -77,6 +78,7 @@ module Rawr
         jar_builder.globs = jar_globs
         
         @options[:jars][name] = jar_builder
+        @options[:classpath] << jar_builder.name
       end
     end
   end

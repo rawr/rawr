@@ -67,5 +67,10 @@ namespace("rawr") do
        FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
        FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
     end
+    
+    Rawr::Options[:jars].values.each do |jar_builder|
+      puts "========================== Packaging #{jar_builder.name} ==============================="
+      jar_builder.build
+    end
   end
 end
