@@ -10,7 +10,9 @@ lib/app_bundler.rb
 lib/bundler.rb
 lib/platform.rb
 lib/options.rb
+lib/jar_builder.rb
 data/GenericJavaApp.icns
 data/JavaApplicationStub
 test/unit/app_bundler_spec.rb
 test/unit/platform_spec.rb
+test/unit/options_spec.rb

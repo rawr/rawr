@@ -1,4 +1,6 @@
 require 'yaml'
+require 'singleton'
+require 'jar_builder'
 
 module Rawr
   class Options
@@ -34,11 +36,11 @@ module Rawr
       
       load_ruby_options(@config)
       load_java_options(@config)
-
-        
+      load_jars_options(@config)
     end
     
     def load_ruby_options(config_hash)
+      @options ||= {}
       @options[:ruby_source_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_source_dir']}" || "#{@options[:base_dir]}/src"
       @options[:ruby_library_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_library_dir']}" || "#{@options[:base_dir]}/lib"
       @options[:ruby_source] = config_hash['ruby_source_dir'] || "src"
@@ -47,6 +49,7 @@ module Rawr
     end
     
     def load_java_options(config_hash)
+      @options ||= {}
       @options[:main_java_file] = config_hash['main_java_file'] || "org.rubyforge.rawr.Main"
       @options[:java_source_dir] = "#{@options[:base_dir]}/#{config_hash['java_source_dir']}" || "#{@options[:base_dir]}/src"
       @options[:classpath_dirs] = (config_hash['classpath_dirs'] || []).map {|e| "#{@options[:base_dir]}/#{e}"}
@@ -55,6 +58,26 @@ module Rawr
       @options[:native_library_dirs] = (config_hash['native_library_dirs'] || []).map {|e| "#{@options[:base_dir]}/#{e}"}
       @options[:jar_data_dirs] = config_hash['jar_data_dirs'] || []
       @options[:package_data_dirs] = config_hash['package_data_dirs'] || []
+    end
+    
+    def load_jars_options(config_hash)
+      @options ||= {}
+      @options[:jars] = {}
+      jars_hash = config_hash['jars'] || {}
+      jars_hash.each do |name, jar_options|
+        jar_dir = jar_options['dir'] || '/'
+        jar_dirs = [jar_dir] unless jar_dir.kind_of? Array
+        
+        jar_glob = jar_options['glob'] || '**/*'
+        jar_globs = [jar_glob] unless jar_glob.kind_of? Array
+        
+        jar_builder = JarBuilder.new
+        jar_builder.name = name
+        jar_builder.dirs = jar_dirs
+        jar_builder.globs = jar_globs
+        
+        @options[:jars][name] = jar_builder
+      end
     end
   end
 end

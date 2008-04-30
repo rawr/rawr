@@ -34,52 +34,52 @@ def create_config_file(config_file, java_class)
 
     f = File.new(config_file.join("/"), "w+")
     f << <<-ENDL
-      # Name of the created jar file
-      project_name: change_me
+# Name of the created jar file
+project_name: change_me
 
-      # Directory to create and place produced project files in
-      output_dir: package
+# Directory to create and place produced project files in
+output_dir: package
 
-      # File to set as main-class in jar manifest
-      main_java_file: #{java_class.join(".")}
+# File to set as main-class in jar manifest
+main_java_file: #{java_class.join(".")}
 
-      # Ruby file to invoke when jar is started
-      main_ruby_file: main
+# Ruby file to invoke when jar is started
+main_ruby_file: main
 
-      # Location of Ruby source files
-      ruby_source_dir: src
+# Location of Ruby source files
+ruby_source_dir: src
 
-      # Location of Ruby library files
-      ruby_library_dir: lib
+# Location of Ruby library files
+ruby_library_dir: lib
 
-      # Location of Java source files
-      java_source_dir: src
+# Location of Java source files
+java_source_dir: src
 
-      # Directories that should have ALL their .jar contents loaded on the classpath
-      # If you wish to only include specific jars from a directory use classpath_files
-      classpath_dirs:
-         - lib
+# Directories that should have ALL their .jar contents loaded on the classpath
+# If you wish to only include specific jars from a directory use classpath_files
+classpath_dirs:
+   - lib
 
-      # Individual files that should be loaded on the classpath
-      #classpath_files:
-      #    - lib/jruby-complete.jar
-      #    - lib/swing-layout-1.0.2.jar
+# Individual files that should be loaded on the classpath
+#classpath_files:
+#    - lib/jruby-complete.jar
+#    - lib/swing-layout-1.0.2.jar
 
-      # Directory that should be loaded onto the java.library.path 
-      #native_library_dirs:
-      #    - lib/native
+# Directory that should be loaded onto the java.library.path 
+#native_library_dirs:
+#    - lib/native
 
-      # Directories which you want the coentents of to be copied to the output directory
-      package_data_dirs:
-          - lib
+# Directories which you want the coentents of to be copied to the output directory
+package_data_dirs:
+    - lib
 
-      # Directories to be added into the jar
-      #jar_data_dirs:
-      #    - data
+# Directories to be added into the jar
+#jar_data_dirs:
+#    - data
 
-      # NOT YET IMPLEMENTED
-      #pre_processing_task:
-      #post_processing_task:
+# NOT YET IMPLEMENTED
+#pre_processing_task:
+#post_processing_task:
     ENDL
   end
 end
