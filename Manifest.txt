@@ -16,3 +16,4 @@ data/JavaApplicationStub
 test/unit/app_bundler_spec.rb
 test/unit/platform_spec.rb
 test/unit/options_spec.rb
+test/unit/jar_builder_spec.rb

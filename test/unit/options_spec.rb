@@ -12,5 +12,4 @@ describe Rawr::Options do
     Rawr::Options.instance.load_jars_options(jars_hash)
     Rawr::Options[:classpath].should include("test.jar")
   end
-  
 end
