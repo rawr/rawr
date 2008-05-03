@@ -121,7 +121,7 @@ main_ruby_file: main
 ruby_source_dir: src
 
 # Location of Ruby library files
-ruby_library_dir: lib
+ruby_library_dir: lib/ruby
 
 # Location of Java source files
 java_source_dir: src
@@ -129,20 +129,20 @@ java_source_dir: src
 # Directories that should have ALL their .jar contents loaded on the classpath
 # If you wish to only include specific jars from a directory use classpath_files
 classpath_dirs:
-   - lib
+   - lib/java
 
 # Individual files that should be loaded on the classpath
 #classpath_files:
-#    - lib/jruby-complete.jar
-#    - lib/swing-layout-1.0.2.jar
+#    - lib/java/jruby-complete.jar
+#    - lib/java/swing-layout-1.0.2.jar
 
 # Directory that should be loaded onto the java.library.path 
 #native_library_dirs:
-#    - lib/native
+#    - lib/java/native
 
 # Directories which you want the coentents of to be copied to the output directory
-package_data_dirs:
-    - lib
+#package_data_dirs:
+#    - lib
 
 # Directories to be added into the jar
 #jar_data_dirs:
