@@ -12,58 +12,23 @@ namespace :"rawr:bundle" do
 
   desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
   task :exe => [:"rawr:jar"] do
-    LAUNCH_4_J_CONFIG_FILE = "windows-exe.xml"
-    mkdir_p "#{OUTPUT_DIR}/native_deploy"
-    WINDOWS_PATH = "#{OUTPUT_DIR}/native_deploy/windows" 
-
-    copy_deployment_to WINDOWS_PATH
-
-
-    unless File.exists? LAUNCH_4_J_CONFIG_FILE
-      File.open(LAUNCH_4_J_CONFIG_FILE, 'w') do |file|
-        file << <<-CONFIG_ENDL
-<launch4jConfig>
-<dontWrapJar>true</dontWrapJar>
-<headerType>0</headerType>
-<jar>#{WINDOWS_PATH}/#{PROJECT_NAME}.jar</jar>
-<outfile>#{WINDOWS_PATH}/#{PROJECT_NAME}.exe</outfile>
-<errTitle></errTitle>
-<jarArgs></jarArgs>
-<chdir></chdir>
-<customProcName>true</customProcName>
-<stayAlive>false</stayAlive>
-<icon></icon>
-<jre>
-  <path></path>
-  <minVersion>1.5.0</minVersion>
-  <maxVersion></maxVersion>
-  <initialHeapSize>0</initialHeapSize>
-  <maxHeapSize>0</maxHeapSize>
-  <args></args>
-</jre>
-</launch4jConfig>          
-CONFIG_ENDL
-      end
-    end
-
-    sh "java -jar #{File.dirname(__FILE__)}/launch4j/launch4j.jar #{LAUNCH_4_J_CONFIG_FILE}"
-    puts "moving exe to correct directory"
-    mv("#{PROJECT_NAME}.exe", WINDOWS_PATH)
+    require 'exe_bundler'
+    Rawr::ExeBundler.new.deploy Rawr::Options.instance
   end
   
   desc "Bundles the jar from rawr:jar into a Java Web Start application (.jnlp)"
   task :web => [:"rawr:jar"] do
-    WEB_PATH = "#{OUTPUT_DIR}/native_deploy/web"
-    mkdir_p WEB_PATH
-    WEB_START_CONFIG_FILE = "#{PROJECT_NAME}.jnlp"
-    unless File.exists? WEB_START_CONFIG_FILE
-      File.open(WEB_START_CONFIG_FILE, 'w') do |file|
+    web_path = "#{Rawr::Options[:output_dir]}/native_deploy/web"
+    mkdir_p web_path
+    web_start_config_file = "#{Rawr::Options[:project_name]}.jnlp"
+    unless File.exists? web_start_config_file
+      File.open(web_start_config_file, 'w') do |file|
         # WARNING: all-permissions needed for security with JRuby!!!!
         file << <<-CONFIG_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="WEB_PAGE" href="#{PROJECT_NAME}.jnlp">
+<jnlp spec="1.0+" codebase="WEB_PAGE" href="#{Rawr::Options[:project_name]}.jnlp">
 <information>
-  <title>#{PROJECT_NAME}</title>
+  <title>#{Rawr::Options[:project_name]}</title>
   <vendor></vendor>
   <homepage href="." />
   <description></description>
@@ -78,26 +43,26 @@ CONFIG_ENDL
 <resources>
   <j2se version="1.6"/>
   <j2se version="1.5"/>
-  <jar href="#{PROJECT_NAME}.jar"/>
+  <jar href="#{Rawr::Options[:project_name]}.jar"/>
   #{classpath_jnlp_jars}
 </resources>
 
-<application-desc main-class="#{MAIN_JAVA_FILE}" />
+<application-desc main-class="#{Rawr::Options[:main_java_file]}" />
 </jnlp>
 CONFIG_ENDL
       end
     end
     
-    copy_deployment_to WEB_PATH
-    cp WEB_START_CONFIG_FILE, WEB_PATH, :verbose => true
+    copy_deployment_to web_path
+    cp web_start_config_file, web_path, :verbose => true
     
-    sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{PROJECT_NAME}.jar myself"
-    CLASSPATH_FILES.each {|jar| sh "jarsigner -keystore sample-keys #{WEB_PATH}/#{jar} myself"}
+    sh "jarsigner -keystore sample-keys #{web_path}/#{Rawr::Options[:project_name]}.jar myself"
+    CLASSPATH_FILES.each {|jar| sh "jarsigner -keystore sample-keys #{web_path}/#{jar} myself"}
   end
 end
 
 def classpath_jnlp_jars
-  CLASSPATH_FILES.map {|jar| "<jar href=\"#{jar}\"/>"}.join("\n")
+  Rawr::Options[:classpath_files].map {|jar| "<jar href=\"#{jar}\"/>"}.join("\n")
 end
 
 

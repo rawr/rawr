@@ -7,7 +7,7 @@ require 'options'
 require 'rawr_bundle'
 require 'rbconfig'
 require 'platform'
-
+require 'generator'
 
 namespace("rawr") do
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
@@ -30,26 +30,17 @@ namespace("rawr") do
 
   desc "Compiles all the Java source files in the directory declared in the build_configuration.yaml file. Also generates a manifest file for use in a jar file"
   task :compile => "rawr:prepare" do
-    
-    delimiter = Platform.instance.argument_delimiter
-    Dir.mkdir(Rawr::Options[:build_dir] + "/META-INF") unless File.directory?(Rawr::Options[:build_dir] + "/META-INF")
+    FileUtils.mkdir_p(Rawr::Options[:build_dir] + "/META-INF")
     Dir.glob("#{Rawr::Options[:java_source_dir]}/**/*.java").each do |file|
+      delimiter = Platform.instance.argument_delimiter
       sh "javac -cp \"#{Rawr::Options[:classpath].join(delimiter)}\" -sourcepath \"#{Rawr::Options[:java_source_dir]}\" -d \"#{Rawr::Options[:build_dir]}\" \"#{file}\""
-      f = File.new("#{Rawr::Options[:build_dir]}/META-INF/MANIFEST.MF", "w+")
-      f << "Manifest-Version: 1.0\n"
-      f << "Class-Path: " << Rawr::Options[:classpath].map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.join(" ") << " . \n"
-      f << "Main-Class: #{Rawr::Options[:main_java_file]}\n"
-      f.close
+      Rawr::Generator.create_manifest_file Rawr::Options
     end
   end
 
   desc "Uses compiled output and creates an executable jar file."
   task :jar => "rawr:compile" do
-    run_configuration = File.new("#{Rawr::Options[:package_dir]}/run_configuration", "w+")
-    run_configuration << "ruby_source_dir: " + Rawr::Options[:ruby_source] + "\n"
-    run_configuration << "main_ruby_file: " + Rawr::Options[:main_ruby_file] + "\n"
-    run_configuration << "native_library_dirs: " + Rawr::Options[:native_library_dirs].map{|dir| dir.gsub(Rawr::Options[:base_dir] + '/', '')}.join(" ")
-    run_configuration.close
+    Rawr::Generator.create_run_config_file(Rawr::Options)
     
     #add in any data directories into the jar
     jar_command = "jar cfM \"#{Rawr::Options[:package_dir]}/#{Rawr::Options[:project_name]}.jar\" -C \"#{Rawr::Options[:package_dir]}\" run_configuration -C \"#{Rawr::Options[:ruby_source_dir][0...Rawr::Options[:ruby_source_dir].index(Rawr::Options[:ruby_source])-1]}\" \"#{Rawr::Options[:ruby_source]}\" -C \"#{Rawr::Options[:ruby_library_dir][0...Rawr::Options[:ruby_library_dir].index(Rawr::Options[:ruby_library])-1]}\" \"#{Rawr::Options[:ruby_library]}\" -C \"#{Rawr::Options[:build_dir]}\" ."
@@ -71,6 +62,7 @@ namespace("rawr") do
     Rawr::Options[:jars].values.each do |jar_builder|
       puts "========================== Packaging #{jar_builder.name} ==============================="
       jar_builder.build
+      FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
     end
   end
 end

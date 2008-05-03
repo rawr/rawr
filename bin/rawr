@@ -6,6 +6,7 @@
 require 'fileutils'
 require 'rubygems'
 require 'rawr_version'
+require File.expand_path(File.dirname(__FILE__) + '/../lib/generator')
 
 def help(message = nil)
   puts message + "\\\n-----------------------------------\\\n" unless message.nil?
@@ -25,163 +26,6 @@ def help(message = nil)
   ENDL
 end
 
-def create_config_file(config_file, java_class)
-  if File.exist? config_file.join("/")
-    puts "Configuration file '#{config_file.join("/")}' exists, skipping"
-  else
-    puts "Creating rawr configuration file #{config_file.join("/")}"
-    FileUtils.mkdir_p(config_file[0...-1].join("/"))
-
-    f = File.new(config_file.join("/"), "w+")
-    f << <<-ENDL
-# Name of the created jar file
-project_name: change_me
-
-# Directory to create and place produced project files in
-output_dir: package
-
-# File to set as main-class in jar manifest
-main_java_file: #{java_class.join(".")}
-
-# Ruby file to invoke when jar is started
-main_ruby_file: main
-
-# Location of Ruby source files
-ruby_source_dir: src
-
-# Location of Ruby library files
-ruby_library_dir: lib
-
-# Location of Java source files
-java_source_dir: src
-
-# Directories that should have ALL their .jar contents loaded on the classpath
-# If you wish to only include specific jars from a directory use classpath_files
-classpath_dirs:
-   - lib
-
-# Individual files that should be loaded on the classpath
-#classpath_files:
-#    - lib/jruby-complete.jar
-#    - lib/swing-layout-1.0.2.jar
-
-# Directory that should be loaded onto the java.library.path 
-#native_library_dirs:
-#    - lib/native
-
-# Directories which you want the coentents of to be copied to the output directory
-package_data_dirs:
-    - lib
-
-# Directories to be added into the jar
-#jar_data_dirs:
-#    - data
-
-# NOT YET IMPLEMENTED
-#pre_processing_task:
-#post_processing_task:
-    ENDL
-  end
-end
-
-def create_main_file(directory, java_class)
-  resolved_package = java_class[0...-1].join(".")
-  resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
-  resolved_file = "#{resolved_dir}/#{java_class.last}.java"
-  if File.exist? resolved_file
-    puts "Java class '#{resolved_file}' exists, skipping"
-  else
-    puts "Creating Java class #{resolved_file}"
-    FileUtils.mkdir_p(resolved_dir)
-
-    f = File.new(resolved_file, "w+")
-    f << <<-ENDL
-package #{resolved_package};
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.net.URL;
-
-
-import java.util.ArrayList;
-import org.jruby.Ruby;
-import org.jruby.javasupport.JavaEmbedUtils;
-
-
-    public class #{java_class.last}
-{
-  public static void main(String[] args) throws Exception
-  {   
-    Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0));
-    String config_yaml = "";
-    try{
-      java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
-      if (ins == null ) {
-        System.err.println( "InputStream ins is null!");
-      }
-      else {
-        config_yaml = grabConfigFileContents(ins);
-      }
-    }
-    catch(IOException e)
-    {
-      System.err.println("Error loading run configuration file 'run_configuration', using configuration defaults: " + e);
-      config_yaml = "";
-    }
-    catch(java.lang.NullPointerException ee)
-    {
-      System.err.println("Error loading run configuration file 'run_configuration', using configuration defaults: " + ee );
-      config_yaml = "";
-    }
-
-    String bootRuby = "require 'java'\\n" + 
-      "require 'yaml'\\n" + 
-      "$: << 'src'\\n" + 
-      "yaml = '" + config_yaml + "' \\n" +
-      "begin\\n" + 
-      "  raise 'No YAML!' if  yaml.strip.empty?\\n" + 
-      "  config_hash = YAML.load( \\"" + config_yaml + "\\" )\\n" + 
-      "  $:.unshift(  config_hash['ruby_source_dir'] )\\n" + 
-      "  require  config_hash[ 'ruby_source_dir' ] + '/' + config_hash[ 'main_ruby_file' ]\\n" + 
-      "rescue Exception \\n" + 
-      "  STDERR.puts \\"Error loading config file: \\" + $! + \\"\\nUsing default values.\\"\\n" + 
-      "  begin\\n" + 
-      "    require 'src/main'\\n" + 
-      "  rescue LoadError => e\\n" + 
-      "    warn 'Error starting the application'\\n" + 
-      "    warn \"#\{e}\\n#\{e.backtrace.join(\"\\n\")}\"\\n" + 
-      "  end\\n" + 
-      "end\\n";
-    runtime.evalScriptlet( bootRuby );
-  }
-
-  public static URL getResource(String path) {
-    return Main.class.getClassLoader().getResource(path);
-  }
-
-  private static String grabConfigFileContents(InputStream input) 
-  throws IOException, java.lang.NullPointerException {
-
-    InputStreamReader isr = new InputStreamReader(input);
-    BufferedReader reader = new BufferedReader(isr);
-    String line;
-    String buf;
-    buf = "";
-    while ((line = reader.readLine()) != null) {
-      buf += line + "\\n";
-    }
-    reader.close();
-    return(buf);
-  }
-}
-
-
-
-ENDL
-  end
-end
-
 def create_rakefile
   if File.exist? "Rakefile"
     handle_existing_rakefile
@@ -198,11 +42,10 @@ end
 def prepend_to_current_rakefile
   puts "rawr will now prepend new rawr task content to your current Rakefile ..."
   current = IO.read( 'Rakefile')
-  File.open("Rakefile", "w"){ |f|
-    f.puts "require 'rawr'\n"
-    f.puts( current )
-  }
-
+  File.open("Rakefile", "w") do |rakefile|
+    rakefile.puts "require 'rawr'\n"
+    rakefile.puts current
+  end
 end
 
 def replace_with_new_rakefile
@@ -212,10 +55,9 @@ end
 
 def create_new_rakefile
   puts "Creating Rakefile ..."
-  File.open("Rakefile", "w"){ |f|
-    f.puts "require 'rawr'\n"
-  }
-
+  File.open("Rakefile", "w") do |rakefile|
+    rakefile.puts "require 'rawr'\n"
+  end
 end
 
 
@@ -284,8 +126,25 @@ else
       end
     end
 
-    create_config_file(config_file, java_class)
-    create_main_file(directory, java_class)
+    if File.exist? config_file.join("/")
+      puts "Configuration file '#{config_file.join("/")}' exists, skipping"
+    else
+      puts "Creating rawr configuration file #{config_file.join("/")}"
+      FileUtils.mkdir_p(config_file[0...-1].join("/"))
+      Rawr::Generator.create_config_file(config_file.join("/"), java_class.join("."))
+    end
+    
+    resolved_package = java_class[0...-1].join(".")
+    resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
+    resolved_file = "#{resolved_dir}/#{java_class.last}.java"
+    if File.exist? resolved_file
+      puts "Java class '#{resolved_file}' exists, skipping"
+    else
+      puts "Creating Java class #{resolved_file}"
+      FileUtils.mkdir_p(resolved_dir)
+      Rawr::Generator.create_java_main_file(resolved_file, resolved_package, java_class.last)
+    end
+    
     create_rakefile
   else
     help("Unknown command '#{ARGV[0]}'")

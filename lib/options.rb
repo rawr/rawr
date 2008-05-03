@@ -81,5 +81,6 @@ module Rawr
         @options[:classpath] << jar_builder.name
       end
     end
+      
   end
 end

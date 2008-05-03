@@ -9,7 +9,7 @@ module Rawr
 
     def build
       dir_strings = @dirs.map {|dir| " -C #{dir} "}
-      jar_command = "jar cfM \"#{Rawr::Options[:package_dir]}/#{name}\" #{dir_strings} ."
+      jar_command = "jar cfM \"#{Rawr::Options[:base_dir]}/#{name}\" #{dir_strings} ."
       sh jar_command
     end
   end

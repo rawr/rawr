@@ -1,3 +1,3 @@
 class Rawr
-  VERSION = "0.1.4"
+  VERSION = "0.3.0"
 end
