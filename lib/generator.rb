@@ -22,6 +22,7 @@ package #{java_package};
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
 
@@ -72,7 +73,7 @@ public class #{java_class}
       "    require 'src/main'\\n" + 
       "  rescue LoadError => e\\n" + 
       "    warn 'Error starting the application'\\n" + 
-      "    warn \"#\{e}\\n#\{e.backtrace.join(\"\\n\")}\"\\n" + 
+      "    warn \\\"\#{e}\\\\n\#{e.backtrace.join(\\\"\\\\n\\\")}\\\"\\n" + 
       "  end\\n" + 
       "end\\n";
     runtime.evalScriptlet( bootRuby );
