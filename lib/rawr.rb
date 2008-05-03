@@ -23,9 +23,9 @@ namespace("rawr") do
 
   desc "Creates the output directory and sub-directories, reads in configuration data"
   task :prepare => "rawr:setup_consts" do
-    Dir.mkdir(Rawr::Options[:output_dir]) unless File.directory?(Rawr::Options[:output_dir])
-    Dir.mkdir(Rawr::Options[:build_dir]) unless File.directory?(Rawr::Options[:build_dir])
-    Dir.mkdir(Rawr::Options[:package_dir]) unless File.directory?(Rawr::Options[:package_dir])
+    FileUtils.mkdir_p Rawr::Options[:output_dir]
+    FileUtils.mkdir_p Rawr::Options[:build_dir]
+    FileUtils.mkdir_p Rawr::Options[:package_dir]
   end
 
   desc "Compiles all the Java source files in the directory declared in the build_configuration.yaml file. Also generates a manifest file for use in a jar file"

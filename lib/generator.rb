@@ -31,7 +31,7 @@ import org.jruby.Ruby;
 import org.jruby.javasupport.JavaEmbedUtils;
 
 
-    public class #{java_class}
+public class #{java_class}
 {
   public static void main(String[] args) throws Exception
   {   

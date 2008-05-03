@@ -6,7 +6,7 @@
 require 'fileutils'
 require 'rubygems'
 require 'rawr_version'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/generator')
+require 'generator'
 
 def help(message = nil)
   puts message + "\\\n-----------------------------------\\\n" unless message.nil?
@@ -68,7 +68,6 @@ def handle_existing_rakefile
               '3' => ['Quit, leave the current Rakefile alone, and add nothing new.', :quit_and_do_nothing_with_rakefile ] 
 
   }
-  STDERR.puts "options: #{options.inspect}"
   choice = ''
   puts "rawr has found an exisiting Rakefile.\nPlease select one of these options:\n"
   puts "\t1: #{options['1'].first }" 
@@ -131,7 +130,7 @@ else
     else
       puts "Creating rawr configuration file #{config_file.join("/")}"
       FileUtils.mkdir_p(config_file[0...-1].join("/"))
-      Rawr::Generator.create_config_file(config_file.join("/"), java_class.join("."))
+      Rawr::Generator.create_default_config_file(config_file.join("/"), java_class.join("."))
     end
     
     resolved_package = java_class[0...-1].join(".")

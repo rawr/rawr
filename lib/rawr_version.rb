@@ -1,3 +1,3 @@
-class Rawr
+module Rawr
   VERSION = "0.3.0"
 end
