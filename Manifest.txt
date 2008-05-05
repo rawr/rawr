@@ -13,6 +13,7 @@ lib/options.rb
 lib/jar_builder.rb
 lib/generator.rb
 lib/exe_bundler.rb
+lib/web_bundler.rb
 lib/launch4j/bin/COPYING
 lib/launch4j/bin/ld
 lib/launch4j/bin/readme.txt

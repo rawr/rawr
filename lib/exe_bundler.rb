@@ -15,8 +15,8 @@ module Rawr
       @base_dir = options[:base_dir]
       
       launch4j_config_file = "windows-exe.xml"
-      mkdir_p "#{options[:output_dir]}/native_deploy"
-      windows_path = "#{options[:output_dir]}/native_deploy/windows" 
+      mkdir_p "#{@output_dir}/native_deploy"
+      windows_path = "#{@output_dir}/native_deploy/windows" 
 
       copy_deployment_to windows_path
 
@@ -27,8 +27,8 @@ module Rawr
 <launch4jConfig>
 <dontWrapJar>true</dontWrapJar>
 <headerType>0</headerType>
-<jar>#{options[:project_name]}.jar</jar>
-<outfile>#{options[:project_name]}.exe</outfile>
+<jar>#{@project_name}.jar</jar>
+<outfile>#{@project_name}.exe</outfile>
 <errTitle></errTitle>
 <jarArgs></jarArgs>
 <chdir></chdir>
@@ -54,7 +54,7 @@ CONFIG_ENDL
       end
       sh "java -jar #{File.dirname(__FILE__)}/launch4j/launch4j.jar #{launch4j_config_file}"
       puts "moving exe to correct directory"
-      mv("#{options[:project_name]}.exe", windows_path)
+      mv("#{@project_name}.exe", windows_path)
     end
   end
 end
