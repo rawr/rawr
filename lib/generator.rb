@@ -41,49 +41,48 @@ public class #{java_class}
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
       if (ins == null ) {
-        System.err.println( "InputStream ins is null!");
+        System.err.println("Did not find configuration file 'run_configuration', using defaults.");
       }
       else {
-        config_yaml = grabConfigFileContents(ins);
+        config_yaml = getConfigFileContents(ins);
       }
     }
-    catch(IOException e)
+    catch(IOException ioe)
     {
-      System.err.println("Error loading run configuration file 'run_configuration', using configuration defaults: " + e);
+      System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + ioe);
       config_yaml = "";
     }
-    catch(java.lang.NullPointerException ee)
+    catch(java.lang.NullPointerException npe)
     {
-      System.err.println("Error loading run configuration file 'run_configuration', using configuration defaults: " + ee );
+      System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + npe );
       config_yaml = "";
     }
 
     String bootRuby = "require 'java'\\n" + 
       "require 'yaml'\\n" + 
-      "$: << 'src'\\n" + 
-      "yaml = '" + config_yaml + "' \\n" +
-      "begin\\n" + 
-      "  raise 'No YAML!' if  yaml.strip.empty?\\n" + 
+      "config_yaml = '" + config_yaml + "'\\n" +
+      "if config_yaml.strip.empty?\\n" +
+      "  main_file = 'src/main'\\n" +
+      "else\\n" +
       "  config_hash = YAML.load( \\"" + config_yaml + "\\" )\\n" + 
-      "  $:.unshift(  config_hash['ruby_source_dir'] )\\n" + 
-      "  require  config_hash[ 'ruby_source_dir' ] + '/' + config_hash[ 'main_ruby_file' ]\\n" + 
-      "rescue Exception \\n" + 
-      "  STDERR.puts \\"Error loading config file: \\" + $! + \\"\\nUsing default values.\\"\\n" + 
-      "  begin\\n" + 
-      "    require 'src/main'\\n" + 
-      "  rescue LoadError => e\\n" + 
-      "    warn 'Error starting the application'\\n" + 
-      "    warn \\\"\#{e}\\\\n\#{e.backtrace.join(\\\"\\\\n\\\")}\\\"\\n" + 
-      "  end\\n" + 
+      "  $LOAD_PATH.unshift(config_hash['ruby_source_dir'])\\n" + 
+      "  main_file = config_hash['main_ruby_file']\\n" + 
+      "end\\n\\n" +
+      
+      "begin\\n" + 
+      "  require main_file\\n" + 
+      "rescue LoadError => e\\n" + 
+      "  warn 'Error starting the application'\\n" + 
+      "  warn \\\"\#{e}\\\\n\#{e.backtrace.join(\\\"\\\\n\\\")}\\\"\\n" + 
       "end\\n";
-    runtime.evalScriptlet( bootRuby );
+    runtime.evalScriptlet(bootRuby);
   }
 
   public static URL getResource(String path) {
     return Main.class.getClassLoader().getResource(path);
   }
 
-  private static String grabConfigFileContents(InputStream input) 
+  private static String getConfigFileContents(InputStream input) 
   throws IOException, java.lang.NullPointerException {
 
     InputStreamReader isr = new InputStreamReader(input);
