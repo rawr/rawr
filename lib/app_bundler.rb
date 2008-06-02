@@ -21,6 +21,7 @@ module Rawr
       copy_deployment_to @java_app_deploy_path
       generate_info_plist
       generate_pkg_info
+      deploy_info_plist
       deploy_artwork
       deploy_app_stub
     end
@@ -55,9 +56,14 @@ module Rawr
       end
     end
 
+    def deploy_info_plist
+      cp "Info.plist", "#{@mac_app_path}/Contents/"
+    end
+    
     def generate_info_plist
-      File.open "#{@mac_app_path}/Contents/Info.plist", 'w' do |file|
-        file << <<-INFO_ENDL
+      unless File.exists? "Info.plist"
+        File.open "Info.plist", 'w' do |file|
+          file << <<-INFO_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
@@ -102,6 +108,7 @@ module Rawr
 </dict>
 </plist>
 INFO_ENDL
+        end
       end
     end
   end
