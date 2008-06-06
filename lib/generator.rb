@@ -147,6 +147,12 @@ classpath_dirs:
 #jar_data_dirs:
 #    - data
 
+# jar signing values for JNLP bundling.  If you are using a self-signed jar, 
+# uncomment the following lines and edit the password.  
+# web_start: 
+#    self_sign: true
+#    self_sign_passphrase: some_password
+
 # NOT YET IMPLEMENTED
 #pre_processing_task:
 #post_processing_task:
