@@ -2,6 +2,12 @@ require 'bundler'
 
 module Rawr
   class WebBundler < Bundler
+    def self_sign_pass_phrase(options)
+      return nil unless options[:web_start]
+      return nil unless options[:web_start][:self_sign]
+      options[:web_start][:self_sign_passphrase]
+    end
+
     def deploy(options)
       @project_name = options[:project_name]
       @output_dir = options[:output_dir]
@@ -48,10 +54,11 @@ CONFIG_ENDL
 
       copy_deployment_to web_path
       cp web_start_config_file, web_path, :verbose => true
-
-      sh "jarsigner -keystore sample-keys #{web_path}/#{@project_name}.jar myself"
+      storepass =  self_sign_pass_phrase(options) ? " -storepass #{self_sign_pass_phrase(options)} " : '' 
+      sh "jarsigner -keystore sample-keys #{storepass} #{web_path}/#{@project_name}.jar myself"
       puts "done signing project jar"
-      @classpath.each {|jar| sh "jarsigner -keystore sample-keys #{web_path}/#{jar.gsub(@base_dir, '')} myself"}
+      @classpath.each {|jar| 
+        sh "jarsigner -keystore sample-keys #{storepass}  #{web_path}/#{jar.gsub(@base_dir, '')} myself"}
     end
     
     def classpath_jnlp_jars
