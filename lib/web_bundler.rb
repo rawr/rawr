@@ -37,7 +37,7 @@ module Rawr
           # WARNING: all-permissions needed for security with JRuby!!!!
           file << <<-CONFIG_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="WEB_PAGE" href="#{@project_name}.jnlp">
+<jnlp spec="1.0+" codebase="http://127.0.0.1:1347/" href="#{@project_name}.jnlp">
 <information>
   <title>#{@project_name}</title>
   <vendor></vendor>

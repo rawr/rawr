@@ -56,10 +56,18 @@ describe Rawr::Options do
       #pre_processing_task:
       #post_processing_task:
 
-  
+
       web_start: 
         self_sign: true
         self_sign_passphrase: password
+        jnlp:
+          vendor: HCS
+          code_base: http://www.happycamperstudios.com/foo
+          homepage_href: '/bar.html'
+          description: 'The description' 
+          offline_allowed: true
+          shortcut_desktop:  true
+          menu_submenu:  'Foo Bar'
 
 
 
@@ -84,4 +92,19 @@ describe Rawr::Options do
     Rawr::Options.instance[:web_start][:self_sign].should == true   
     Rawr::Options.instance[:web_start][:self_sign_passphrase].should == 'password'   
   end
+
+  it "returns information about JNLP values web_start key is present" do
+    config = YAML.load(BUILD_CONFIGURATION )
+    Rawr::Options.instance.process_configuration(config)
+    Rawr::Options.instance[:web_start].should_not be nil   
+    Rawr::Options.instance[:web_start][:jnlp][:vendor].should == 'HCS'   
+    Rawr::Options.instance[:web_start][:jnlp][:code_base].should == 'http://www.happycamperstudios.com/foo'   
+    Rawr::Options.instance[:web_start][:jnlp][:homepage_href].should == '/bar.html'   
+    Rawr::Options.instance[:web_start][:jnlp][:description].should == 'The description'   
+    Rawr::Options.instance[:web_start][:jnlp][:offline_allowed].should == true
+    Rawr::Options.instance[:web_start][:jnlp][:shortcut_desktop].should == true
+    Rawr::Options.instance[:web_start][:jnlp][:menu_submenu].should == 'Foo Bar'
+  end
+
+
 end

@@ -41,14 +41,33 @@ module Rawr
       load_ruby_options(config)
       load_java_options(config)
       load_jars_options(config)
-      load_web_start_options(config)
+      load_web_start_options(config) 
     end
 
     def  load_web_start_options(config_hash)
       @options ||= {}
       @options[:web_start] = config_hash['web_start'] 
+      
+      return unless @options[:web_start]
+
       @options[:web_start][:self_sign] =  config_hash['web_start']['self_sign'] 
       @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
+      @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
+      load_jnlp( config_hash['web_start']['jnlp'] )
+     
+    end
+
+    def load_jnlp(jnlp_config_hash)
+      return unless jnlp_config_hash
+      
+      @options[:web_start][:jnlp] = {}
+      @options[:web_start][:jnlp][:vendor] =  jnlp_config_hash['vendor']
+      @options[:web_start][:jnlp][:code_base] =  jnlp_config_hash['code_base']
+      @options[:web_start][:jnlp][:homepage_href] =  jnlp_config_hash['homepage_href']
+      @options[:web_start][:jnlp][:description] =  jnlp_config_hash['description']
+      @options[:web_start][:jnlp][:offline_allowed] =  jnlp_config_hash['offline_allowed']
+      @options[:web_start][:jnlp][:shortcut_desktop] =  jnlp_config_hash['shortcut_desktop']
+      @options[:web_start][:jnlp][:menu_submenu] =  jnlp_config_hash['menu_submenu']
     end
 
     def load_ruby_options(config_hash)
