@@ -13,9 +13,58 @@ module Rawr
     end
 
     def add_trailing_slash path
-            path << '/' unless path =~ /\/$/
-            path
+      raise "Nil passed to add_trailing_slash." if path.nil?
+      path << '/' unless path =~ /\/$/
+      path
+    end
 
+
+    def populate_jnlp_string_template(template_values)
+      jnlp = jnlp_string_template.to_s
+      jnlp.gsub!('__PROJECT_NAME__', template_values[:project_name]  )
+      jnlp.gsub!('__CODEBASE__', template_values[:codebase]  )
+      jnlp.gsub!('__DESCRIPTION__', template_values[:description]  )
+      jnlp.gsub!('__VENDOR__', template_values[:vendor]  )
+      jnlp.gsub!('__HOMEPAGE_HREF__', template_values[:homepage_href]  )
+      jnlp.gsub!('__CLASSPATH_JNLP_JARS__', template_values[:classpath_jnlp_jars]  )
+      jnlp.gsub!('__MAIN_JAVA_FILE__', template_values[:main_java_file]  )
+    end
+
+    def jnlp_string_template
+     " <?xml version='1.0' encoding='UTF-8' ?>
+<jnlp spec='1.0+' codebase='__CODEBASE__' href='__PROJECT_NAME__.jnlp'>
+     <information>
+     <title>__PROJECT_NAME__</title>
+     <vendor>__VENDOR__</vendor>
+     <homepage href='__HOMEPAGE_HREF__' />
+     <description>__DESCRIPTION__</description>
+     </information>
+     <offline-allowed/>
+     <security>
+     <all-permissions/>
+     </security>
+     <resources>
+     <j2se version='1.6'/>
+     <j2se version='1.5'/>
+     <jar href='__PROJECT_NAME__.jar'/>
+     __CLASSPATH_JNLP_JARS__
+     </resources>
+     <application-desc main-class='__MAIN_JAVA_FILE__' />
+     </jnlp>"
+    end
+
+
+    def template_values(options)
+      STDERR.puts( " template_values(options) \n#{options.inspect}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
+      template_values = {}  
+      template_values[:project_name]   = @project_name 
+      template_values[:codebase]  = options[:jnlp][:codebase]
+      template_values[:vendor] = options[:jnlp][:vendor]
+      template_values[:homepage_href] = options[:jnlp][:homepage_href] 
+      template_values[:classpath_jnlp_jars]  = classpath_jnlp_jars
+      template_values[:main_java_file]  = options[:main_java_file]
+      template_values[:description]  = options[:jnlp][:description] 
+      template_values
     end
 
     def deploy(options)
@@ -26,7 +75,7 @@ module Rawr
       @classpath = options[:classpath]
       @base_dir = options[:base_dir]
       @base_dir  = add_trailing_slash(@base_dir  )
-      
+
       @main_java_file = options[:main_java_file]
 
 
@@ -35,32 +84,7 @@ module Rawr
       unless File.exists? web_start_config_file
         File.open(web_start_config_file, 'w') do |file|
           # WARNING: all-permissions needed for security with JRuby!!!!
-          file << <<-CONFIG_ENDL
-<?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="http://127.0.0.1:1347/" href="#{@project_name}.jnlp">
-<information>
-  <title>#{@project_name}</title>
-  <vendor></vendor>
-  <homepage href="." />
-  <description></description>
-</information>
-
-<offline-allowed/>
-
-<security>
-  <all-permissions/>
-</security>
-
-<resources>
-  <j2se version="1.6"/>
-  <j2se version="1.5"/>
-  <jar href="#{@project_name}.jar"/>
-  #{classpath_jnlp_jars}
-</resources>
-
-<application-desc main-class="#{@main_java_file}" />
-</jnlp>
-CONFIG_ENDL
+          file << populate_jnlp_string_template(template_values(options))
         end
       end
 
@@ -73,8 +97,15 @@ CONFIG_ENDL
         sh "jarsigner -keystore sample-keys #{storepass}  #{to_web_path(jar)} myself"}
     end
 
+    def remove_dupes classpath_array
+      cp = {}
+      classpath_array.map {|c| c.sub!( @base_dir, ''); c }
+      classpath_array.each { |c| cp[c] = c }
+      cp.keys  
+    end
+
     def classpath_jnlp_jars
-      @classpath.map {|jar| "<jar href=\"#{jar}\"/>"}.join("\n")
+      remove_dupes(@classpath).map {|jar| "<jar href='#{jar}'/>"}.join("\n")
     end
 
 

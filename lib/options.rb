@@ -20,11 +20,14 @@ module Rawr
     end
 
     def load_configuration(file='build_configuration.yaml') 
+      STDERR.puts( " load_configuration. file contents:\n #{IO.read(file)}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
       begin
         @config = YAML.load_file file
       rescue Errno::ENOENT
         @config = {}
       end
+
+      STDERR.puts( " load_configuration. @config contents:\n #{@config.to_yaml}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
       process_configuration @config
     end
 
@@ -42,6 +45,8 @@ module Rawr
       load_java_options(config)
       load_jars_options(config)
       load_web_start_options(config) 
+       load_jnlp( config )
+
     end
 
     def  load_web_start_options(config_hash)
@@ -53,21 +58,21 @@ module Rawr
       @options[:web_start][:self_sign] =  config_hash['web_start']['self_sign'] 
       @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
       @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
-      load_jnlp( config_hash['web_start']['jnlp'] )
      
     end
 
-    def load_jnlp(jnlp_config_hash)
-      return unless jnlp_config_hash
+    def load_jnlp(config_hash)
+      (@options[:jnlp] = nil; return ) unless config_hash['jnlp']
       
-      @options[:web_start][:jnlp] = {}
-      @options[:web_start][:jnlp][:vendor] =  jnlp_config_hash['vendor']
-      @options[:web_start][:jnlp][:code_base] =  jnlp_config_hash['code_base']
-      @options[:web_start][:jnlp][:homepage_href] =  jnlp_config_hash['homepage_href']
-      @options[:web_start][:jnlp][:description] =  jnlp_config_hash['description']
-      @options[:web_start][:jnlp][:offline_allowed] =  jnlp_config_hash['offline_allowed']
-      @options[:web_start][:jnlp][:shortcut_desktop] =  jnlp_config_hash['shortcut_desktop']
-      @options[:web_start][:jnlp][:menu_submenu] =  jnlp_config_hash['menu_submenu']
+      @options[:jnlp] = {}
+      @options[:jnlp][:title] =  config_hash['jnlp']['title']
+      @options[:jnlp][:vendor] =  config_hash['jnlp']['vendor']
+      @options[:jnlp][:codebase] =  config_hash['jnlp']['codebase']
+      @options[:jnlp][:homepage_href] =  config_hash['jnlp']['homepage_href']
+      @options[:jnlp][:description] =  config_hash['jnlp']['description']
+      @options[:jnlp][:offline_allowed] =  config_hash['jnlp']['offline_allowed']
+      @options[:jnlp][:shortcut_desktop] =  config_hash['jnlp']['shortcut_desktop']
+      @options[:jnlp][:menu_submenu] =  config_hash['jnlp']['menu_submenu']
     end
 
     def load_ruby_options(config_hash)
