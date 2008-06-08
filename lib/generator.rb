@@ -152,6 +152,17 @@ classpath_dirs:
 # web_start: 
 #    self_sign: true
 #    self_sign_passphrase: some_password
+#
+# JNLP file configuration values.   Uncomment rhe following and edit with your own details
+# jnlp:
+#    title: Edit your title
+#    vendor: Edit your vendor name
+#    codebase: http://edit.your.codebase.url
+#    homepage_href:  edit.your.homepage
+#    description: "Edit your description"
+#    offline_allowed: true
+#    shortcut_desktop:  true
+#    menu_submenu:  Edit your menu sub-menu
 
 # NOT YET IMPLEMENTED
 #pre_processing_task:
