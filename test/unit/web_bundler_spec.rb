@@ -159,4 +159,25 @@ describe Rawr::WebBundler do
     @web_bundler.classpath_jnlp_jars.should == "<jar href='lib/java/jruby-complete.jar'/>\n<jar href='lib/java/swing-layout-1.0.3.jar'/>\n<jar href='lib/java/monkeybars-0.6.2.jar'/>"
   end
 
+
+  it "does not create any JNLP file entries that have complete absolute paths or duplicate files" do
+    @web_bundler.instance_variable_set(:@base_dir, "/home/james/ngprojects/jdev/jnlp_demo/")
+    @web_bundler.instance_variable_set(:@output_dir, "/home/james/ngprojects/jdev/jnlp_demo/package")
+    @web_bundler.instance_variable_set(:@package_dir, "/home/james/ngprojects/jdev/jnlp_demo/package/deploy" )
+
+
+   classpath  =  [ "/home/james/ngprojects/jdev/jnlp_demo/lib/java/swing-layout-1.0.3.jar", 
+                   "/home/james/ngprojects/jdev/jnlp_demo/lib/java/jruby-complete.jar", 
+                   "/home/james/ngprojects/jdev/jnlp_demo/lib/java/monkeybars-0.6.2.jar", 
+                   "lib/java/jruby-complete.jar", 
+                   "lib/java/swing-layout-1.0.3.jar", 
+                   "/home/james/ngprojects/jdev/jnlp_demo/package/deploy/JnlpDemo.jar"]
+
+
+    @web_bundler.instance_variable_set(:@classpath, classpath  )
+    @web_bundler.remove_dupes(classpath).sort.should ==  ["JnlpDemo.jar", "lib/java/jruby-complete.jar", "lib/java/monkeybars-0.6.2.jar", "lib/java/swing-layout-1.0.3.jar"].sort 
+ 
+  end
+  
+
 end

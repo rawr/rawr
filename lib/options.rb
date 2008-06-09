@@ -42,26 +42,44 @@ module Rawr
       load_ruby_options(config)
       load_java_options(config)
       load_jars_options(config)
+      load_keytool_responses(config) 
       load_web_start_options(config) 
-       load_jnlp( config )
+      load_jnlp( config )
 
+    end
+
+
+    def load_keytool_responses(config_hash)
+      @options ||= {}
+      @options[:keytool_responses] = config_hash['keytool_responses'] 
+
+      return unless @options[:keytool_responses]
+      _res = config_hash['keytool_responses'] 
+
+      @options[:keytool_responses][:password]  = _res['password'].to_s 
+      @options[:keytool_responses][:first_and_last_name]  = _res['first_and_last_name'].to_s 
+      @options[:keytool_responses][:organization]  = _res['organization'].to_s 
+      @options[:keytool_responses][:locality]  = _res['locality'].to_s 
+      @options[:keytool_responses][:state_or_province]  = _res['state_or_province'].to_s 
+      @options[:keytool_responses][:country_code]  = _res['country_code'].to_s 
+      @options[:keytool_responses]
     end
 
     def  load_web_start_options(config_hash)
       @options ||= {}
       @options[:web_start] = config_hash['web_start'] 
-      
+
       return unless @options[:web_start]
 
       @options[:web_start][:self_sign] =  config_hash['web_start']['self_sign'] 
       @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
       @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
-     
+      @options[:web_start]
     end
 
     def load_jnlp(config_hash)
       (@options[:jnlp] = nil; return ) unless config_hash['jnlp']
-      
+
       @options[:jnlp] = {}
       @options[:jnlp][:title] =  config_hash['jnlp']['title']
       @options[:jnlp][:vendor] =  config_hash['jnlp']['vendor']

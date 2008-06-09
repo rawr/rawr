@@ -152,7 +152,7 @@ classpath_dirs:
 # web_start: 
 #    self_sign: true
 #    self_sign_passphrase: some_password
-#
+
 # JNLP file configuration values.   Uncomment rhe following and edit with your own details
 # jnlp:
 #    title: Edit your title
@@ -163,6 +163,16 @@ classpath_dirs:
 #    offline_allowed: true
 #    shortcut_desktop:  true
 #    menu_submenu:  Edit your menu sub-menu
+
+#  Java 'keytool' response values.  Uncomment and edit these values if you
+#  want to use the 'rawr:keytool' task
+# keytool_responses:
+#    password: SekritPassword
+#    first_and_last_name: Ilya Kuryakin
+#    organization: U.N.C.L.E.
+#    locality: NYC
+#    state_or_province: NY
+#    country_code: US
 
 # NOT YET IMPLEMENTED
 #pre_processing_task:

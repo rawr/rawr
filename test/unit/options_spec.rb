@@ -56,6 +56,13 @@ describe Rawr::Options do
       #pre_processing_task:
       #post_processing_task:
 
+      keytool_responses:
+        password: sekrit
+        first_and_last_name: Napolean Solo
+        organization: U.N.C.L.E.
+        locality: NYC
+        state_or_province: NY
+        country_code: US
 
       web_start: 
         self_sign: true
@@ -70,8 +77,6 @@ describe Rawr::Options do
         offline_allowed: true
         shortcut_desktop:  true
         menu_submenu:  'Foo Bar'
-
-
 
    EOL
 
@@ -133,7 +138,7 @@ describe Rawr::Options do
         self_sign: true
         self_sign_passphrase: password
 
-      
+
 
 
    EOL
@@ -159,10 +164,10 @@ describe Rawr::Options do
     Rawr::Options.instance[:web_start][:self_sign_passphrase].should == 'password'   
   end
 
-  
+
   it "does not rasise an exception if no JNLP values are present" do
     config = YAML.load(BUILD_CONFIGURATION_NO_JNLP )
-   
+
     lambda { Rawr::Options.instance.process_configuration(config) }.should_not raise_error( Exception )
   end
 
@@ -180,6 +185,17 @@ describe Rawr::Options do
     Rawr::Options.instance[:jnlp][:menu_submenu].should == 'Foo Bar'
   end
 
+
+  it "extracts keytool response values from the configuration file if present" do
+    config_hash = YAML.load(BUILD_CONFIGURATION )
+    keytool_responses = Rawr::Options.instance.load_keytool_responses(config_hash)
+    keytool_responses[:password].should  == 'sekrit'
+    keytool_responses[:first_and_last_name].should  == 'Napolean Solo'
+    keytool_responses[:organization].should  == 'U.N.C.L.E.'
+    keytool_responses[:locality].should  == 'NYC'
+    keytool_responses[:state_or_province].should  == 'NY'
+    keytool_responses[:country_code].should  == 'US'
+  end
 
 
 end
