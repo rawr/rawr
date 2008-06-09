@@ -50,102 +50,93 @@ namespace("rawr") do
       parts = dir.split("/")
       if 1 == parts.size
         jar_command << " -C \"#{Rawr::Options[:base_dir]}\" \"#{parts[0]}\""
-    else
-      jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
-    end
-  end
-  sh jar_command
-  # File.delete("#{PACKAGE_DIR}/run_configuration")
-  ((Rawr::Options[:classpath_dirs] + Rawr::Options[:native_library_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
-    FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
-    FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
-  end
-
-  Rawr::Options[:jars].values.each do |jar_builder|
-    puts "========================== Packaging #{jar_builder.name} ==============================="
-    jar_builder.build
-    FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
-  end
-end
-
-
-
-desc "Create a keystore"
-task :keytool => [:setup_consts ] do 
-  begin
-load  'pty'
-rescue Exception
-  warn "Exception requiring 'pty': #{$!.inspect}"
-  warn "If you are using JRuby, you may need MRI to run the rawr:keytool task"
-  exit
-end
-
-  keytool( Rawr::Options[:keytool_responses] )
-end
-
-# Helper code for ad-hoc 'expect', better than 'rexpect'
-
-class IO
-  def getline
-    line = ""
-    begin timeout(2) { 
-      while ((char = self.getc) != "\n")
-        line << char
+      else
+        jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
       end
-    line << char
-    return line
-    }
-    rescue Timeout::Error
-      return line
+    end
+    sh jar_command
+    # File.delete("#{PACKAGE_DIR}/run_configuration")
+    ((Rawr::Options[:classpath_dirs] + Rawr::Options[:native_library_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
+      FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
+      FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
+    end
+
+    Rawr::Options[:jars].values.each do |jar_builder|
+      puts "========================== Packaging #{jar_builder.name} ==============================="
+      jar_builder.build
+      FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
     end
   end
-end
 
-def keytool keytool_responses
-  qna = {
-    /Enter keystore password/  =>  keytool_responses[:password], 
-    /Re-enter new password/ =>   keytool_responses[:password] ,
-    /What is your first and last name?/ =>   keytool_responses[:first_and_last_name],
+
+
+  desc "Create a keystore"
+  task :keytool => [:setup_consts] do 
+    begin
+      load 'pty'
+    rescue Exception
+      warn "Exception requiring 'pty': #{$!.inspect}"
+      warn "If you are using JRuby, you may need MRI to run the rawr:keytool task"
+      exit
+    end
+
+    keytool( Rawr::Options[:keytool_responses] )
+  end
+
+  # Helper code for ad-hoc 'expect', better than 'rexpect'
+
+  class IO
+    def getline
+      line = ""
+      begin timeout(2) do
+          while ((char = self.getc) != "\n")
+            line << char
+          end
+          line << char
+          return line
+      end
+      rescue Timeout::Error
+        return line
+      end
+    end
+  end
+
+  def keytool(keytool_responses)
+    qna = {
+      /Enter keystore password/  =>  keytool_responses[:password], 
+      /Re-enter new password/ =>   keytool_responses[:password] ,
+      /What is your first and last name?/ =>   keytool_responses[:first_and_last_name],
       /What is the name of your organization?/ =>  keytool_responses[:organization],
       /What is the name of your City or Locality/ =>  keytool_responses[:locality],
       /What is the name of your State or Province?/ =>  keytool_responses[:state_or_province],
       /What is the two-letter country code for this unit/ =>  keytool_responses[:country_code],
       /correct/ =>  "yes", 
       /Enter key password for <myself>/ => keytool_responses[:password], 
-    /Re-enter new password/ => keytool_responses[:password]
-  }
+      /Re-enter new password/ => keytool_responses[:password]
+    }
 
+    STDIN.sync = true
+    STDOUT.sync = true
+    STDERR.sync = true
 
+    ENV['TERM'] = "";
+    cmd ='keytool -genkey -keystore sample-keys -alias myself  2>&1'
+    warn `rm sample-keys`
 
-  STDIN.sync = true
-  STDOUT.sync = true
-  STDERR.sync = true
-
-  ENV['TERM'] = "";
-  cmd ='keytool -genkey -keystore sample-keys -alias myself  2>&1'
-  warn `rm sample-keys`
-
-
-  puts " -- #{cmd} -- "
+    puts " -- #{cmd} -- "
     PTY.spawn(cmd) do |r,w,cid| 
-    begin
-      while line = r.getline
-        puts line unless line == ""
-        qna.each do |q,a|
-          if line.match(q)
-            w.puts(a)
+      begin
+        while line = r.getline
+          puts line unless line == ""
+          qna.each do |q,a|
+            if line.match(q)
+              w.puts(a)
+            end
+          end
         end
+      rescue Exception
+        warn "Error running keytool: #{$!.inspect}"
       end
     end
-    rescue Exception
-      warn "Error running keytool: #{$!.inspect}"
-    end
-end
-
-end
-
-#---------------
-
-
-
+  end
 end
