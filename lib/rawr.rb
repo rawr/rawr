@@ -8,7 +8,6 @@ require 'rawr_bundle'
 require 'rbconfig'
 require 'platform'
 require 'generator'
-require 'pty'
 require 'timeout'
 
 
@@ -73,6 +72,14 @@ end
 
 desc "Create a keystore"
 task :keytool => [:setup_consts ] do 
+  begin
+load  'pty'
+rescue Exception
+  warn "Exception requiring 'pty': #{$!.inspect}"
+  warn "If you are using JRuby, you may need MRI to run the rawr:keytool task"
+  exit
+end
+
   keytool( Rawr::Options[:keytool_responses] )
 end
 
