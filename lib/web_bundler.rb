@@ -66,9 +66,10 @@ module Rawr
 
     def copy_deployment_to(destination_path)
       file_utils.mkdir_p destination_path
-      relative_base_dir = @package_dir.sub("#{@base_dir}/", '')
+      relative_base_dir = @package_dir.sub("#{add_trailing_slash(@base_dir)}", '')
       (relative_files_without_repo + relative_classpath).flatten.uniq.each do |file|
-        file_utils.mkdir_p("#{add_trailing_slash(destination_path)}#{File.dirname(file).sub(relative_base_dir, '')}")
+        new_dir = "#{add_trailing_slash(destination_path)}#{File.dirname(file).sub(relative_base_dir, '')}"
+        file_utils.mkdir_p(new_dir )
         file_utils.copy(file, "#{add_trailing_slash(destination_path)}#{file.sub(relative_base_dir, '')}") unless File.directory?(file) || in_root_dir?(file)
       end
     end
@@ -82,8 +83,7 @@ module Rawr
       @main_java_file = options[:main_java_file]
       @project_jar = 
 
-
-        mkdir_p web_path
+      mkdir_p web_path
 
       web_start_config_file = "#{@project_name}.jnlp"
 
