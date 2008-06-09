@@ -55,7 +55,6 @@ module Rawr
 
 
     def template_values(options)
-      STDERR.puts( " template_values(options) \n#{options.inspect}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
       template_values = {}  
       template_values[:project_name]   = @project_name 
       template_values[:codebase]  = options[:jnlp][:codebase]

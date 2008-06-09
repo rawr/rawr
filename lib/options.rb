@@ -20,14 +20,12 @@ module Rawr
     end
 
     def load_configuration(file='build_configuration.yaml') 
-      STDERR.puts( " load_configuration. file contents:\n #{IO.read(file)}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
       begin
         @config = YAML.load_file file
       rescue Errno::ENOENT
         @config = {}
       end
 
-      STDERR.puts( " load_configuration. @config contents:\n #{@config.to_yaml}" ) if ENV['JAMES_SCA_JDEV_MACHINE']
       process_configuration @config
     end
 
