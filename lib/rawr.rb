@@ -73,7 +73,7 @@ namespace("rawr") do
   desc "Create a keystore"
   task :keytool => [:setup_consts] do 
     begin
-      load 'pty'
+      require 'pty'
     rescue Exception
       warn "Exception requiring 'pty': #{$!.inspect}"
       warn "If you are using JRuby, you may need MRI to run the rawr:keytool task"

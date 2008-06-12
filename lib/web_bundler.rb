@@ -91,9 +91,9 @@ module Rawr
       copy_deployment_to web_path
       file_utils.cp web_start_config_file, web_path, :verbose => true
       storepass = self_sign_pass_phrase(options) ? " -storepass #{self_sign_pass_phrase(options)} " : '' 
-      file_utils.sh "jarsigner -keystore sample-keys #{storepass} #{web_path}/#{@project_name}.jar myself"
+      sh "jarsigner -keystore sample-keys #{storepass} #{web_path}/#{@project_name}.jar myself"
       puts "done signing project jar"
-      @classpath.each {|jar| file_utils.sh "jarsigner -keystore sample-keys #{storepass}  #{to_web_path(jar).strip} myself" }
+      @classpath.each {|jar| sh "jarsigner -keystore sample-keys #{storepass}  #{to_web_path(jar).strip} myself" }
     end
 
 
