@@ -12,6 +12,7 @@ module Rawr
       @package_dir = options[:package_dir]
       @classpath = options[:classpath]
       @base_dir = options[:base_dir]
+      @java_main_class = options[:main_java_file]
       
       @mac_path = "#{@output_dir}/native_deploy/mac"
       @mac_app_path = "#{@mac_path}/#{@project_name}.app"
@@ -89,7 +90,7 @@ module Rawr
         <key>Java</key>
         <dict>
                 <key>MainClass</key>
-                <string>org.rubyforge.rawr.Main</string>
+                <string>#{@java_main_class}</string>
                 <key>JVMVersion</key>
                 <string>1.5*</string>
                 <key>ClassPath</key>

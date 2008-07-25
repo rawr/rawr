@@ -4,6 +4,18 @@ require 'spec_helpers'
 describe Rawr::AppBundler do
   include CustomFileMatchers
   
+  it "uses the main java class option" do
+    app_bundler = Rawr::AppBundler.new
+    app_bundler.instance_variable_set(:@java_main_class, "foo")
+    
+    result_string = ""
+    File.stub!(:open).and_yield(result_string)
+    
+    app_bundler.generate_info_plist
+    
+    result_string.should match(/<key>MainClass<\/key>\s*<string>foo<\/string>/m)
+  end
+  
   it "creates the proper directory structure for a .app" do
     begin
       Rawr::AppBundler.new.create_clean_deployment_directory_structure("spec-temp", "spec-temp/native_deploy/mac", "spec-temp/native_deploy/mac/RawrSpec.app")
