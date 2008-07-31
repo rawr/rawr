@@ -55,10 +55,17 @@ namespace("rawr") do
       end
     end
     sh jar_command
-    # File.delete("#{PACKAGE_DIR}/run_configuration")
-    ((Rawr::Options[:classpath_dirs] + Rawr::Options[:native_library_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
+    
+    File.delete("#{Rawr::Options[:package_dir]}/run_configuration")
+    ((Rawr::Options[:classpath_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
       FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
       FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
+    end
+    
+    Rawr::Options[:native_library_dirs].each do |native_dir| 
+      Dir.glob("#{native_dir}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.each do |file|
+        FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{File.basename(file)}")
+      end
     end
 
     Rawr::Options[:jars].values.each do |jar_builder|
