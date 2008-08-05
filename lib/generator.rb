@@ -29,6 +29,7 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import org.jruby.Ruby;
+import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaEmbedUtils;
 
 
@@ -36,7 +37,10 @@ public class #{java_class}
 {
   public static void main(String[] args) throws Exception
   {   
+    RubyInstanceConfig config = new RubyInstanceConfig();
+    config.setArgv(args);
     Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0));
+    
     String config_yaml = "";
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
