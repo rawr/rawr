@@ -11,6 +11,35 @@ require 'generator'
 require 'timeout'
 
 
+def ruby_lib_parent_dir
+  return nil unless Rawr::Options[:ruby_library]
+  begin
+    "#{Rawr::Options[:ruby_library_dir][0...Rawr::Options[:ruby_library_dir].index(Rawr::Options[:ruby_library])-1]}"
+  rescue Exception => e
+    raise "There was a problem deterining your Ruby lib directory.\n\nPlease check your build_configuration.yaml file and your directory structure."
+  end
+end
+
+def ruby_source_parent_dir
+  begin
+    "#{Rawr::Options[:ruby_source_dir][0...Rawr::Options[:ruby_source_dir].index(Rawr::Options[:ruby_source])-1]}"
+  rescue Exception => e
+    raise "There was a problem deterining your Ruby source directory.\n\nPlease check your build_configuration.yaml file and your directory structure."
+  end
+end
+
+def jar_command_for_ruby_src_dir
+  return ' ' unless ruby_source_parent_dir 
+  " -C \"#{ruby_source_parent_dir}\"  \"#{Rawr::Options[:ruby_source]}\" " 
+end
+
+
+def jar_command_for_ruby_lib_dir
+  return ' ' unless ruby_lib_parent_dir
+  " -C \"#{ruby_lib_parent_dir}\" \"#{Rawr::Options[:ruby_library]}\"  " 
+end
+
+
 namespace("rawr") do
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
   task :setup_consts do
@@ -45,34 +74,40 @@ namespace("rawr") do
     Rawr::Generator.create_run_config_file(Rawr::Options)
 
     #add in any data directories into the jar
-    jar_command = "jar cfM \"#{Rawr::Options[:package_dir]}/#{Rawr::Options[:project_name]}.jar\" -C \"#{Rawr::Options[:package_dir]}\" run_configuration -C \"#{Rawr::Options[:ruby_source_dir][0...Rawr::Options[:ruby_source_dir].index(Rawr::Options[:ruby_source])-1]}\" \"#{Rawr::Options[:ruby_source]}\" -C \"#{Rawr::Options[:ruby_library_dir][0...Rawr::Options[:ruby_library_dir].index(Rawr::Options[:ruby_library])-1]}\" \"#{Rawr::Options[:ruby_library]}\" -C \"#{Rawr::Options[:build_dir]}\" ."
-    Rawr::Options[:jar_data_dirs].each do |dir|
-      parts = dir.split("/")
-      if 1 == parts.size
-        jar_command << " -C \"#{Rawr::Options[:base_dir]}\" \"#{parts[0]}\""
-      else
-        jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
-      end
-    end
-    sh jar_command
-    
-    File.delete("#{Rawr::Options[:package_dir]}/run_configuration")
-    ((Rawr::Options[:classpath_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
-      FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
-      FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
-    end
-    
-    Rawr::Options[:native_library_dirs].each do |native_dir| 
-      Dir.glob("#{native_dir}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.each do |file|
-        FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{File.basename(file)}")
-      end
-    end
+    jar_command = "jar cfM \"#{Rawr::Options[:package_dir]}/#{Rawr::Options[:project_name]}.jar\" " +  
+                          " -C \"#{Rawr::Options[:package_dir]}\" run_configuration " + # " -C \"#{ruby_source_parent_dir}\"  \"#{Rawr::Options[:ruby_source]}\" " + 
+                            jar_command_for_ruby_src_dir + 
+                            jar_command_for_ruby_lib_dir + 
 
-    Rawr::Options[:jars].values.each do |jar_builder|
-      puts "========================== Packaging #{jar_builder.name} ==============================="
-      jar_builder.build
-      FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
-    end
+                          " -C \"#{Rawr::Options[:build_dir]}\" ."
+
+                          Rawr::Options[:jar_data_dirs].each do |dir|
+                            parts = dir.split("/")
+                            if 1 == parts.size
+                              jar_command << " -C \"#{Rawr::Options[:base_dir]}\" \"#{parts[0]}\""
+                            else
+                              jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
+                            end
+                          end
+                          sh jar_command
+
+                          File.delete("#{Rawr::Options[:package_dir]}/run_configuration")
+                          ((Rawr::Options[:classpath_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
+                            FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
+                            FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
+                          end
+
+                          Rawr::Options[:native_library_dirs].each do |native_dir| 
+                            Dir.glob("#{native_dir}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.each do |file|
+                              FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{File.basename(file)}")
+                            end
+                          end
+
+                          Rawr::Options[:jars].values.each do |jar_builder|
+                            puts "========================== Packaging #{jar_builder.name} ==============================="
+                            jar_builder.build
+                            FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
+                          end
   end
 
 
@@ -96,11 +131,11 @@ namespace("rawr") do
     def getline
       line = ""
       begin timeout(2) do
-          while ((char = self.getc) != "\n")
-            line << char
-          end
+        while ((char = self.getc) != "\n")
           line << char
-          return line
+        end
+        line << char
+        return line
       end
       rescue Timeout::Error
         return line

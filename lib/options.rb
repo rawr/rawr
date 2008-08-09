@@ -94,9 +94,9 @@ module Rawr
     def load_ruby_options(config_hash)
       @options ||= {}
       @options[:ruby_source_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_source_dir']}" || "#{@options[:base_dir]}/src"
-      @options[:ruby_library_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_library_dir']}" || "#{@options[:base_dir]}/lib"
+      @options[:ruby_library] = config_hash['ruby_library_dir'] # || "lib"
+      @options[:ruby_library_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_library_dir']}" if config_hash['ruby_library_dir']
       @options[:ruby_source] = config_hash['ruby_source_dir'] || "src"
-      @options[:ruby_library] = config_hash['ruby_library_dir'] || "lib"
       @options[:main_ruby_file] = config_hash['main_ruby_file'] || "main"
     end
 
