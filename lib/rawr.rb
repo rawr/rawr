@@ -75,39 +75,39 @@ namespace("rawr") do
 
     #add in any data directories into the jar
     jar_command = "jar cfM \"#{Rawr::Options[:package_dir]}/#{Rawr::Options[:project_name]}.jar\" " +  
-                          " -C \"#{Rawr::Options[:package_dir]}\" run_configuration " + # " -C \"#{ruby_source_parent_dir}\"  \"#{Rawr::Options[:ruby_source]}\" " + 
-                            jar_command_for_ruby_src_dir + 
-                            jar_command_for_ruby_lib_dir + 
+                  " -C \"#{Rawr::Options[:package_dir]}\" run_configuration " + # " -C \"#{ruby_source_parent_dir}\"  \"#{Rawr::Options[:ruby_source]}\" " + 
+                  jar_command_for_ruby_src_dir + 
+                  jar_command_for_ruby_lib_dir + 
+                  " -C \"#{Rawr::Options[:build_dir]}\" ."
 
-                          " -C \"#{Rawr::Options[:build_dir]}\" ."
+    Rawr::Options[:jar_data_dirs].each do |dir|
+      parts = dir.split("/")
+      if 1 == parts.size
+        jar_command << " -C \"#{Rawr::Options[:base_dir]}\" \"#{parts[0]}\""
+      else
+        jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
+      end
+    end
 
-                          Rawr::Options[:jar_data_dirs].each do |dir|
-                            parts = dir.split("/")
-                            if 1 == parts.size
-                              jar_command << " -C \"#{Rawr::Options[:base_dir]}\" \"#{parts[0]}\""
-                            else
-                              jar_command << " -C \"#{parts[0...-1].join("/")}\" \"#{parts[-1]}\""
-                            end
-                          end
-                          sh jar_command
+    sh jar_command
 
-                          File.delete("#{Rawr::Options[:package_dir]}/run_configuration")
-                          ((Rawr::Options[:classpath_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
-                            FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
-                            FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
-                          end
+    File.delete("#{Rawr::Options[:package_dir]}/run_configuration")
+    ((Rawr::Options[:classpath_dirs] + Rawr::Options[:package_data_dirs]).flatten.map {|cp| Dir.glob("#{cp}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}} + Rawr::Options[:classpath_files]).flatten.uniq.each do |file|
+      FileUtils.mkdir_p("#{Rawr::Options[:package_dir]}/#{File.dirname(file).gsub(Rawr::Options[:base_dir] + '/', '')}")
+      FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{file.gsub(Rawr::Options[:base_dir] + '/', '')}") unless File.directory?(file)
+    end
 
-                          Rawr::Options[:native_library_dirs].each do |native_dir| 
-                            Dir.glob("#{native_dir}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.each do |file|
-                              FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{File.basename(file)}")
-                            end
-                          end
+    Rawr::Options[:native_library_dirs].each do |native_dir| 
+      Dir.glob("#{native_dir}/**/*").reject{|e| e =~ /\.svn/}.map{|file| file.gsub(Rawr::Options[:base_dir] + '/', '')}.each do |file|
+        FileUtils.copy(file, "#{Rawr::Options[:package_dir]}/#{File.basename(file)}")
+      end
+    end
 
-                          Rawr::Options[:jars].values.each do |jar_builder|
-                            puts "========================== Packaging #{jar_builder.name} ==============================="
-                            jar_builder.build
-                            FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
-                          end
+    Rawr::Options[:jars].values.each do |jar_builder|
+      puts "========================== Packaging #{jar_builder.name} ==============================="
+      jar_builder.build
+      FileUtils.copy(jar_builder.name, "#{Rawr::Options[:package_dir]}/")
+    end
   end
 
 
