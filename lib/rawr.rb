@@ -39,8 +39,76 @@ def jar_command_for_ruby_lib_dir
   " -C \"#{ruby_lib_parent_dir}\" \"#{Rawr::Options[:ruby_library]}\"  " 
 end
 
+def build_configuration
+  @build_configuration ||= YAML.load(IO.read('build_configuration.yaml'))
+end
+
+def ruby_src_dir
+  build_configuration['ruby_source_dir']
+end
+
+def ruby_lib_dir
+  build_configuration['ruby_library_dir']
+end
+
+
+def jar_file_name
+  "#{build_configuration['output_dir']}/deploy/#{build_configuration['project_name']}.jar"
+end
+
+
+def rb_to_class(src_file_path)
+  if File.exist? src_file_path
+    c_name = src_file_path.sub( '.rb', '.class')
+    sh "rm #{c_name}" if File.exist?(c_name)
+    sh "jrubyc  #{src_file_path}"
+  end
+end
+
+def dir_rb_to_class(dir_name, suffix = '_real')
+  Find.find(dir_name) do |f|
+    if f =~ /\.rb$/
+      rb_to_class f
+    end
+  end
+end
+
+def clean_jar(jar_path)
+  begin
+    require 'zip/zip' # Need rubyzip gem installed for this
+  rescue Exception => e
+    raise "Exception running 'clean_jar'; you may need to install the 'rubyzip' gem."
+  end
+  Zip::ZipFile.open(jar_path) do |zf|
+    zf.entries.each do |e|
+      if e.name =~ /\.(rb|java)$/
+        warn "  - Removing #{e}"
+        zf.remove(e)
+      end
+    end
+  end
+
+  Zip::ZipFile.open(jar_path) do |zf|
+    zf.entries.each do |e|
+      if e.name =~ /\.(rb|java)$/
+        raise "Failed to remove #{e.name}"
+      end
+    end
+  end
+end
 
 namespace("rawr") do
+
+  desc "class-up all rb files under src/ and lib/ruby/"
+  task :'class-jar' do
+    ruby_dirs = [ ruby_src_dir,  ruby_lib_dir ]
+    ruby_dirs.each do |d|
+      dir_rb_to_class d
+    end
+    sh "rake rawr:jar"
+    clean_jar jar_file_name
+  end
+
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.yaml file. You can override the file to be used by setting RAWR_CONFIG_FILE"
   task :setup_consts do
     config_file = 'build_configuration.yaml' unless Object.const_defined? "RAWR_CONFIG_FILE"
