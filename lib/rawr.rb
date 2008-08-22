@@ -97,6 +97,13 @@ def clean_jar(jar_path)
   end
 end
 
+
+
+
+def java_target_version_argument
+  Rawr::Options[:java_target_version].to_s.strip.empty?   ? '' : "-target #{Rawr::Options[:java_target_version].to_s.strip} " 
+end
+
 namespace("rawr") do
 
   desc "class-up all rb files under src/ and lib/ruby/"
@@ -132,7 +139,7 @@ namespace("rawr") do
     FileUtils.mkdir_p(Rawr::Options[:build_dir] + "/META-INF")
     Dir.glob("#{Rawr::Options[:java_source_dir]}/**/*.java").each do |file|
       delimiter = Platform.instance.argument_delimiter
-      sh "javac -cp \"#{Rawr::Options[:classpath].join(delimiter)}\" -sourcepath \"#{Rawr::Options[:java_source_dir]}\" -d \"#{Rawr::Options[:build_dir]}\" \"#{file}\""
+      sh "javac #{java_target_version_argument} -cp \"#{Rawr::Options[:classpath].join(delimiter)}\" -sourcepath \"#{Rawr::Options[:java_source_dir]}\" -d \"#{Rawr::Options[:build_dir]}\" \"#{file}\""
       Rawr::Generator.create_manifest_file Rawr::Options
     end
   end

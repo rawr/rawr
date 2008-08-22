@@ -108,6 +108,7 @@ module Rawr
       @options[:classpath_files] = config_hash['classpath_files'] || []
       @options[:classpath] = (@options[:classpath_dirs].map{|cp| Dir.glob("#{cp}**/*.jar")} + @options[:classpath_files]).flatten
       @options[:native_library_dirs] = (config_hash['native_library_dirs'] || []).map {|e| "#{@options[:base_dir]}/#{e}"}
+      @options[:java_target_version] = config_hash['java_target_version'] 
       @options[:jar_data_dirs] = config_hash['jar_data_dirs'] || []
       @options[:package_data_dirs] = config_hash['package_data_dirs'] || []
     end
