@@ -1,11 +1,22 @@
-== 0.1.0 / 2007-11-17
+== 0.5.0 / 2008-??-??
 
-* First release
+
+== 0.3.2 / 2008-07-15
+
+ * Maintenence release, fixing up small bugs and instabilities.
+
+== 0.3.1 / 2008-05-07
+
+ * Many large improvements over many small releases.  Stuff like Windows and Mac bundler tasks and ever expanding options in the build_configuration file.
+
+== 0.1.2 / 2007-12-22
+
+* Updated rawr:jar task to no longer generate a standalone run_configuration file but to instead include the file inside the project jar file. The generated Main.java file now looks for the run_configuration using getResourceAsStream.
 
 == 0.1.1 / 2007-12-4
 
 * Updated generated Main.java class to assume defaults if a run_configuration file cannot be found.
 
-== 0.1.2 / 2007-12-22
+== 0.1.0 / 2007-11-17
 
-* Updated rawr:jar task to no longer generate a standalone run_configuration file but to instead include the file inside the project jar file. The generated Main.java file now looks for the run_configuration using getResourceAsStream.
+* First release

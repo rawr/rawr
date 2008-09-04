@@ -33,7 +33,6 @@ def jar_command_for_ruby_src_dir
   " -C \"#{ruby_source_parent_dir}\"  \"#{Rawr::Options[:ruby_source]}\" " 
 end
 
-
 def jar_command_for_ruby_lib_dir
   return ' ' unless ruby_lib_parent_dir
   " -C \"#{ruby_lib_parent_dir}\" \"#{Rawr::Options[:ruby_library]}\"  " 
@@ -51,11 +50,9 @@ def ruby_lib_dir
   build_configuration['ruby_library_dir']
 end
 
-
 def jar_file_name
   "#{build_configuration['output_dir']}/deploy/#{build_configuration['project_name']}.jar"
 end
-
 
 def rb_to_class(src_file_path)
   if File.exist? src_file_path
@@ -96,9 +93,6 @@ def clean_jar(jar_path)
     end
   end
 end
-
-
-
 
 def java_target_version_argument
   Rawr::Options[:java_target_version].to_s.strip.empty?   ? '' : "-target #{Rawr::Options[:java_target_version].to_s.strip} " 
@@ -185,8 +179,6 @@ namespace("rawr") do
     end
   end
 
-
-
   desc "Create a keystore"
   task :keytool => [:setup_consts] do 
     begin
@@ -251,8 +243,8 @@ namespace("rawr") do
             end
           end
         end
-      rescue Exception
-        warn "Error running keytool: #{$!.inspect}"
+      rescue Exception => e
+        warn "Error running keytool: #{e.inspect}"
       end
     end
   end

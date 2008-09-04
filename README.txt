@@ -1,4 +1,4 @@
-rawr
+Rawr 0.5.0
     by David Koontz
     http://www.rubyforge.org/projects/rawr
 
