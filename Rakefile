@@ -19,6 +19,7 @@ PROJ.spec.opts << '--color'
 PROJ.spec.libs << 'test/unit'
 PROJ.ruby_opts = []
 PROJ.libs << File.expand_path(File.dirname(__FILE__) + "/lib")
+PROJ.gem.dependencies << "rubyzip"
 
 task :default => 'spec'
 
