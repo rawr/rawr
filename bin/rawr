@@ -1,8 +1,5 @@
 #!/usr/bin/env jruby
 
-# rawr package -f config_file
-# rawr packaage <build_configuration.yaml>
-
 require 'fileutils'
 require 'rubygems'
 require 'rawr_version'
@@ -20,7 +17,7 @@ def help(message = nil)
       install [-d dir] [-c class_name]
         -d/--directory: Directory to place Java main file in, defaults to 'src'
         -c/--class: Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
-        -f/--file: Name of the rawr configuration file, defaults to build_configuration.yaml
+        -f/--file: Name of the rawr configuration file, defaults to build_configuration.rb
 
         Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
   ENDL
@@ -60,8 +57,6 @@ def create_new_rakefile
   end
 end
 
-
-
 def handle_existing_rakefile
   options = { '1' => ['Replace the current Rakefile with a new Rakefile.  You will lose everything in the current Rakefile!', :replace_with_new_rakefile ],
               '2' => ['Keep the current Rakefile, and add the rawr content to the top.', :prepend_to_current_rakefile ],
@@ -94,7 +89,7 @@ else
   when "install"
     directory = "src"
     java_class = %w{org rubyforge rawr Main}
-    config_file = File.expand_path("build_configuration.yaml").split("/")
+    config_file = File.expand_path("build_configuration.rb").split("/")
     ARGV.shift
     until ARGV.empty?
       case ARGV[0]

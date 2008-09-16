@@ -108,80 +108,30 @@ ENDL
     def self.create_default_config_file(config_path, java_class)
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
-# Name of the created jar file
-project_name: change_me
+configatron do |c|
+  c.project_name = 'ChangeMe'
+  c.output_dir = 'package'
+  c.main_ruby_file = 'main'
+  c.main_java_file = '#{java_class}'
 
-# Directory to create and place produced project files in
-output_dir: package
+  # Compile all Ruby and Java files recursively
+  # Copy all other files taking into account exclusion filter
+  c.source_dirs = ['src', 'lib/ruby']
+  #c.source_exclude_filter = []
 
-# File to set as main-class in jar manifest
-main_java_file: #{java_class}
+  c.compile_ruby_files = true
+  #c.java_lib_files = []  
+  c.java_lib_dirs = ['lib/java']
+  #c.extra_classpath_files = []
+  c.target_jvm_version = 1.5
 
-# Ruby file to invoke when jar is started
-main_ruby_file: main
+  # Generate a jar file named images.jar, the contents you include will be placed inside the jar at /images
+  #c.jars[:images] = { :include => '../../data/images', :exclude => '.svn', :location_in_jar => 'images' }
+  #c.jvm_arguments = ""
+end
 
-# Location of Ruby source files
-ruby_source_dir: src
-
-# Location of Ruby library files
-ruby_library_dir: lib/ruby
-
-# Location of Java source files
-java_source_dir: src
-
-# Directories that should have ALL their .jar contents loaded on the classpath
-# If you wish to only include specific jars from a directory use classpath_files
-classpath_dirs:
-   - lib/java
-
-# Individual files that should be loaded on the classpath
-#classpath_files:
-#    - lib/java/jruby-complete.jar
-#    - lib/java/swing-layout-1.0.2.jar
-
-# Directory that should be loaded onto the java.library.path 
-#native_library_dirs:
-#    - lib/java/native
-
-# Directories which you want the coentents of to be copied to the output directory
-#package_data_dirs:
-#    - lib
-
-# Directories to be added into the jar
-#jar_data_dirs:
-#    - data
-
-# jar signing values for JNLP bundling.  If you are using a self-signed jar, 
-# uncomment the following lines and edit the password.  
-# web_start: 
-#    self_sign: true
-#    self_sign_passphrase: some_password
-
-# JNLP file configuration values.   Uncomment rhe following and edit with your own details
-# jnlp:
-#    title: Edit your title
-#    vendor: Edit your vendor name
-#    codebase: http://edit.your.codebase.url
-#    homepage_href:  edit.your.homepage
-#    description: "Edit your description"
-#    offline_allowed: true
-#    shortcut_desktop:  true
-#    menu_submenu:  Edit your menu sub-menu
-
-#  Java 'keytool' response values.  Uncomment and edit these values if you
-#  want to use the 'rawr:keytool' task
-# keytool_responses:
-#    password: SekritPassword
-#    first_and_last_name: Ilya Kuryakin
-#    organization: U.N.C.L.E.
-#    locality: NYC
-#    state_or_province: NY
-#    country_code: US
-
-# NOT YET IMPLEMENTED
-#pre_processing_task:
-#post_processing_task:
-ENDL
+# repack_jars
+        ENDL
       end
     end
   end
