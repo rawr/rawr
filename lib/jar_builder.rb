@@ -1,25 +1,49 @@
 module Rawr
   class JarBuilder
+    require 'zip/zip'
+    
     attr_accessor :target_in_jar
 
-    def initialize(name, directory, items, exclusion = nil)
+    def initialize(name, settings)
       @name = name
-      @directory = directory
-      @items = items
-      @exclusion = exclusion
+      @directory = settings[:directory] || (raise "Missing directory value in configuration for #{name}")
+      @items = settings[:items] || nil
+      raise "Invalid exclusion #{settings[:exclude].inspect} for #{name} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
+      @exclude = settings[:exclude] || nil
+      @location_in_jar = if settings[:location_in_jar]
+                           if ['/', '\\'].member? settings[:location_in_jar][-1].chr
+                             settings[:location_in_jar]
+                           else
+                             "#{settings[:location_in_jar]}/"
+                           end
+                         else
+                           ''
+                         end
     end
 
     def build
-      if (@items.kind_of? Array) && !@items.empty?
-        dir_string = " -C #{@directory} #{@items.join(' ')}"
-      elsif @items.kind_of? String
-        dir_string = " -C #{@directory} #{@items}"
+      if @items
+        file_list = @items.map { |item|
+          if File.directory?("#{@directory}/#{item}")
+            Dir.glob("#{@directory}/#{item}/**/*")
+          else
+            "#{@directory}/#{item}" #To maintain consistancy with first branch of if
+          end
+        }.flatten.map! {|f| puts "before sub: #{f}"; f.sub("#{@directory}/", ''); puts "before sub: #{f}"; f}.reject {|f| (f =~ @exclude) || File.directory?(f)}
       else
-        dir_string = " -C #{@directory} ."
+        file_list = Dir.glob("#{@directory}/**/*").
+                              map! {|f| f.sub("#{@directory}/", '')}.
+                              reject {|f| (f =~ @exclude) || File.directory?(f)}
       end
-      jar_command = "jar cfM \"#{Rawr::Options.data.jar_output_dir}/#{@name}\" #{dir_string}"
-      puts "Building Jar file #{@name} in #{Rawr::Options.data.jar_output_dir}"
-      sh jar_command
+                            
+      zip_file_name = "#{Rawr::Options.data.jar_output_dir}/#{@name}"
+      puts "=== Creating jar file: #{zip_file_name}"
+      File.delete(zip_file_name) if File.exists? zip_file_name
+      Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
+        file_list.each do |file|
+          zipfile.add("#{@location_in_jar}#{file}", "#{@directory}/#{file}")
+        end
+      end
     end
   end
 end

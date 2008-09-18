@@ -74,9 +74,7 @@ module Rawr
         
         # Set up Jar packing settings
         c.jars_to_build = c.jars.map do |key, jar_settings|
-          jar_builder = JarBuilder.new("#{key.to_s}.jar", jar_settings[:directory], jar_settings[:items], jar_settings[:exclude])
-          jar_builder.target_in_jar = jar_settings[:location_in_jar] || "/"
-          jar_builder
+          JarBuilder.new("#{key.to_s}.jar", jar_settings)
         end
       end
 

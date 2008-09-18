@@ -109,7 +109,7 @@ namespace("rawr") do
 #    sh "rake rawr:jar"
 #    clean_jar jar_file_name
 #  end
-#
+
   desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.rb file. You can override the file to be used by setting RAWR_CONFIG_FILE"
   task :setup_consts do
     Rawr::Options.load_configuration
