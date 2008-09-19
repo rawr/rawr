@@ -29,8 +29,8 @@ module Rawr
         c.main_ruby_file = 'main'
         c.main_java_file = 'org.rubyforge.rawr.Main'
 
-        c.source_dirs = ['src', 'lib/ruby']
-        c.source_exclude_filter = []
+        c.source_dirs = ['src', 'lib/ruby', 'lib/java']
+        c.source_exclude_filter = nil
 
         c.compile_ruby_files = true
         c.java_lib_files = []  

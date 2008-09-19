@@ -110,8 +110,8 @@ namespace("rawr") do
 #    clean_jar jar_file_name
 #  end
 
-  desc "Sets up the various constants used by the Rawr built tasks. These constants come from the build_configuration.rb file. You can override the file to be used by setting RAWR_CONFIG_FILE"
-  task :setup_consts do
+  desc "Loads data from the build_configuration.rb file. You can override the file to be used by setting RAWR_CONFIG_FILE"
+  task :load_configuration do
     Rawr::Options.load_configuration
   end
   
@@ -123,12 +123,12 @@ namespace("rawr") do
   end
   
   desc "Removes generated content"
-  task :clean => "rawr:setup_consts" do
+  task :clean => "rawr:load_configuration" do
     FileUtils.remove_dir(Rawr::Options.data.output_dir) if File.directory? Rawr::Options.data.output_dir
   end
 
   desc "Creates the output directory and sub-directories, reads in configuration data"
-  task :prepare => "rawr:setup_consts" do
+  task :prepare => "rawr:load_configuration" do
     FileUtils.mkdir_p Rawr::Options.data.output_dir
     FileUtils.mkdir_p Rawr::Options.data.compile_dir
     FileUtils.mkdir_p Rawr::Options.data.jar_output_dir
@@ -137,15 +137,45 @@ namespace("rawr") do
     FileUtils.mkdir_p Rawr::Options.data.linux_output_dir
   end
 
-#  desc "Compiles all the Java source files in the directory declared in the build_configuration.yaml file. Also generates a manifest file for use in a jar file"
-#  task :compile => "rawr:prepare" do
-#    FileUtils.mkdir_p(Rawr::Options[:build_dir] + "/META-INF")
+  desc "Compiles all the Java source files in the directory declared in the build_configuration.yaml file. Also generates a manifest file for use in a jar file"
+  task :compile => "rawr:prepare" do
+    delimiter = Platform.instance.argument_delimiter
+    FileUtils.mkdir_p("#{Rawr::Options.data.compile_dir}/META-INF")
+    
+    java_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
+      list << Dir.glob("#{directory}/**/*.java").
+        reject{|file| File.directory?(file)}.
+        map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+        reject{|file| file =~ Rawr::Options.data.source_exclude_filter}.
+        map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+    end.flatten!
+    
+    java_source_file_list.each do |data|
+      file = data.file
+      directory = data.directory
+      target_file = "#{Rawr::Options.data.compile_dir}/#{file.sub(/java$/, 'class')}"
+      
+      if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
+        sh "javac -target #{Rawr::Options.data.target_jvm_version} -cp \"#{Rawr::Options.data.classpath.join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.source_dirs.join(delimiter)}\" -d \"#{Rawr::Options.data.compile_dir}\" \"#{directory}/#{file}\""
+      end
+    end
+
+    
+    if Rawr::Options.data.compile_ruby_files
+      ruby_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
+        list << Dir.glob("#{directory}/**/*.rb").map!{|file| file.sub("#{directory}/", '')}.reject{|file| file =~ Rawr::Options.data.source_exclude_filter || File.directory?(file)}
+      end.flatten
+      
+      # Compile_ruby_files is true, compile ruby files
+    end
+
+    
 #    Dir.glob("#{Rawr::Options[:java_source_dir]}/**/*.java").each do |file|
 #      delimiter = Platform.instance.argument_delimiter
-#      sh "javac #{java_target_version_argument} -cp \"#{Rawr::Options[:classpath].join(delimiter)}\" -sourcepath \"#{Rawr::Options[:java_source_dir]}\" -d \"#{Rawr::Options[:build_dir]}\" \"#{file}\""
+#      sh "javac #{java_target_version_argument} -cp \"#{Rawr::Options.data.classpath.join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.java_source_dir}\" -d \"#{Rawr::Options[:build_dir]}\" \"#{file}\""
 #      Rawr::Generator.create_manifest_file Rawr::Options
 #    end
-#  end
+  end
 #
 #  desc "Uses compiled output and creates an executable jar file."
 #  task :jar => "rawr:compile" do
