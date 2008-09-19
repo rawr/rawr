@@ -1,8 +1,6 @@
 module Rawr
   class JarBuilder
     require 'zip/zip'
-    
-    attr_accessor :target_in_jar
 
     def initialize(name, settings)
       @name = name

@@ -8,10 +8,10 @@ module Rawr
       end
     end
     def self.create_manifest_file(options)
-      File.open("#{options[:build_dir]}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
+      File.open("#{options.compile_dir}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
-        manifest_file << "Class-Path: " << options[:classpath].map{|file| file.gsub(options[:base_dir] + '/', '')}.join(" ") << " . \n"
-        manifest_file << "Main-Class: #{options[:main_java_file]}\n"
+        manifest_file << "Class-Path: " << options.classpath.map{|file| file.gsub(options[:base_dir] + '/', '')}.join(" ") << " . \n"
+        manifest_file << "Main-Class: #{options.main_java_file}\n"
       end
     end
     
