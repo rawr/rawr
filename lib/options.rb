@@ -35,7 +35,6 @@ module Rawr
         c.compile_ruby_files = true
         c.java_lib_files = []  
         c.java_lib_dirs = ['lib/java']
-        c.extra_classpath_files = []
         c.target_jvm_version = 1.5
 
         c.jars = {}
@@ -70,20 +69,16 @@ module Rawr
         # Set up Java lib settings and classpath
         c.java_lib_files.map! {|e| "#{c.base_dir}/#{e}"}
         c.java_lib_dirs.map! {|e| "#{c.base_dir}/#{e}"}
-        c.classpath = (c.java_lib_dirs.map{|directory| Dir.glob("#{directory}/**/*.jar")} + c.java_lib_files).flatten
+        pwd = "#{Dir::pwd}/"
+        c.classpath = (c.java_lib_dirs.map { |directory| 
+          Dir.glob("#{directory}/**/*.jar").map!{|file| file.sub(pwd, '')}
+        } + c.java_lib_files).flatten
         
         # Set up Jar packing settings
         c.jars_to_build = c.jars.map do |key, jar_settings|
           JarBuilder.new("#{key.to_s}.jar", jar_settings)
         end
       end
-
-#      load_ruby_options(config)
-#      load_java_options(config)
-#      load_jars_options(config)
-#      load_keytool_responses(config) 
-#      load_web_start_options(config) 
-#      load_jnlp(config)
     end
 
 #    def load_keytool_responses(config_hash)
@@ -126,50 +121,6 @@ module Rawr
 #      @options[:jnlp][:offline_allowed] =  config_hash['jnlp']['offline_allowed']
 #      @options[:jnlp][:shortcut_desktop] =  config_hash['jnlp']['shortcut_desktop']
 #      @options[:jnlp][:menu_submenu] =  config_hash['jnlp']['menu_submenu']
-#    end
-
-#    def load_ruby_options(config_hash)
-#      @options ||= {}
-#      @options[:ruby_source_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_source_dir']}" || "#{@options[:base_dir]}/src"
-#      @options[:ruby_library] = config_hash['ruby_library_dir'] # || "lib"
-#      @options[:ruby_library_dir] = "#{@options[:base_dir]}/#{config_hash['ruby_library_dir']}" if config_hash['ruby_library_dir']
-#      @options[:ruby_source] = config_hash['ruby_source_dir'] || "src"
-#      @options[:main_ruby_file] = config_hash['main_ruby_file'] || "main"
-#    end
-
-#    def load_java_options(config_hash)
-#      @options ||= {}
-#      @options[:main_java_file] = config_hash['main_java_file'] || "org.rubyforge.rawr.Main"
-#      @options[:java_source_dir] = "#{@options[:base_dir]}/#{config_hash['java_source_dir']}" || "#{@options[:base_dir]}/src"
-#      @options[:classpath_dirs] = (config_hash['classpath_dirs'] || []).map {|e| "#{@options[:base_dir]}/#{e}"}
-#      @options[:classpath_files] = config_hash['classpath_files'] || []
-#      @options[:classpath] = (@options[:classpath_dirs].map{|cp| Dir.glob("#{cp}**/*.jar")} + @options[:classpath_files]).flatten
-#      @options[:native_library_dirs] = (config_hash['native_library_dirs'] || []).map {|e| "#{@options[:base_dir]}/#{e}"}
-#      @options[:java_target_version] = config_hash['java_target_version'] 
-#      @options[:jar_data_dirs] = config_hash['jar_data_dirs'] || []
-#      @options[:package_data_dirs] = config_hash['package_data_dirs'] || []
-#    end
-
-#    def load_jars_options(config_hash)
-#      @options ||= {}
-#      @options[:classpath] ||= []
-#      @options[:jars] = {}
-#      jars_hash = config_hash['jars'] || {}
-#      jars_hash.each do |name, jar_options|
-#        jar_dir = jar_options['dir'] || '/'
-#        jar_dirs = [jar_dir] unless jar_dir.kind_of? Array
-#
-#        jar_glob = jar_options['glob'] || '**/*'
-#        jar_globs = [jar_glob] unless jar_glob.kind_of? Array
-#
-#        jar_builder = JarBuilder.new
-#        jar_builder.name = name
-#        jar_builder.dirs = jar_dirs
-#        jar_builder.globs = jar_globs
-#
-#        @options[:jars][name] = jar_builder
-#        @options[:classpath] << jar_builder.name
-#      end
 #    end
 
   end

@@ -1,16 +1,15 @@
 module Rawr
   class Generator
     def self.create_run_config_file(options)
-      File.open("#{options[:package_dir]}/run_configuration", "w+") do |run_config_file|
-        run_config_file << "ruby_source_dir: " + options[:ruby_source] + "\n"
-        run_config_file << "main_ruby_file: " + options[:main_ruby_file] + "\n"
-        run_config_file << "native_library_dirs: " + options[:native_library_dirs].map{|dir| dir.gsub(options[:base_dir] + '/', '')}.join(" ")
+      File.open("#{options.compile_dir}/run_configuration", "w+") do |run_config_file|
+        run_config_file << "main_ruby_file: " + options.main_ruby_file + "\n"
       end
     end
     def self.create_manifest_file(options)
+      
       File.open("#{options.compile_dir}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
-        manifest_file << "Class-Path: " << options.classpath.map{|file| file.gsub(options[:base_dir] + '/', '')}.join(" ") << " . \n"
+        manifest_file << "Class-Path: " << options.classpath.join(" ") << " . \n"
         manifest_file << "Main-Class: #{options.main_java_file}\n"
       end
     end
@@ -108,29 +107,23 @@ ENDL
     def self.create_default_config_file(config_path, java_class)
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
-configatron do |c|
   c.project_name = 'ChangeMe'
   c.output_dir = 'package'
   c.main_ruby_file = 'main'
-  c.main_java_file = '#{java_class}'
+  c.main_java_file = 'org.rubyforge.rawr.Main'
 
   # Compile all Ruby and Java files recursively
   # Copy all other files taking into account exclusion filter
   c.source_dirs = ['src', 'lib/ruby']
-  #c.source_exclude_filter = []
+  c.source_exclude_filter = []
 
   c.compile_ruby_files = true
   #c.java_lib_files = []  
   c.java_lib_dirs = ['lib/java']
-  #c.extra_classpath_files = []
+
   c.target_jvm_version = 1.5
-
-  # Generate a jar file named images.jar, the contents you include will be placed inside the jar at /images
-  #c.jars[:images] = { :include => '../../data/images', :exclude => '.svn', :location_in_jar => 'images' }
+  #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
   #c.jvm_arguments = ""
-end
-
-# repack_jars
         ENDL
       end
     end
