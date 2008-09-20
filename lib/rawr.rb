@@ -110,7 +110,7 @@ namespace("rawr") do
     Rawr::Generator.create_run_config_file(Rawr::Options.data)
     Rawr::JarBuilder.new("#{Rawr::Options.data.project_name}.jar", :directory => Rawr::Options.data.compile_dir).build
 
-    Rawr::Options.data.classpath.each do |file|
+    (Rawr::Options.data.classpath + Rawr::Options.data.files_to_copy).each do |file|
       FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.jar_output_dir}/#{file}"))
       File.copy(file, "#{Rawr::Options.data.jar_output_dir}/#{file}")
     end

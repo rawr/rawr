@@ -29,12 +29,13 @@ module Rawr
         c.main_ruby_file = 'main'
         c.main_java_file = 'org.rubyforge.rawr.Main'
 
-        c.source_dirs = ['src', 'lib/ruby', 'lib/java']
+        c.source_dirs = ['src', 'lib/ruby']
         c.source_exclude_filter = nil
 
         c.compile_ruby_files = true
         c.java_lib_files = []  
         c.java_lib_dirs = ['lib/java']
+        c.files_to_copy = []
         c.target_jvm_version = 1.5
 
         c.jars = {}
@@ -67,12 +68,14 @@ module Rawr
         c.linux_output_dir = "#{c.output_dir}/linux"
         
         # Set up Java lib settings and classpath
-        c.java_lib_files.map! {|e| "#{c.base_dir}/#{e}"}
-        c.java_lib_dirs.map! {|e| "#{c.base_dir}/#{e}"}
+#        c.java_lib_files.map! {|e| "#{c.base_dir}/#{e}"}
+#        c.java_lib_dirs.map! {|e| "#{c.base_dir}/#{e}"}
         pwd = "#{Dir::pwd}/"
         c.classpath = (c.java_lib_dirs.map { |directory| 
-          Dir.glob("#{directory}/**/*.jar").map!{|file| file.sub(pwd, '')}
-        } + c.java_lib_files).flatten
+          Dir.glob("#{directory}/**/*.jar")
+        } + c.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
+        
+        c.files_to_copy.map! {|file| file.sub(pwd, '')}
         
         # Set up Jar packing settings
         c.jars_to_build = c.jars.map do |key, jar_settings|

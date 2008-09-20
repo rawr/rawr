@@ -9,7 +9,7 @@ module Rawr
       
       File.open("#{options.compile_dir}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
-        manifest_file << "Class-Path: " << options.classpath.join(" ") << " . \n"
+        manifest_file << "Class-Path: " << options.classpath.join(" ") << " " << options.jars.keys.map{|key| "#{key}.jar"}.join(" ") << " . \n"
         manifest_file << "Main-Class: #{options.main_java_file}\n"
       end
     end
@@ -31,73 +31,57 @@ import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaEmbedUtils;
 
-
 public class #{java_class}
 {
   public static void main(String[] args) throws Exception
   {   
     RubyInstanceConfig config = new RubyInstanceConfig();
     config.setArgv(args);
-    Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0));
-    
-    String config_yaml = "";
+    Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0), config);
+    String mainRubyFile = "main";
+   
+    ArrayList<String> config_data = new ArrayList<String>();
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
       if (ins == null ) {
         System.err.println("Did not find configuration file 'run_configuration', using defaults.");
-      }
-      else {
-        config_yaml = getConfigFileContents(ins);
+      } else {
+        config_data = getConfigFileContents(ins);
       }
     }
     catch(IOException ioe)
     {
       System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + ioe);
-      config_yaml = "";
     }
     catch(java.lang.NullPointerException npe)
     {
       System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + npe );
-      config_yaml = "";
     }
 
-    String bootRuby = "require 'java'\\n" + 
-      "require 'yaml'\\n" + 
-      "config_yaml = '" + config_yaml + "'\\n" +
-      "if config_yaml.strip.empty?\\n" +
-      "  main_file = 'src/main'\\n" +
-      "else\\n" +
-      "  config_hash = YAML.load( \\"" + config_yaml + "\\" )\\n" + 
-      "  $LOAD_PATH.unshift(config_hash['ruby_source_dir'])\\n" + 
-      "  main_file = config_hash['main_ruby_file']\\n" + 
-      "end\\n\\n" +
-      
-      "begin\\n" + 
-      "  require main_file\\n" + 
-      "rescue LoadError => e\\n" + 
-      "  warn 'Error starting the application'\\n" + 
-      "  warn \\\"\#{e}\\\\n\#{e.backtrace.join(\\\"\\\\n\\\")}\\\"\\n" + 
-      "end\\n";
-    runtime.evalScriptlet(bootRuby);
+    for(String line : config_data) {
+        String[] parts = line.split(":");
+        if("main_ruby_file".equals(parts[0].replaceAll(" ", ""))) {
+            mainRubyFile = parts[1].replaceAll(" ", "");
+        }
+    }
+
+    runtime.evalScriptlet("require '" + mainRubyFile + "'");
   }
 
   public static URL getResource(String path) {
-    return Main.class.getClassLoader().getResource(path);
+      return Main.class.getClassLoader().getResource(path);
   }
 
-  private static String getConfigFileContents(InputStream input) 
-  throws IOException, java.lang.NullPointerException {
-
-    InputStreamReader isr = new InputStreamReader(input);
-    BufferedReader reader = new BufferedReader(isr);
+  private static ArrayList<String> getConfigFileContents(InputStream input) throws IOException, java.lang.NullPointerException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
     String line;
-    String buf;
-    buf = "";
+    ArrayList<String> contents = new ArrayList<String>();
+
     while ((line = reader.readLine()) != null) {
-      buf += line + "\\n";
+      contents.add(line);
     }
     reader.close();
-    return(buf);
+    return(contents);
   }
 }
 ENDL
@@ -120,6 +104,7 @@ ENDL
   c.compile_ruby_files = true
   #c.java_lib_files = []  
   c.java_lib_dirs = ['lib/java']
+  #c.files_to_copy = []
 
   c.target_jvm_version = 1.5
   #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
