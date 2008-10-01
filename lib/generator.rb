@@ -109,6 +109,9 @@ ENDL
   c.target_jvm_version = 1.5
   #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
   #c.jvm_arguments = ""
+
+  # Bundler options
+  # c.do_not_generate_plist = false
         ENDL
       end
     end

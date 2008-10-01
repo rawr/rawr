@@ -39,6 +39,8 @@ module Rawr
 
         c.jars = {}
         c.jvm_arguments = ""
+        
+        c.do_not_generate_plist = false
       end
       
       configuration_file = File.readlines(file)

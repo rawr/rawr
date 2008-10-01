@@ -6,19 +6,18 @@ module Rawr
     include FileUtils
 
     def deploy(options)
-      @project_name = options[:project_name]
-      @output_dir = options[:output_dir]
-      @classpath = options[:classpath]
-      @package_dir = options[:package_dir]
-      @classpath = options[:classpath]
-      @base_dir = options[:base_dir]
-      @java_main_class = options[:main_java_file]
+      @project_name = options.project_name
+      @classpath = options.classpath
+      @main_java_class = options.main_java_file
+      @built_jar_path = options.jar_output_dir
       
-      @mac_path = "#{@output_dir}/native_deploy/mac"
+      @mac_path = options.osx_output_dir
       @mac_app_path = "#{@mac_path}/#{@project_name}.app"
       @java_app_deploy_path = "#{@mac_app_path}/Contents/Resources/Java"
+      @target_jvm_version = options.target_jvm_version
+      @jvm_arguments = options.jvm_arguments
       
-      create_clean_deployment_directory_structure(@output_dir, @mac_path, @mac_app_path)
+      create_clean_deployment_directory_structure(@mac_path, @mac_app_path)
       copy_deployment_to @java_app_deploy_path
       generate_info_plist
       generate_pkg_info
@@ -27,9 +26,7 @@ module Rawr
       deploy_app_stub
     end
 
-    def create_clean_deployment_directory_structure(output_dir, mac_path, mac_app_path)
-      mkdir_p "#{output_dir}/native_deploy"
-
+    def create_clean_deployment_directory_structure(mac_path, mac_app_path)
       rm_rf mac_path if File.exists? mac_path
 
       mkdir_p mac_path
@@ -62,50 +59,51 @@ module Rawr
     end
     
     def generate_info_plist
-      unless File.exists? "Info.plist"
+      unless Rawr::Options.data.do_not_generate_plist
         File.open "Info.plist", 'w' do |file|
           file << <<-INFO_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
-        <key>CFBundleName</key>
-        <string>#{@project_name}</string>
-        <key>CFBundleVersion</key>
-        <string>100.0</string>
-        <key>CFBundleAllowMixedLocalizations</key>
-        <string>true</string>
-        <key>CFBundleExecutable</key>
-        <string>JavaApplicationStub</string>
-        <key>CFBundleDevelopmentRegion</key>
-        <string>English</string>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleSignature</key>
-        <string>????</string>
-        <key>CFBundleInfoDictionaryVersion</key>
-        <string>6.0</string>
-        <key>CFBundleIconFile</key>
-        <string>GenericJavaApp.icns</string>
-        <key>Java</key>
+    <key>CFBundleName</key>
+    <string>#{@project_name}</string>
+    <key>CFBundleVersion</key>
+    <string>100.0</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <string>true</string>
+    <key>CFBundleExecutable</key>
+    <string>JavaApplicationStub</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleIconFile</key>
+    <string>GenericJavaApp.icns</string>
+    <key>Java</key>
+    <dict>
+        <key>MainClass</key>
+        <string>#{@main_java_class}</string>
+        <key>JVMVersion</key>
+        <string>#{@target_jvm_version}*</string>
+        <key>ClassPath</key>
+            <array>
+                <string>$JAVAROOT/#{@project_name}.jar</string>
+                #{
+                    #CLASSPATH.uniq.map {|jar| "<string>$JAVAROOT/#{@classpath}/#{File.basename(jar)}</string>"}.join("\n")
+                }
+            </array>
+        <key>Properties</key>
         <dict>
-                <key>MainClass</key>
-                <string>#{@java_main_class}</string>
-                <key>JVMVersion</key>
-                <string>1.5*</string>
-                <key>ClassPath</key>
-                        <array>
-                            <string>$JAVAROOT/#{@project_name}.jar</string>
-                          #{
-                            #CLASSPATH.uniq.map {|jar| "<string>$JAVAROOT/#{@classpath}/#{File.basename(jar)}</string>"}.join("\n")
-                           }
-                        </array>
-                <key>Properties</key>
-                <dict>
-                        <key>apple.laf.useScreenMenuBar</key>
-                        <string>true</string>
-                </dict>
+            <key>apple.laf.useScreenMenuBar</key>
+            <string>true</string>
         </dict>
+        #{@jvm_arguments.empty? ? "" : "<key>VMOptions</key>\n<string>" + @jvm_arguments + "</string>"}
+    </dict>
 </dict>
 </plist>
 INFO_ENDL

@@ -3,11 +3,11 @@ $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__))
 require 'rubygems'
 require 'fileutils'
 require 'options'
-require 'rawr_bundle'
+#require 'rawr_bundle'
 require 'rbconfig'
 require 'platform'
 require 'generator'
-require 'timeout'
+#require 'timeout'
 require 'jar_builder'
 
 namespace("rawr") do
@@ -116,6 +116,25 @@ namespace("rawr") do
     end
   end
   
+  namespace :"bundle" do
+    desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
+    task :app => [:"rawr:jar"] do
+      require 'app_bundler'
+      Rawr::AppBundler.new.deploy Rawr::Options.data
+    end
+
+    desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
+    task :exe => [:"rawr:jar"] do
+      require 'exe_bundler'
+      Rawr::ExeBundler.new.deploy Rawr::Options.data
+    end
+
+#    desc "Bundles the jar from rawr:jar into a Java Web Start application (.jnlp)"
+#    task :web => [:"rawr:jar"] do
+#      require 'web_bundler'
+#      Rawr::WebBundler.new.deploy Rawr::Options.instance
+#    end
+  end
 #
 #  desc "Create a keystore"
 #  task :keytool => [:setup_consts] do 

@@ -6,7 +6,7 @@ describe Rawr::AppBundler do
   
   it "uses the main java class option" do
     app_bundler = Rawr::AppBundler.new
-    app_bundler.instance_variable_set(:@java_main_class, "foo")
+    app_bundler.instance_variable_set(:@main_java_class, "foo")
     
     result_string = ""
     File.stub!(:open).and_yield(result_string)

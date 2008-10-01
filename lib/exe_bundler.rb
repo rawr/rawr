@@ -7,28 +7,27 @@ module Rawr
     include FileUtils
 
     def deploy(options)
-      @project_name = options[:project_name]
-      @output_dir = options[:output_dir]
-      @classpath = options[:classpath]
-      @package_dir = options[:package_dir]
-      @classpath = options[:classpath]
-      @base_dir = options[:base_dir]
+      @project_name = options.project_name
+      @classpath = options.classpath
+      @main_java_class = options.main_java_file
+      @built_jar_path = options.jar_output_dir
       
-      launch4j_config_file = "windows-exe.xml"
-      mkdir_p "#{@output_dir}/native_deploy"
-      windows_path = "#{@output_dir}/native_deploy/windows" 
+      @java_app_deploy_path = options.windows_output_dir
+      @target_jvm_version = options.target_jvm_version
+      @jvm_arguments = options.jvm_arguments
 
-      copy_deployment_to windows_path
+      @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
+      copy_deployment_to @java_app_deploy_path
 
-      unless File.exists? launch4j_config_file
-        File.open(launch4j_config_file, 'w') do |file|
+      unless File.exists? @launch4j_config_file
+        File.open(@launch4j_config_file, 'w') do |file|
           file << <<-CONFIG_ENDL
 <launch4jConfig>
 <dontWrapJar>true</dontWrapJar>
 <headerType>0</headerType>
 <jar>#{@project_name}.jar</jar>
-<outfile>#{@project_name}.exe</outfile>
+<outfile>#{@built_jar_path}/#{@project_name}.exe</outfile>
 <errTitle></errTitle>
 <jarArgs></jarArgs>
 <chdir></chdir>
@@ -37,24 +36,21 @@ module Rawr
 <icon></icon>
 <jre>
   <path></path>
-  <minVersion>1.5.0</minVersion>
+  <minVersion>#{@target_jvm_version}</minVersion>
   <maxVersion></maxVersion>
   <initialHeapSize>0</initialHeapSize>
   <maxHeapSize>0</maxHeapSize>
-  <args></args>
+  <args>#{@jvm_arguments}</args>
 </jre>
 </launch4jConfig>          
 CONFIG_ENDL
         end
       end
-      # Hoe doesn't preserve executable permissions outside of the gem/bin directory
       unless Platform.instance.using_windows?
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/ld"
       end
-      sh "java -jar #{File.dirname(__FILE__)}/launch4j/launch4j.jar #{launch4j_config_file}"
-      puts "moving exe to correct directory"
-      mv("#{@project_name}.exe", windows_path)
+      sh "java -jar #{File.dirname(__FILE__)}/launch4j/launch4j.jar #{@launch4j_config_file}"
     end
   end
 end
