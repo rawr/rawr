@@ -19,7 +19,8 @@ module Rawr
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
       copy_deployment_to @java_app_deploy_path
-
+      puts "Creating Windows application in #{#{@built_jar_path}/#{@project_name}.exe}"
+      
       unless File.exists? @launch4j_config_file
         File.open(@launch4j_config_file, 'w') do |file|
           file << <<-CONFIG_ENDL

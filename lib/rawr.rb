@@ -7,7 +7,6 @@ require 'options'
 require 'rbconfig'
 require 'platform'
 require 'generator'
-#require 'timeout'
 require 'jar_builder'
 
 namespace("rawr") do
@@ -84,7 +83,15 @@ namespace("rawr") do
       directory = data.directory
       
       if Rawr::Options.data.compile_ruby_files
-        processed_file = file.sub(/\.rb$/, '.class')
+        relative_dir, name = File.split(file)
+        
+        if name[0..0] =~ /\d/
+          processed_file = relative_dir + '/$' + name
+        else
+          processed_file = file
+        end
+        
+        processed_file = processed_file.sub(/\.rb$/, '.class')
         target_file = "#{Rawr::Options.data.compile_dir}/#{processed_file}"
       else
         processed_file = file

@@ -17,6 +17,8 @@ module Rawr
       @target_jvm_version = options.target_jvm_version
       @jvm_arguments = options.jvm_arguments
       
+      puts "Creating OSX application at #{@mac_app_path}"
+      
       create_clean_deployment_directory_structure(@mac_path, @mac_app_path)
       copy_deployment_to @java_app_deploy_path
       generate_info_plist
