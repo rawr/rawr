@@ -19,16 +19,15 @@ module Rawr
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
       copy_deployment_to @java_app_deploy_path
-      puts "Creating Windows application in #{#{@built_jar_path}/#{@project_name}.exe}"
-      
-      unless File.exists? @launch4j_config_file
-        File.open(@launch4j_config_file, 'w') do |file|
-          file << <<-CONFIG_ENDL
+      puts "Creating Windows application in #{@built_jar_path}/#{@project_name}.exe"
+
+      File.open(@launch4j_config_file, 'w') do |file|
+        file << <<-CONFIG_ENDL
 <launch4jConfig>
 <dontWrapJar>true</dontWrapJar>
 <headerType>0</headerType>
 <jar>#{@project_name}.jar</jar>
-<outfile>#{@built_jar_path}/#{@project_name}.exe</outfile>
+<outfile>#{@java_app_deploy_path}/#{@project_name}.exe</outfile>
 <errTitle></errTitle>
 <jarArgs></jarArgs>
 <chdir></chdir>
@@ -37,7 +36,7 @@ module Rawr
 <icon></icon>
 <jre>
   <path></path>
-  <minVersion>#{@target_jvm_version}</minVersion>
+  <minVersion>#{@target_jvm_version}.0</minVersion>
   <maxVersion></maxVersion>
   <initialHeapSize>0</initialHeapSize>
   <maxHeapSize>0</maxHeapSize>
@@ -45,7 +44,6 @@ module Rawr
 </jre>
 </launch4jConfig>          
 CONFIG_ENDL
-        end
       end
       unless Platform.instance.using_windows?
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
