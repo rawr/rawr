@@ -102,7 +102,8 @@ namespace("rawr") do
         FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
         
         if Rawr::Options.data.compile_ruby_files
-          sh "jrubyc #{directory}/#{file}"
+          # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
+          sh "jruby -S jrubyc #{directory}/#{file}"
           File.move("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
         else
           File.copy("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
