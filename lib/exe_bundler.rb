@@ -16,6 +16,11 @@ module Rawr
       @target_jvm_version = options.target_jvm_version
       @jvm_arguments = options.jvm_arguments
 
+      @startup_error_message     = options.windows_startup_error_message
+      @bundled_jre_error_message = options.windows_bundled_jre_error_message
+      @jre_version_error_message = options.windows_jre_version_error_message
+      @launcher_error_message    = options.windows_launcher_error_message
+      
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
       copy_deployment_to @java_app_deploy_path
@@ -40,8 +45,14 @@ module Rawr
   <maxVersion></maxVersion>
   <initialHeapSize>0</initialHeapSize>
   <maxHeapSize>0</maxHeapSize>
-  <args>#{@jvm_arguments}</args>
+  #{"<args>" + @jvm_arguments + "</args>" unless @jvm_arguments.nil? || @jvm_arguments.strip.empty?}
 </jre>
+<messages>
+  <startupErr>#{@startup_error_message}</startupErr>
+  <bundledJreErr>#{@bundled_jre_error_message}</bundledJreErr>
+  <jreVersionErr>#{@jre_version_error_message}</jreVersionErr>
+  <launcherErr>#{@launcher_error_message}</launcherErr>
+</messages>
 </launch4jConfig>          
 CONFIG_ENDL
       end

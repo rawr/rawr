@@ -40,6 +40,11 @@ module Rawr
         c.jars = {}
         c.jvm_arguments = ""
         
+        c.windows_startup_error_message     = "There was an error starting the application."
+        c.windows_bundled_jre_error_message = "There was an error with the bundled JRE for this app."
+        c.windows_jre_version_error_message = "This application requires a newer version of Java. Please visit http://www.java.com"
+        c.windows_launcher_error_message    = "There was an error launching the application."
+        
         c.do_not_generate_plist = false
       end
       
