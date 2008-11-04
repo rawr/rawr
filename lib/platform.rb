@@ -9,7 +9,7 @@ class Platform
   def using_unix?
     # HOME is a known Cygwin environment variable. If other Unix-on-Windows
     # variations need anything else, check for them here
-    @using_unix ||= (!using_windows? && (ENV["HOME"].nil? || ENV["HOME"].empty?))
+    @using_unix ||= !(using_windows? && (ENV["HOME"].nil? || ENV["HOME"].empty?))
   end
   
   def using_windows?
