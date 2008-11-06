@@ -91,6 +91,7 @@ ENDL
     def self.create_default_config_file(config_path, java_class)
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
+configuration do |c|
   c.project_name = 'ChangeMe'
   c.output_dir = 'package'
   c.main_ruby_file = 'main'
@@ -112,6 +113,7 @@ ENDL
 
   # Bundler options
   # c.do_not_generate_plist = false
+end
         ENDL
       end
     end
