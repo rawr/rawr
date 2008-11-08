@@ -1,5 +1,5 @@
-Rawr 0.5.0
-    by David Koontz
+Rawr 1.0.0
+    by David Koontz, James Britt, and Logan Barnett
     http://www.rubyforge.org/projects/rawr
 
 == DESCRIPTION:
@@ -13,7 +13,7 @@ file that you can include into your project to do the building of the project.
 
   rawr install
   rake rawr:jar
-  java -jar package/deploy/your_jar_file.jar
+  java -jar package/jar/your_jar_file.jar
 
 == REQUIREMENTS:
 
