@@ -3,11 +3,14 @@ $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__))
 require 'rubygems'
 require 'fileutils'
 require 'options'
-#require 'rawr_bundle'
 require 'rbconfig'
 require 'platform'
 require 'generator'
 require 'jar_builder'
+
+def file_is_newer?(source, target)
+  !File.exists?(target) || (File.mtime(target) < File.mtime(source))
+end
 
 namespace("rawr") do
 
@@ -38,8 +41,8 @@ namespace("rawr") do
     FileUtils.mkdir_p Rawr::Options.data.linux_output_dir
   end
 
-  desc "Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file."
-  task :compile => ["rawr:compile_java_classes", "rawr:compile_ruby_classes"]
+  desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
+  task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
   
   desc "Compiles the Java source files specified in the source_dirs entry"
   task :compile_java_classes => "rawr:prepare" do
@@ -49,7 +52,7 @@ namespace("rawr") do
       list << Dir.glob("#{directory}/**/*.java").
         reject{|file| File.directory?(file)}.
         map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-        reject{|file| file =~ Rawr::Options.data.source_exclude_filter}.
+        reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
         map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
     
@@ -61,7 +64,8 @@ namespace("rawr") do
         directory = data.directory
         target_file = "#{Rawr::Options.data.compile_dir}/#{file.sub(/\.java$/, '.class')}"
 
-        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
+#        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
+        if file_is_newer?("#{directory}/#{file}", target_file)
           sh "javac -target #{Rawr::Options.data.target_jvm_version} -cp \"#{Rawr::Options.data.classpath.join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.source_dirs.join(delimiter)}\" -d \"#{Rawr::Options.data.compile_dir}\" \"#{directory}/#{file}\""
         end
       end
@@ -74,7 +78,7 @@ namespace("rawr") do
       list << Dir.glob("#{directory}/**/*.rb").
             reject{|file| File.directory?(file)}.
             map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-            reject{|file| file =~ Rawr::Options.data.source_exclude_filter}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
             map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
 
@@ -98,7 +102,7 @@ namespace("rawr") do
         target_file = "#{Rawr::Options.data.compile_dir}/#{file}"
       end
 
-      if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
+      if file_is_newer?("#{directory}/#{file}", target_file)
         FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
         
         if Rawr::Options.data.compile_ruby_files
@@ -112,6 +116,26 @@ namespace("rawr") do
     end
   end
 
+  task :copy_other_file_in_source_dirs => "rawr:prepare" do
+    non_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
+      list << Dir.glob("#{directory}/**/*").
+            reject{|file| File.directory?(file)}.
+            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
+            reject{|file| file =~ /\.rb|\.java|\.class/}.
+            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+    end.flatten!
+    
+    non_source_file_list.each do |data|
+      file = data.file
+      directory = data.directory
+      puts "Copying non-source file #{file} to #{Rawr::Options.data.compile_dir}/#{file}"
+      if file_is_newer?("#{directory}/#{file}", "#{Rawr::Options.data.compile_dir}/#{file}")
+        File.copy("#{directory}/#{file}", "#{Rawr::Options.data.compile_dir}/#{file}")
+      end
+    end
+  end
+  
   desc "Uses compiled output and creates an executable jar file."
   task :jar => ["rawr:compile", "rawr:build_data_jars"] do
     Rawr::Generator.create_manifest_file Rawr::Options.data
@@ -136,81 +160,5 @@ namespace("rawr") do
       require 'exe_bundler'
       Rawr::ExeBundler.new.deploy Rawr::Options.data
     end
-
-#    desc "Bundles the jar from rawr:jar into a Java Web Start application (.jnlp)"
-#    task :web => [:"rawr:jar"] do
-#      require 'web_bundler'
-#      Rawr::WebBundler.new.deploy Rawr::Options.instance
-#    end
   end
-#
-#  desc "Create a keystore"
-#  task :keytool => [:setup_consts] do 
-#    begin
-#      require 'pty'
-#    rescue Exception
-#      warn "Exception requiring 'pty': #{$!.inspect}"
-#      warn "If you are using JRuby, you may need MRI to run the rawr:keytool task"
-#      exit
-#    end
-#
-#    keytool( Rawr::Options[:keytool_responses] )
-#  end
-#
-#  # Helper code for ad-hoc 'expect', better than 'rexpect'
-#
-#  class IO
-#    def getline
-#      line = ""
-#      begin timeout(2) do
-#        while ((char = self.getc) != "\n")
-#          line << char
-#        end
-#        line << char
-#        return line
-#      end
-#      rescue Timeout::Error
-#        return line
-#      end
-#    end
-#  end
-#
-#  def keytool(keytool_responses)
-#    qna = {
-#      /Enter keystore password/  =>  keytool_responses[:password], 
-#      /Re-enter new password/ =>   keytool_responses[:password] ,
-#      /What is your first and last name?/ =>   keytool_responses[:first_and_last_name],
-#      /What is the name of your organization?/ =>  keytool_responses[:organization],
-#      /What is the name of your City or Locality/ =>  keytool_responses[:locality],
-#      /What is the name of your State or Province?/ =>  keytool_responses[:state_or_province],
-#      /What is the two-letter country code for this unit/ =>  keytool_responses[:country_code],
-#      /correct/ =>  "yes", 
-#      /Enter key password for <myself>/ => keytool_responses[:password], 
-#      /Re-enter new password/ => keytool_responses[:password]
-#    }
-#
-#    STDIN.sync = true
-#    STDOUT.sync = true
-#    STDERR.sync = true
-#
-#    ENV['TERM'] = "";
-#    cmd ='keytool -genkey -keystore sample-keys -alias myself  2>&1'
-#    warn `rm sample-keys`
-#
-#    puts " -- #{cmd} -- "
-#    PTY.spawn(cmd) do |r,w,cid| 
-#      begin
-#        while line = r.getline
-#          puts line unless line == ""
-#          qna.each do |q,a|
-#            if line.match(q)
-#              w.puts(a)
-#            end
-#          end
-#        end
-#      rescue Exception => e
-#        warn "Error running keytool: #{e.inspect}"
-#      end
-#    end
-#  end
 end
