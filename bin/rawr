@@ -26,7 +26,6 @@ end
 def create_rakefile
   if File.exist? "Rakefile"
     handle_existing_rakefile
-
   else
     create_new_rakefile
   end
