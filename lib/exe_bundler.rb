@@ -56,7 +56,11 @@ module Rawr
 </launch4jConfig>          
 CONFIG_ENDL
       end
-      unless Platform.instance.using_windows?
+      if Platform.instance.using_windows?
+        #CACLS
+        sh "echo y | cacls #{File.dirname(__FILE__)}/launch4j/bin/windres.exe /G #{ENV['USERNAME']}:F"
+        sh "echo y | cacls #{File.dirname(__FILE__)}/launch4j/bin/ld.exe /G #{ENV['USERNAME']}:F"
+      else
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/ld"
       end
