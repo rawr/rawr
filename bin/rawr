@@ -17,7 +17,7 @@ def help(message = nil)
       install [-d dir] [-c class_name]
         -d/--directory: Directory to place Java main file in, defaults to 'src'
         -c/--class: Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
-        -f/--file: Name of the rawr configuration file, defaults to build_configuration.rb
+        -f/--file: Name of the Rawr configuration file, defaults to build_configuration.rb
 
         Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
   ENDL
@@ -26,18 +26,17 @@ end
 def create_rakefile
   if File.exist? "Rakefile"
     handle_existing_rakefile
-
   else
     create_new_rakefile
   end
 end
 
 def quit_and_do_nothing_with_rakefile 
-  puts "rawr will now exit, and leave your Rakefile as-is."
+  puts "Rawr will now exit, and leave your Rakefile as-is."
 end
 
 def prepend_to_current_rakefile
-  puts "rawr will now prepend new rawr task content to your current Rakefile ..."
+  puts "Rawr will now prepend new Rawr task content to your current Rakefile ..."
   current = IO.read( 'Rakefile')
   File.open("Rakefile", "w") do |rakefile|
     rakefile.puts "require 'rawr'\n"
@@ -46,7 +45,7 @@ def prepend_to_current_rakefile
 end
 
 def replace_with_new_rakefile
-  puts "rawr will now replace your current Rakefile with a new one ..."
+  puts "Rawr will now replace your current Rakefile with a new one ..."
   create_new_rakefile
 end
 
@@ -58,22 +57,21 @@ def create_new_rakefile
 end
 
 def handle_existing_rakefile
-  options = { '1' => ['Replace the current Rakefile with a new Rakefile.  You will lose everything in the current Rakefile!', :replace_with_new_rakefile ],
-              '2' => ['Keep the current Rakefile, and add the rawr content to the top.', :prepend_to_current_rakefile ],
+  options = { '1' => ['Keep the current Rakefile, and add the rawr content to the top.', :prepend_to_current_rakefile ],
+              '2' => ['Replace the current Rakefile with a new Rakefile.  You will lose everything in the current Rakefile!', :replace_with_new_rakefile ],
               '3' => ['Quit, leave the current Rakefile alone, and add nothing new.', :quit_and_do_nothing_with_rakefile ] 
 
   }
   choice = ''
-  puts "rawr has found an exisiting Rakefile.\nPlease select one of these options:\n"
+  puts "Rawr has found an exisiting Rakefile.\nPlease select one of these options:\n"
   puts "\t1: #{options['1'].first }" 
   puts "\t2: #{options['2'].first }"  
   puts "\t3: #{options['3'].first }"  
 
   while choice.to_s.strip !~ /[123]/
-    print "\nYour choice (1,2, or 3): "
+    print "\nYour choice (1, 2, or 3): "
     choice = gets.to_s.strip[0..0]
   end
-  puts "You choose #{choice}!"
   send options[choice].last
 end
 
@@ -115,7 +113,7 @@ else
           config_file = File.expand_path(ARGV[1]).split("/")
           ARGV.shift; ARGV.shift
         else
-          help("No rawr configuration file name given")
+          help("No Rawr configuration file name given")
         end
       end
     end
@@ -123,7 +121,7 @@ else
     if File.exist? config_file.join("/")
       puts "Configuration file '#{config_file.join("/")}' exists, skipping"
     else
-      puts "Creating rawr configuration file #{config_file.join("/")}"
+      puts "Creating Rawr configuration file #{config_file.join("/")}"
       FileUtils.mkdir_p(config_file[0...-1].join("/"))
       Rawr::Generator.create_default_config_file(config_file.join("/"), java_class.join("."))
     end

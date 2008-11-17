@@ -29,7 +29,7 @@ module Rawr
         c.main_java_file = 'org.rubyforge.rawr.Main'
 
         c.source_dirs = ['src', 'lib/ruby']
-        c.source_exclude_filter = nil
+        c.source_exclude_filter = []
 
         c.compile_ruby_files = true
         c.java_lib_files = []  
@@ -73,9 +73,6 @@ module Rawr
         c.osx_output_dir = "#{c.output_dir}/osx"
         c.linux_output_dir = "#{c.output_dir}/linux"
         
-        # Set up Java lib settings and classpath
-#        c.java_lib_files.map! {|e| "#{c.base_dir}/#{e}"}
-#        c.java_lib_dirs.map! {|e| "#{c.base_dir}/#{e}"}
         pwd = "#{Dir::pwd}/"
         c.classpath = (c.java_lib_dirs.map { |directory| 
           Dir.glob("#{directory}/**/*.jar")
@@ -87,50 +84,14 @@ module Rawr
         c.jars_to_build = c.jars.map do |key, jar_settings|
           JarBuilder.new("#{key.to_s}.jar", jar_settings)
         end
+        
+        # Check validity of source filters
+        if c.source_exclude_filter.kind_of? Array
+          c.source_exclude_filter.each{|filter| raise "Invalid source filter: #{filter.inspect}, contents of source filters array must be regular expressions" unless filter.kind_of? Regexp}
+        else
+          raise "Invalid source filter: #{c.source_exclude_filter.inspect}, source filters must be an array of regular expressions"
+        end
       end
     end
-
-#    def load_keytool_responses(config_hash)
-#      @options ||= {}
-#      @options[:keytool_responses] = config_hash['keytool_responses'] 
-#
-#      return unless @options[:keytool_responses]
-#      _res = config_hash['keytool_responses'] 
-#
-#      @options[:keytool_responses][:password]  = _res['password'].to_s 
-#      @options[:keytool_responses][:first_and_last_name]  = _res['first_and_last_name'].to_s 
-#      @options[:keytool_responses][:organization]  = _res['organization'].to_s 
-#      @options[:keytool_responses][:locality]  = _res['locality'].to_s 
-#      @options[:keytool_responses][:state_or_province]  = _res['state_or_province'].to_s 
-#      @options[:keytool_responses][:country_code]  = _res['country_code'].to_s 
-#      @options[:keytool_responses]
-#    end
-#
-#    def  load_web_start_options(config_hash)
-#      @options ||= {}
-#      @options[:web_start] = config_hash['web_start'] 
-#
-#      return unless @options[:web_start]
-#
-#      @options[:web_start][:self_sign] =  config_hash['web_start']['self_sign'] 
-#      @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
-#      @options[:web_start][:self_sign_passphrase] =  config_hash['web_start']['self_sign_passphrase'] 
-#      @options[:web_start]
-#    end
-#
-#    def load_jnlp(config_hash)
-#      (@options[:jnlp] = nil; return ) unless config_hash['jnlp']
-#
-#      @options[:jnlp] = {}
-#      @options[:jnlp][:title] =  config_hash['jnlp']['title']
-#      @options[:jnlp][:vendor] =  config_hash['jnlp']['vendor']
-#      @options[:jnlp][:codebase] =  config_hash['jnlp']['codebase']
-#      @options[:jnlp][:homepage_href] =  config_hash['jnlp']['homepage_href']
-#      @options[:jnlp][:description] =  config_hash['jnlp']['description']
-#      @options[:jnlp][:offline_allowed] =  config_hash['jnlp']['offline_allowed']
-#      @options[:jnlp][:shortcut_desktop] =  config_hash['jnlp']['shortcut_desktop']
-#      @options[:jnlp][:menu_submenu] =  config_hash['jnlp']['menu_submenu']
-#    end
-
   end
 end

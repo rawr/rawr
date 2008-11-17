@@ -7,9 +7,7 @@ class Platform
   @@operating_system = Config::CONFIG['host_os']
   
   def using_unix?
-    # HOME is a known Cygwin environment variable. If other Unix-on-Windows
-    # variations need anything else, check for them here
-    @using_unix ||= !(using_windows? && (ENV["HOME"].nil? || ENV["HOME"].empty?))
+    @using_unix ||= !using_windows?
   end
   
   def using_windows?
@@ -25,6 +23,6 @@ class Platform
   end
   
   def argument_delimiter
-    using_unix? ? ':' : ';'
+    using_windows? ? ';' : ':'
   end
 end
