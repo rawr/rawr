@@ -6,7 +6,7 @@ module Rawr
       end
     end
     def self.create_manifest_file(options)
-      
+      FileUtils.mkdir_p "#{options.compile_dir}/META-INF"
       File.open("#{options.compile_dir}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
         manifest_file << "Class-Path: " << options.classpath.join(" ") << " " << options.jars.keys.map{|key| "#{key}.jar"}.join(" ") << " . \n"
