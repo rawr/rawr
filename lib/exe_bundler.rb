@@ -20,6 +20,7 @@ module Rawr
       @bundled_jre_error_message = options.windows_bundled_jre_error_message
       @jre_version_error_message = options.windows_jre_version_error_message
       @launcher_error_message    = options.windows_launcher_error_message
+      @icon_path                 = options.windows_icon_path
       
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
@@ -38,7 +39,7 @@ module Rawr
 <chdir></chdir>
 <customProcName>true</customProcName>
 <stayAlive>false</stayAlive>
-<icon></icon>
+<icon>#{@icon_path}</icon>
 <jre>
   <path></path>
   <minVersion>#{@target_jvm_version}.0</minVersion>
