@@ -17,6 +17,9 @@ module Rawr
       @target_jvm_version = options.target_jvm_version
       @jvm_arguments = options.jvm_arguments
       
+      @mac_icon_default = options.mac_icon_path.nil?
+      @mac_icon_path = options.mac_icon_path ||= 'GenericJavaApp.icns'
+      
       puts "Creating OSX application at #{@mac_app_path}"
       
       create_clean_deployment_directory_structure(@mac_path, @mac_app_path)
@@ -39,7 +42,12 @@ module Rawr
     end
 
     def deploy_artwork
-      cp "#{File.expand_path(File.dirname(__FILE__))}/../data/GenericJavaApp.icns", "#{@mac_app_path}/Contents/Resources"
+      if @mac_icon_default
+        #give us a default icon, which Rawr provides. This comes from the default icon in the Jar Bundler for OSX.
+        cp "#{File.expand_path(File.dirname(__FILE__))}/../data/GenericJavaApp.icns", "#{@mac_app_path}/Contents/Resources"
+      else
+        cp @mac_icon_path, "#{@mac_app_path}/Contents/Resources"
+      end
     end
     
     def deploy_app_stub
@@ -62,6 +70,8 @@ module Rawr
     
     def generate_info_plist
       unless Rawr::Options.data.do_not_generate_plist
+        mac_icon_filename = @mac_icon_path.sub(File.dirname(@mac_icon_path) + '/', '')
+
         File.open "Info.plist", 'w' do |file|
           file << <<-INFO_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
@@ -85,7 +95,7 @@ module Rawr
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleIconFile</key>
-    <string>GenericJavaApp.icns</string>
+    <string>#{mac_icon_filename}</string>
     <key>Java</key>
     <dict>
         <key>MainClass</key>
