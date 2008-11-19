@@ -1,20 +1,16 @@
-.DS_Store
 History.txt
 Manifest.txt
 README.txt
 Rakefile
 bin/rawr
-data/.DS_Store
 data/GenericJavaApp.icns
 data/JavaApplicationStub
 data/Rawr logo 1 large.png
 data/Rawr logo 2 large.png
 data/Rawr logo2.png
-data/website/.DS_Store
 data/website/_notes/dwsync.xml
 data/website/css/1.css
 data/website/css/_notes/dwsync.xml
-data/website/images/.DS_Store
 data/website/images/_notes/dwsync.xml
 data/website/images/body_bg.jpg
 data/website/images/bullet.gif
@@ -26,13 +22,11 @@ data/website/images/header_bg.jpg
 data/website/images/nav_a_hover.gif
 data/website/images/rawr_logo.png
 data/website/index.html
-lib/.DS_Store
 lib/app_bundler.rb
 lib/bundler.rb
 lib/exe_bundler.rb
 lib/generator.rb
 lib/jar_builder.rb
-lib/launch4j/.DS_Store
 lib/launch4j/LICENSE.txt
 lib/launch4j/bin/COPYING
 lib/launch4j/bin/ld
