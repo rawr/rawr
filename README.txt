@@ -1,4 +1,4 @@
-Rawr 1.0.0
+Rawr 1.1.0
     by David Koontz, James Britt, and Logan Barnett
     http://www.rubyforge.org/projects/rawr
 
