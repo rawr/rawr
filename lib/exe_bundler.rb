@@ -57,15 +57,28 @@ module Rawr
 </launch4jConfig>          
 CONFIG_ENDL
       end
+      # Set ACL permissions to allow launch4j bundler to run on Windows
       if Platform.instance.using_windows?
-        #CACLS
-        sh "echo y | cacls #{File.dirname(__FILE__)}/launch4j/bin/windres.exe /G #{ENV['USERNAME']}:F"
-        sh "echo y | cacls #{File.dirname(__FILE__)}/launch4j/bin/ld.exe /G #{ENV['USERNAME']}:F"
+        # Check for FAT32 vs NTFS, the cacls command doesn't work on FAT32 nor is it required
+        puts "fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\"
+        
+        output = `fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\`
+        # Sample of 'fsutil fsinfo volumeinfo c:\' output==================
+        # Volume Name :
+        # Volume Serial Number : 0x80a5650a
+        # Max Component Length : 255
+        # File System Name : FAT32
+        # Preserves Case of filenames
+        # Supports Unicode in filenames
+        if 'FAT32' != output.split("\n")[3].split(':')[1].strip
+          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/windres.exe\" /G #{ENV['USERNAME']}:F"
+          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/ld.exe\" /G #{ENV['USERNAME']}:F"
+        end
       else
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/ld"
       end
-      sh "java -jar #{File.dirname(__FILE__)}/launch4j/launch4j.jar #{@launch4j_config_file}"
+      sh "java -jar \"#{File.dirname(__FILE__)}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
     end
   end
 end
