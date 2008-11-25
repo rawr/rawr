@@ -60,8 +60,6 @@ CONFIG_ENDL
       # Set ACL permissions to allow launch4j bundler to run on Windows
       if Platform.instance.using_windows?
         # Check for FAT32 vs NTFS, the cacls command doesn't work on FAT32 nor is it required
-        puts "fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\"
-        
         output = `fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\`
         # Sample of 'fsutil fsinfo volumeinfo c:\' output==================
         # Volume Name :
