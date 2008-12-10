@@ -164,6 +164,7 @@ namespace("rawr") do
       file = data.file
       directory = data.directory
       puts "Copying non-source file #{file} to #{Rawr::Options.data.compile_dir}/#{file}"
+      FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
       if file_is_newer?("#{directory}/#{file}", "#{Rawr::Options.data.compile_dir}/#{file}")
         File.copy("#{directory}/#{file}", "#{Rawr::Options.data.compile_dir}/#{file}")
       end
