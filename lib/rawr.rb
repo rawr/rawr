@@ -116,6 +116,40 @@ namespace("rawr") do
     end
   end
 
+  desc "Compiles the Duby source files specified in the source_dirs entry"
+  task :compile_duby_classes => "rawr:prepare" do
+    ruby_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
+      list << Dir.glob("#{directory}/**/*.duby").
+            reject{|file| File.directory?(file)}.
+            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
+            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+    end.flatten!
+
+    ruby_source_file_list.each do |data|
+      file = data.file
+      directory = data.directory
+
+      relative_dir, name = File.split(file)
+
+      if name[0..0] =~ /\d/
+        processed_file = relative_dir + '/$' + name
+      else
+        processed_file = file
+      end
+
+      processed_file = processed_file.sub(/\.duby$/, '.class')
+      target_file = "#{Rawr::Options.data.compile_dir}/#{processed_file}"
+
+      if file_is_newer?("#{directory}/#{file}", target_file)
+        FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
+
+        sh "dubyc -J-classpath #{directory}/#{file}"
+        File.move("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
+      end
+    end
+  end
+
   task :copy_other_file_in_source_dirs => "rawr:prepare" do
     non_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*").

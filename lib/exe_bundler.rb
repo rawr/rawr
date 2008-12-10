@@ -69,8 +69,8 @@ CONFIG_ENDL
         # Preserves Case of filenames
         # Supports Unicode in filenames
         if 'NTFS' == output.split("\n")[3].split(':')[1].strip
-          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/windres.exe\" /G #{ENV['USERNAME']}:F"
-          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/ld.exe\" /G #{ENV['USERNAME']}:F"
+          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
+          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
         end
       else
         chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
