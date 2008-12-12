@@ -61,6 +61,8 @@ CONFIG_ENDL
       if Platform.instance.using_windows?
         # Check for FAT32 vs NTFS, the cacls command doesn't work on FAT32 nor is it required
         output = `fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\`
+        # fsutil can only work with admin priviledges
+        raise output if output =~ /requires that you have administrative privileges/
         # ===== Sample output of 'fsutil fsinfo volumeinfo c:\'
         # Volume Name :
         # Volume Serial Number : 0x80a5650a
