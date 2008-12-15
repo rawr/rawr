@@ -238,7 +238,7 @@ namespace("rawr") do
 
     desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC!"
     task :'current-jruby' do
-      r  =  Release.most_current_releases(1).first.jar_url
+      r  =  Release.most_current_releases(1).first
       puts "Fetching jruby-complete version #{r.full_version_string}"
       get_and_move_jruby_jar( r.jar_url)
     end
