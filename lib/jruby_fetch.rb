@@ -26,6 +26,11 @@ class Release
   end
 
 
+  def download_me
+    open("jruby-complete.jar","wb").write(open(self.jar_url).read) 
+  end
+
+
 
   def self.most_current_releases(count=5)
     @@releases ||= get_list
