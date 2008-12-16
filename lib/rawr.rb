@@ -88,14 +88,7 @@ namespace("rawr") do
       
       if Rawr::Options.data.compile_ruby_files
         relative_dir, name = File.split(file)
-        
-        if name[0..0] =~ /\d/
-          processed_file = relative_dir + '/$' + name
-        else
-          processed_file = file
-        end
-        
-        processed_file = processed_file.sub(/\.rb$/, '.class')
+        processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
         target_file = "#{Rawr::Options.data.compile_dir}/#{processed_file}"
       else
         processed_file = file
