@@ -20,14 +20,14 @@ namespace("rawr") do
   task :load_configuration do
     Rawr::Options.load_configuration
   end
-
+  
   desc "Build all data jars"
   task :build_data_jars => :prepare do
     Rawr::Options.data.jars_to_build.each do |jar_builder|
       jar_builder.build
     end
   end
-
+  
   desc "Removes generated content"
   task :clean => "rawr:load_configuration" do
     FileUtils.remove_dir(Rawr::Options.data.output_dir) if File.directory? Rawr::Options.data.output_dir
@@ -45,11 +45,11 @@ namespace("rawr") do
 
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
-
+  
   desc "Compiles the Java source files specified in the source_dirs entry"
   task :compile_java_classes => "rawr:prepare" do
     delimiter = Platform.instance.argument_delimiter
-
+    
     java_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*.java").
         reject{|file| File.directory?(file)}.
@@ -57,7 +57,7 @@ namespace("rawr") do
         reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
         map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
-
+    
     unless java_source_file_list.empty?
       FileUtils.mkdir_p("#{Rawr::Options.data.compile_dir}/META-INF")
 
@@ -66,38 +66,31 @@ namespace("rawr") do
         directory = data.directory
         target_file = "#{Rawr::Options.data.compile_dir}/#{file.sub(/\.java$/, '.class')}"
 
-        #        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
+#        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
         if file_is_newer?("#{directory}/#{file}", target_file)
           sh "javac -target #{Rawr::Options.data.target_jvm_version} -cp \"#{Rawr::Options.data.classpath.join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.source_dirs.join(delimiter)}\" -d \"#{Rawr::Options.data.compile_dir}\" \"#{directory}/#{file}\""
         end
       end
     end
   end
-
+  
   desc "Compiles the Ruby source files specified in the source_dirs entry"
   task :compile_ruby_classes => "rawr:prepare" do
     ruby_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*.rb").
-        reject{|file| File.directory?(file)}.
-        map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-        reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-        map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+            reject{|file| File.directory?(file)}.
+            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
+            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
 
     ruby_source_file_list.each do |data|
       file = data.file
       directory = data.directory
-
+      
       if Rawr::Options.data.compile_ruby_files
         relative_dir, name = File.split(file)
-
-        if name[0..0] =~ /\d/
-          processed_file = relative_dir + '/$' + name
-        else
-          processed_file = file
-        end
-
-        processed_file = processed_file.sub(/\.rb$/, '.class')
+        processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
         target_file = "#{Rawr::Options.data.compile_dir}/#{processed_file}"
       else
         processed_file = file
@@ -106,7 +99,7 @@ namespace("rawr") do
 
       if file_is_newer?("#{directory}/#{file}", target_file)
         FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
-
+        
         if Rawr::Options.data.compile_ruby_files
           # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
           sh "jruby -S jrubyc #{directory}/#{file}"
@@ -122,10 +115,10 @@ namespace("rawr") do
   task :compile_duby_classes => "rawr:prepare" do
     ruby_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*.duby").
-        reject{|file| File.directory?(file)}.
-        map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-        reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-        map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+            reject{|file| File.directory?(file)}.
+            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
+            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
 
     ruby_source_file_list.each do |data|
@@ -155,13 +148,13 @@ namespace("rawr") do
   task :copy_other_file_in_source_dirs => "rawr:prepare" do
     non_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*").
-        reject{|file| File.directory?(file)}.
-        map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-        reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-        reject{|file| file =~ /\.rb|\.java|\.class/}.
-        map!{|file| OpenStruct.new(:file => file, :directory => directory)}
+            reject{|file| File.directory?(file)}.
+            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
+            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
+            reject{|file| file =~ /\.rb|\.java|\.class/}.
+            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
     end.flatten!
-
+    
     non_source_file_list.each do |data|
       file = data.file
       directory = data.directory
@@ -172,7 +165,7 @@ namespace("rawr") do
       end
     end
   end
-
+  
   desc "Uses compiled output and creates an executable jar file."
   task :jar => ["rawr:compile", "rawr:build_data_jars"] do
     Rawr::Generator.create_manifest_file Rawr::Options.data
@@ -184,7 +177,7 @@ namespace("rawr") do
       File.copy(file, "#{Rawr::Options.data.jar_output_dir}/#{file}")
     end
   end
-
+  
   namespace :"bundle" do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
     task :app => [:"rawr:jar"] do
