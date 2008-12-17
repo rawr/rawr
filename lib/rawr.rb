@@ -197,10 +197,10 @@ namespace("rawr") do
       './lib/java'
     end
 
-    def get_and_move_jruby_jar(url)
-      puts `wget -O jruby-complete.jar #{url}`
+    def get_and_move_jruby_jar(jruby_release)
+      # puts `wget -O jruby-complete.jar #{url}`
+      jruby_release.download_me
       if File.exist?('jruby-complete.jar')
-        puts "Moving 'jruby-complete.jar' to ./lib/java ..."
         mv_to_lib_java_dir('jruby-complete.jar') 
       else
         warn "Failed to get jruby-complete.jar."
@@ -217,6 +217,7 @@ namespace("rawr") do
         warn "You already have a jruby-complete.jar in #{lib_java_dir}."
         warn "Move the file yourslef if you want to replace it."
       else
+        puts "Moving 'jruby-complete.jar' to ./lib/java ..."
         File.move(file, "#{lib_java_dir}/#{file}") 
       end
     end
@@ -225,15 +226,15 @@ namespace("rawr") do
     task :'current-stable-jruby' do
       r = Release.most_current_stable_releases(1).first
       # Stupid rake will not actually show this text until *after* the download.
-      puts "Fetching jruby-complete version #{r.full_version_string}"
-      get_and_move_jruby_jar(r.jar_url)
+      STDOUT.puts "Fetching jruby-complete version #{r.full_version_string} ..."; STDOUT.flush
+      get_and_move_jruby_jar(r)
     end
 
     desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC!"
     task :'current-jruby' do
       r  =  Release.most_current_releases(1).first
       puts "Fetching jruby-complete version #{r.full_version_string}"
-      get_and_move_jruby_jar( r.jar_url)
+      get_and_move_jruby_jar( r)
     end
   end
 end
