@@ -194,48 +194,18 @@ namespace("rawr") do
   end
 
   namespace :get do
-    def lib_java_dir
-      './lib/java'
-    end
-
-    def get_and_move_jruby_jar(jruby_release)
-      # puts `wget -O jruby-complete.jar #{url}`
-      jruby_release.download_me
-      if File.exist?('jruby-complete.jar')
-        mv_to_lib_java_dir('jruby-complete.jar') 
-      else
-        warn "Failed to get jruby-complete.jar."
-      end
-    end
-
-    def mv_to_lib_java_dir(file)
-      unless File.exist?(lib_java_dir) && File.directory?(lib_java_dir)
-        warn "You don't seem to have directory #{lib_java_dir}, so #{file} cannot be moved there."
-        return
-      end
-
-      if File.exist?("#{lib_java_dir}/#{file}")
-        warn "You already have a jruby-complete.jar in #{lib_java_dir}."
-        warn "Move the file yourslef if you want to replace it."
-      else
-        puts "Moving 'jruby-complete.jar' to ./lib/java ..."
-        File.move(file, "#{lib_java_dir}/#{file}") 
-      end
-    end
-
     desc "Fetch the most recent stable jruby-complete.jar"
     task :'current-stable-jruby' do
-      r = Release.most_current_stable_releases(1).first
-      # Stupid rake will not actually show this text until *after* the download.
-      STDOUT.puts "Fetching jruby-complete version #{r.full_version_string} ..."; STDOUT.flush
-      get_and_move_jruby_jar(r)
+      require 'jruby_release'
+      #TODO: jruby-complete location should be formally recognized by config
+      Rawr::JRubyRelease.get 'stable', 'lib/java'
     end
 
-    desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC!"
+    desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC"
     task :'current-jruby' do
-      r  =  Release.most_current_releases(1).first
-      puts "Fetching jruby-complete version #{r.full_version_string}"
-      get_and_move_jruby_jar( r)
+      require 'jruby_release'
+      #TODO: jruby-complete location should be formally recognized by config
+      Rawr::JRubyRelease.get 'current', 'lib/java'
     end
   end
 end
