@@ -196,10 +196,6 @@ namespace("rawr") do
       require 'jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'stable', 'lib/java'
-#      r = Release.most_current_stable_releases(1).first
-#      # Stupid rake will not actually show this text until *after* the download.
-#      STDOUT.puts "Fetching jruby-complete version #{r.full_version_string} ..."; STDOUT.flush
-#      get_and_move_jruby_jar(r)
     end
 
     desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC"
@@ -207,9 +203,6 @@ namespace("rawr") do
       require 'jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'current', 'lib/java'
-#      r  =  Release.most_current_releases(1).first
-#      puts "Fetching jruby-complete version #{r.full_version_string}"
-#      get_and_move_jruby_jar(r)
     end
   end
 end
