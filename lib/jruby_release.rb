@@ -70,7 +70,7 @@ module Rawr
 
     def move_to(destination)
       FileUtils.mkdir_p destination
-      File.move("jruby-complete.jar", "#{destination}/jruby-complete.jar")
+      FileUtils.move("jruby-complete.jar", "#{destination}/jruby-complete.jar")
     end
 
     def jar_url

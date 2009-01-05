@@ -138,6 +138,9 @@ else
     end
     
     create_rakefile
+    require 'jruby_release'
+    puts "Downloading jruby-complete.jar. This may take a moment..."
+    Rawr::JRubyRelease.get 'stable', 'lib/java'
   else
     help("Unknown command '#{ARGV[0]}'")
   end
