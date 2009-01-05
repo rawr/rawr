@@ -1,6 +1,5 @@
 require 'open-uri'
 
-
 class Release
 
   @@releases = nil
@@ -8,8 +7,6 @@ class Release
   BASE_URL='http://repository.codehaus.org/org/jruby/jruby-complete'
 
   attr_accessor :version, :rc, :version_string
-
-
 
   def self.get_list
     # We get HTML 3.2 or something, with lines like this:
@@ -21,16 +18,12 @@ class Release
     lines.compact!
     lines.map!{|l|   Release.new(l) }
     lines.sort!
-
     @@releases  = lines
   end
-
 
   def download_me
     open("jruby-complete.jar","wb").write(open(self.jar_url).read) 
   end
-
-
 
   def self.most_current_releases(count=5)
     @@releases ||= get_list

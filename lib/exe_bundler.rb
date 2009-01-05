@@ -57,10 +57,13 @@ module Rawr
 </launch4jConfig>          
 CONFIG_ENDL
       end
+
+      file_dir_name = File.dirname(__FILE__)
+
       # Set ACL permissions to allow launch4j bundler to run on Windows
       if Platform.instance.using_windows?
         # Check for FAT32 vs NTFS, the cacls command doesn't work on FAT32 nor is it required
-        output = `fsutil fsinfo volumeinfo #{File.dirname(__FILE__).split(':')[0]}:\\`
+        output = `fsutil fsinfo volumeinfo #{file_dir_name.split(':')[0]}:\\`
         # fsutil can only work with admin priviledges
         raise output if output =~ /requires that you have administrative privileges/
         # ===== Sample output of 'fsutil fsinfo volumeinfo c:\'
@@ -71,14 +74,28 @@ CONFIG_ENDL
         # Preserves Case of filenames
         # Supports Unicode in filenames
         if 'NTFS' == output.split("\n")[3].split(':')[1].strip
-          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
-          sh "echo y | cacls \"#{File.dirname(__FILE__)}/launch4j/bin/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
+          sh "echo y | cacls \"#{file_dir_name }/launch4j/bin-mac/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
+          sh "echo y | cacls \"#{file_dir_name }/launch4j/bin-mac/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
         end
+      elsif Platform.instance.using_linux?
+        chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
+        chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
+        sh "ln -s #{file_dir_name}/launch4j/bin-linux/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+        sh "ln -s #{file_dir_name}/launch4j/bin-linux/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+
+      elsif Platform.instance.using_mac?
+        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
+        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
+        sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+        sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+
       else
-        chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/windres"
-        chmod 0755, "#{File.dirname(__FILE__)}/launch4j/bin/ld"
+        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
+        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
+        sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+        sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
       end
-      sh "java -jar \"#{File.dirname(__FILE__)}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
+      sh "java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
     end
   end
 end

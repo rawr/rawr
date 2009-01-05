@@ -7,7 +7,6 @@ require 'rbconfig'
 require 'platform'
 require 'generator'
 require 'jar_builder'
-
 require 'jruby_fetch'
 
 def file_is_newer?(source, target)
@@ -102,7 +101,9 @@ namespace("rawr") do
         
         if Rawr::Options.data.compile_ruby_files
           # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
-          sh "jruby -S jrubyc #{directory}/#{file}"
+          # NEED A TARGET
+          #  -J-Djruby.bytecode.version=1.5
+          sh "jruby  -S jrubyc  #{directory}/#{file}"
           File.move("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
         else
           File.copy("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
