@@ -102,6 +102,10 @@ configuration do |c|
   c.source_dirs = ['src', 'lib/ruby']
   c.source_exclude_filter = []
 
+  # Location of the jruby-complete.jar. Override this if your jar lives elsewhere.
+  # This allows Rawr to make sure it uses a compatible jrubyc when compiling,
+  # so the class files are always compatible, regardless of your system JRuby.
+  #c.jruby_jar = 'lib/java/jruby-complete.jar'
   c.compile_ruby_files = true
   #c.java_lib_files = []  
   c.java_lib_dirs = ['lib/java']

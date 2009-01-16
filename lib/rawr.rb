@@ -74,39 +74,8 @@ namespace("rawr") do
   
   desc "Compiles the Ruby source files specified in the source_dirs entry"
   task :compile_ruby_classes => "rawr:prepare" do
-    ruby_source_file_list = Rawr::Options.data.source_dirs.inject([]) do |list, directory|
-      list << Dir.glob("#{directory}/**/*.rb").
-            reject{|file| File.directory?(file)}.
-            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-            reject{|file| Rawr::Options.data.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
-    end.flatten!
-
-    ruby_source_file_list.each do |data|
-      file = data.file
-      directory = data.directory
-      
-      if Rawr::Options.data.compile_ruby_files
-        relative_dir, name = File.split(file)
-        processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
-        target_file = "#{Rawr::Options.data.compile_dir}/#{processed_file}"
-      else
-        processed_file = file
-        target_file = "#{Rawr::Options.data.compile_dir}/#{file}"
-      end
-
-      if file_is_newer?("#{directory}/#{file}", target_file)
-        FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.compile_dir}/#{processed_file}"))
-        
-        if Rawr::Options.data.compile_ruby_files
-          # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
-          sh "jruby -S jrubyc #{directory}/#{file}"
-          File.move("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
-        else
-          File.copy("#{directory}/#{processed_file}", "#{Rawr::Options.data.compile_dir}/#{processed_file}")
-        end
-      end
-    end
+    require 'command'
+    Rawr::Command.compile_ruby_dirs(Rawr::Options.data.source_dirs, Rawr::Options.data.compile_dir, Rawr::Options.data.jruby_jar, Rawr::Options.data.source_exclude_filter, Rawr::Options.data.target_jvm_version, !Rawr::Options.data.compile_ruby_files)
   end
 
   desc "Compiles the Duby source files specified in the source_dirs entry"

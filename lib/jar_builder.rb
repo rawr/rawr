@@ -37,10 +37,20 @@ module Rawr
       zip_file_name = "#{Rawr::Options.data.jar_output_dir}/#{@name}"
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
-      Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
-        file_list.each do |file|
-          zipfile.add("#{@location_in_jar}#{file}", "#{@directory}/#{file}")
+      begin
+        Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
+          file_list.each do |file|
+            begin
+              zipfile.add("#{@location_in_jar}#{file}", "#{@directory}/#{file}")
+            rescue => e
+              param1 = "#{@location_in_jar}#{file}"
+              param2 = "#{@directory}/#{file}"
+              puts "Errors with the following zipfile call: zipfile.add(#{param1.inspect}, #{param2.inspect})"
+            end
+          end
         end
+      rescue
+        puts "Errors opening the zip file: #{zip_file_name}"
       end
     end
   end
