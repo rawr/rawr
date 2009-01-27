@@ -27,11 +27,8 @@ lib/bundler.rb
 lib/exe_bundler.rb
 lib/generator.rb
 lib/jar_builder.rb
-<<<<<<< HEAD:Manifest.txt
-=======
 lib/jruby_release.rb
 lib/command.rb
->>>>>>> 20e56e838368616b53c8beab07c0cf8856a74a44:Manifest.txt
 lib/launch4j/LICENSE.txt
 lib/launch4j/bin-mac/COPYING
 lib/launch4j/bin-mac/ld
@@ -220,10 +217,7 @@ lib/launch4j/bin-linux/windres
 lib/options.rb
 lib/platform.rb
 lib/rawr.rb
-<<<<<<< HEAD:Manifest.txt
 lib/jruby_fetch.rb
-=======
->>>>>>> 20e56e838368616b53c8beab07c0cf8856a74a44:Manifest.txt
 lib/rawr_bundle.rb
 lib/rawr_version.rb
 lib/web_bundler.rb

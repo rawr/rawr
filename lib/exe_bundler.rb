@@ -59,6 +59,7 @@ CONFIG_ENDL
       end
 
       file_dir_name = File.dirname(__FILE__)
+      (STDERR.puts( " \n :DEBUG\n #{__FILE__}:#{__LINE__}  file_dir_name is #{file_dir_name}" ); STDERR.flush ) if ENV['JAMES_SCA_JDEV_MACHINE'] # JGBDEBUG'']"}}"))
 
       # Set ACL permissions to allow launch4j bundler to run on Windows
       if Platform.instance.using_windows?
@@ -80,8 +81,9 @@ CONFIG_ENDL
       elsif Platform.instance.using_linux?
         chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
         chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
-        sh "ln -s #{file_dir_name}/launch4j/bin-linux/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
-        sh "ln -s #{file_dir_name}/launch4j/bin-linux/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+#        sh "ln -s #{file_dir_name}/launch4j/bin-linux/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+        #sh "ln -s #{file_dir_name}/launch4j/bin-linux/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+        sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name }/launch4j/bin "  unless File.exist?("#{file_dir_name}/launch4j/bin")
 
       elsif Platform.instance.using_mac?
         chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"

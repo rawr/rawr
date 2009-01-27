@@ -2,6 +2,9 @@
 # configured in this Rakefile. The .rake files in the tasks directory
 # are where the options are used.
 
+gem 'rdoc'
+require 'rdoc'
+
 load 'tasks/setup.rb'
 
 ensure_in_path 'lib'

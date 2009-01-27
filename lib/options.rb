@@ -31,6 +31,7 @@ module Rawr
         c.source_dirs = ['src', 'lib/ruby']
         c.source_exclude_filter = []
 
+        c.jruby_jar = 'lib/java/jruby-complete.jar'
         c.compile_ruby_files = true
         c.java_lib_files = []  
         c.java_lib_dirs = ['lib/java']
