@@ -37,7 +37,7 @@ module Rawr
         c.java_lib_dirs = ['lib/java']
         c.files_to_copy = []
         c.target_jvm_version = 1.5
-
+        c.minimum_windows_jvm_version = c.target_jvm_version
         c.jars = {}
         c.jvm_arguments = ""
         

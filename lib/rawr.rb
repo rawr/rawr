@@ -7,7 +7,6 @@ require 'rbconfig'
 require 'platform'
 require 'generator'
 require 'jar_builder'
-require 'jruby_fetch'
 
 def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
@@ -75,7 +74,7 @@ namespace("rawr") do
   
   desc "Compiles the Ruby source files specified in the source_dirs entry"
   task :compile_ruby_classes => "rawr:prepare" do
-  require 'command'
+    require 'command'
     Rawr::Command.compile_ruby_dirs(Rawr::Options.data.source_dirs, Rawr::Options.data.compile_dir, Rawr::Options.data.jruby_jar, Rawr::Options.data.source_exclude_filter, Rawr::Options.data.target_jvm_version, !Rawr::Options.data.compile_ruby_files)
   end
 

@@ -6,14 +6,32 @@ module Rawr
   class ExeBundler < Bundler  
     include FileUtils
 
+    def create_bin_dir_for_linux file_dir_name
+      chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
+      chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
+      sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name }/launch4j/bin "  unless File.exist?("#{file_dir_name}/launch4j/bin")
+    end
+
+    def create_bin_dir_for_win file_dir_name
+      FileUtils.rename "#{file_dir_name}/launch4j/bin-win #{file_dir_name }/launch4j/bin"  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+    end
+
+    def create_bin_dir_for_mac file_dir_name
+      chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
+      chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
+      sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+      sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+    end
+
     def deploy(options)
       @project_name = options.project_name
       @classpath = options.classpath
       @main_java_class = options.main_java_file
       @built_jar_path = options.jar_output_dir
-      
+
       @java_app_deploy_path = options.windows_output_dir
       @target_jvm_version = options.target_jvm_version
+      @minimum_windows_jvm_version = options.minimum_windows_jvm_version
       @jvm_arguments = options.jvm_arguments
 
       @startup_error_message     = options.windows_startup_error_message
@@ -21,7 +39,7 @@ module Rawr
       @jre_version_error_message = options.windows_jre_version_error_message
       @launcher_error_message    = options.windows_launcher_error_message
       @icon_path                 = options.windows_icon_path
-      
+
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
       copy_deployment_to @java_app_deploy_path
@@ -42,7 +60,7 @@ module Rawr
 <icon>#{@icon_path}</icon>
 <jre>
   <path></path>
-  <minVersion>#{@target_jvm_version}.0</minVersion>
+  <minVersion>#{@minimum_windows_jvm_version}.0</minVersion>
   <maxVersion></maxVersion>
   <initialHeapSize>0</initialHeapSize>
   <maxHeapSize>0</maxHeapSize>
@@ -78,23 +96,16 @@ CONFIG_ENDL
           sh "echo y | cacls \"#{file_dir_name }/launch4j/bin-mac/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
         end
       elsif Platform.instance.using_linux?
-        chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
-        chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
-        sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name }/launch4j/bin "  unless File.exist?("#{file_dir_name}/launch4j/bin")
-
+        create_bin_dir_for_linux file_dir_name
       elsif Platform.instance.using_mac?
-        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
-        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
-        sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
-        sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
-
+        create_bin_dir_for_mac
       else
-        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
-        chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
-        sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
-        sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+        create_bin_dir_for_win file_dir_name
       end
+
+      warn "call: java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
       sh "java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
     end
+
   end
 end
