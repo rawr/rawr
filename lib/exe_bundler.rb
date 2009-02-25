@@ -6,17 +6,17 @@ module Rawr
   class ExeBundler < Bundler  
     include FileUtils
 
-    def create_bin_dir_for_linux file_dir_name
+    def create_bin_dir_for_linux(file_dir_name)
       chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
       chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
       sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name }/launch4j/bin "  unless File.exist?("#{file_dir_name}/launch4j/bin")
     end
 
-    def create_bin_dir_for_win file_dir_name
+    def create_bin_dir_for_win(file_dir_name)
       FileUtils.rename "#{file_dir_name}/launch4j/bin-win #{file_dir_name }/launch4j/bin"  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
     end
 
-    def create_bin_dir_for_mac file_dir_name
+    def create_bin_dir_for_mac(file_dir_name)
       chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
       chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
       sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
@@ -98,7 +98,7 @@ CONFIG_ENDL
       elsif Platform.instance.using_linux?
         create_bin_dir_for_linux file_dir_name
       elsif Platform.instance.using_mac?
-        create_bin_dir_for_mac
+        create_bin_dir_for_mac file_dir_name
       else
         create_bin_dir_for_win file_dir_name
       end
