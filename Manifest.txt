@@ -29,6 +29,7 @@ lib/generator.rb
 lib/jar_builder.rb
 lib/jruby_release.rb
 lib/command.rb
+lib/jruby_batch_compiler.rb
 lib/launch4j/LICENSE.txt
 lib/launch4j/bin-mac/COPYING
 lib/launch4j/bin-mac/ld
@@ -217,7 +218,6 @@ lib/launch4j/bin-linux/windres
 lib/options.rb
 lib/platform.rb
 lib/rawr.rb
-lib/jruby_fetch.rb
 lib/rawr_bundle.rb
 lib/rawr_version.rb
 lib/web_bundler.rb
