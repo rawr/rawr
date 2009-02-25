@@ -9,18 +9,17 @@ module Rawr
     def create_bin_dir_for_linux(file_dir_name)
       chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
       chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
-      sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name }/launch4j/bin "  unless File.exist?("#{file_dir_name}/launch4j/bin")
+      sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name}/launch4j/bin"
     end
 
     def create_bin_dir_for_win(file_dir_name)
-      FileUtils.rename "#{file_dir_name}/launch4j/bin-win #{file_dir_name }/launch4j/bin"  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
+      FileUtils.rename "#{file_dir_name}/launch4j/bin-win #{file_dir_name}/launch4j/bin"
     end
 
     def create_bin_dir_for_mac(file_dir_name)
       chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
       chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
-      sh "ln -s #{file_dir_name}/launch4j/bin-mac/ld #{file_dir_name }/launch4j/bin/ld "  unless File.exist?("#{file_dir_name}/launch4j/bin/ld")
-      sh "ln -s #{file_dir_name}/launch4j/bin-mac/windres #{file_dir_name }/launch4j/bin/windres "  unless File.exist?("#{file_dir_name}/launch4j/bin/windres")
+      sh "ln -s #{file_dir_name}/launch4j/bin-mac #{file_dir_name}/launch4j/bin"
     end
 
     def deploy(options)

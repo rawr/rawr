@@ -33,10 +33,8 @@ lib/jruby_batch_compiler.rb
 lib/launch4j/LICENSE.txt
 lib/launch4j/bin-mac/COPYING
 lib/launch4j/bin-mac/ld
-lib/launch4j/bin-mac/ld.exe
 lib/launch4j/bin-mac/readme.txt
 lib/launch4j/bin-mac/windres
-lib/launch4j/bin-mac/windres.exe
 lib/launch4j/build.xml
 lib/launch4j/demo/ConsoleApp/ConsoleApp.jar
 lib/launch4j/demo/ConsoleApp/build.xml
@@ -215,6 +213,9 @@ lib/launch4j/web/style.css
 lib/launch4j/bin-linux/COPYING
 lib/launch4j/bin-linux/ld
 lib/launch4j/bin-linux/windres
+lib/launch4j/bin-win/COPYING
+lib/launch4j/bin-win/ld.exe
+lib/launch4j/bin-win/windres.exe
 lib/options.rb
 lib/platform.rb
 lib/rawr.rb
