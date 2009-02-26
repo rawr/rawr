@@ -6,20 +6,16 @@ module Rawr
   class ExeBundler < Bundler  
     include FileUtils
 
-    def create_bin_dir_for_linux(file_dir_name)
-      chmod 0755, "#{file_dir_name}/launch4j/bin-linux/windres"
-      chmod 0755, "#{file_dir_name}/launch4j/bin-linux/ld"
-      sh "ln -s #{file_dir_name}/launch4j/bin-linux #{file_dir_name}/launch4j/bin"
-    end
-
-    def create_bin_dir_for_win(file_dir_name)
-      FileUtils.rename "#{file_dir_name}/launch4j/bin-win #{file_dir_name}/launch4j/bin"
-    end
-
-    def create_bin_dir_for_mac(file_dir_name)
-      chmod 0755, "#{file_dir_name}/launch4j/bin-mac/windres"
-      chmod 0755, "#{file_dir_name}/launch4j/bin-mac/ld"
-      sh "ln -s #{file_dir_name}/launch4j/bin-mac #{file_dir_name}/launch4j/bin"
+    def link_launch4j_bin(prefix, root_path)
+      return if File.exists? "#{root_path}/launch4j/bin"
+      case prefix
+      when 'win'
+        FileUtils.rename "#{root_path}/launch4j/bin-#{prefix} #{root_path}/launch4j/bin"
+      else
+        chmod 0755, "#{root_path}/launch4j/bin-#{prefix}/windres"
+        chmod 0755, "#{root_path}/launch4j/bin-#{prefix}/ld"
+        sh "ln -s #{root_path}/launch4j/bin-#{prefix} #{root_path}/launch4j/bin"
+      end
     end
 
     def deploy(options)
@@ -91,16 +87,16 @@ CONFIG_ENDL
         # Preserves Case of filenames
         # Supports Unicode in filenames
         if 'NTFS' == output.split("\n")[3].split(':')[1].strip
-          sh "echo y | cacls \"#{file_dir_name }/launch4j/bin-mac/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
-          sh "echo y | cacls \"#{file_dir_name }/launch4j/bin-mac/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
+          sh "echo y | cacls \"#{file_dir_name}/launch4j/bin-win/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
+          sh "echo y | cacls \"#{file_dir_name}/launch4j/bin-win/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
         end
+        link_launch4j_bin('win', file_dir_name)
       elsif Platform.instance.using_linux?
-        create_bin_dir_for_linux file_dir_name
+        link_launch4j_bin('linux', file_dir_name)
       elsif Platform.instance.using_mac?
-        create_bin_dir_for_mac file_dir_name
-      else
-        create_bin_dir_for_win file_dir_name
+        link_launch4j_bin('mac', file_dir_name)
       end
+
 
       warn "call: java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
       sh "java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
