@@ -23,10 +23,21 @@ module Rawr
       ruby_globs.each do |glob_data|
         files     = glob_data.files
         directory = glob_data.directory
-
-        compile_files(files.map {|file| "#{directory}/#{file}"}, directory, '', dest_dir)
+        if copy_only
+          copy_files(files, directory, dest_dir)
+        else
+          compile_files(files.map {|file| "#{directory}/#{file}"}, directory, '', dest_dir)
+        end
       end
-      
+    end
+
+    def copy_files(files, src_dir, dest_dir)
+      files.each do |file|
+        #target_file = "#{dest_dir}/#{file}"
+        FileUtils.mkdir_p(File.dirname("#{dest_dir}/#{file}"))
+        File.copy("#{src_dir}/#{file}", "#{dest_dir}/#{file}")
+      end
+    end
 #      if copy_only
 #        processed_file = file
 #        target_file = "#{dest_dir}/#{file}"
@@ -48,7 +59,6 @@ module Rawr
 #          File.move("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
 #        end
 #      end
-    end
 
     def glob_ruby_files(src_dirs, excludes)
       src_dirs.inject([]) do |file_globs, directory|

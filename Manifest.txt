@@ -28,7 +28,6 @@ lib/exe_bundler.rb
 lib/generator.rb
 lib/jar_builder.rb
 lib/jruby_release.rb
-lib/command.rb
 lib/jruby_batch_compiler.rb
 lib/launch4j/LICENSE.txt
 lib/launch4j/bin-mac/COPYING
