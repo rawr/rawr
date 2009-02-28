@@ -113,7 +113,11 @@ PROJ = OpenStruct.new(
 # Load the other rake files in the tasks folder
 rakefiles = Dir.glob('tasks/*.rake').sort
 rakefiles.unshift(rakefiles.delete('tasks/post_load.rake')).compact!
-import(*rakefiles)
+# Rake's import conflicts with JRuby's
+#import(*rakefiles)
+rakefiles.each {|rakefile| Rake.application.add_import(rakefile)}
+
+
 
 # Setup the project libraries
 %w(lib ext).each {|dir| PROJ.libs << dir if test ?d, dir}
