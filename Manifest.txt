@@ -23,6 +23,7 @@ data/website/images/nav_a_hover.gif
 data/website/images/rawr_logo.png
 data/website/index.html
 lib/app_bundler.rb
+lib/command.rb
 lib/bundler.rb
 lib/exe_bundler.rb
 lib/generator.rb
