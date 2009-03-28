@@ -1,192 +1,164 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-<title>Rawr</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" href="css/1.css" type="text/css" media="screen,projection" />
+    <head>
+        <title>Rawr</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="css/1.css" type="text/css" media="screen,projection" />
 
-</head>
- 
-<body>
+    </head>
 
-	<div id="header">
-	
-			<h1 class="right">Rawr</h1>
-			<h1><a href="#">Rawr</a></h1>
-	
-	</div>
-	
-	<ul id="nav">
-			
-			<!--<li class="right"><input value="Search..." type="text" /></li>-->
-			<li><a href="#intro">Introduction</a></li>
-			<li><a href="#rundown">The Rundown</a></li>
-			<li><a href="#config">Configuration</a></li>
-			<li><a href="#success">Success Stories</a></li>
-			<li><a href="http://groups.google.com/group/rawr-lib">User Group</a></li>
-			<li><a href="http://code.google.com/p/rawr-lib/">Issues</a></li>
-			<li><a href="http://rubyforge.org/frs/?group_id=4854">Download</a></li>
-			
-	</ul>
-	
-	<div class="clear" />
-	
-	<div id="sidebar">
-	
-			<h2>Latest News or Comments</h2>
-			<p class="news">
-				A minor release for Rawr (1.1.2). Some XP/Vista fixes. Fixed the nasty process_file bug.
-			</p>
-			<p class="news">
-				A minor release for Rawr (1.1.1). Fixed a bug where Windows users on NTFS file systems and a username with spaces couldn't generate an exe.
-			</p>
-			<p class="news">
-				Rawr reaches 1.1! Some misc. bug fixes. Icon support for exe/app bundles. Exe bundles will now work inside dirs with spaces.
-			</p>
-			<p class="news">
-				Rawr now has a spiffy site and a logo! We're a real open source project now.
-				<!-- <a href="#" class="more">Read More »</a> -->
-	        </p>
-											
-											<p class="news">
-												Rawr reaches 1.0! Ruby files are compiled, the config file is no longer a YAML file, but a Ruby file. .exe and .app generation are much more mature now.
-											</p>
+    <body>
 
-											<!-- 											<h2>Sub Navigation</h2>
-																						
-																						<ul>
-																						
-																								<li><a href="#intro">Introduction</a></li>
-																
-																								<li><a href="#about">About</a></li>
-																								
-																								<li><a href="#examples">Examples</a></li>
-																								
-																								<li><a href="#contact">Contact</a></li>
-																						
-																						</ul>
-																						 -->
-						<!-- 											<h2>Search</h2>
-																	
-																	<input name="" type="text" value="Search..." /> -->
-	
-	</div>
-	
-	<div id="content">
-	
-			<h2><a href="#" id="intro">Introduction</a></h2>
-				<p><img src="images/rawr_logo.png" alt="" align="right"/>	</p>
-							<p>
-							
-									<strong>Rawr</strong>, a packaging and deployment tool, is all you'll ever need for your <a href="http://jruby.codehaus.org/">JRuby</a> projects. With Rawr, a simple, pre-generated configuration file turns your code into an executable jar, a .exe for Windows, and a .app for OS X.
-							</p>
-							
-							<!--
-							<div class="details">
-							
-							<p>
-							
-									Posted by <a href="#">User Name</a> on <a href="#">01.01.01.</a> There are <a href="#">25 Comments</a>.
-							
-							</p>
-							</div>
-							-->
+        <div id="header">
 
-							
-							<h2><a href="#" id="rundown">The Rundown</a></h2>
-							<p>
-			Rawr was created as a general purpose JRuby bundling and deployment tool to make life easier for <a href="http://monkeybars.rubyforge.org/">Monkeybars</a> and Railgun (now <a href="http://geminidev.wordpress.com/">Gemini</a>) projects. Rawr is a suite of Rake tasks that can non-invasively inject itself into your project.<br/>
-			Inside of your project with your favorite terminal/command line:<br/>
-			<div class="details">
-				<p>
-			rawr install
-			</p>
-			</div>
-			<p>
-			Most of the time, you'll see something like this:
-			</p>
-			<div class="details">
-				<p>
-			rawr has found an exisiting Rakefile.<br/>
-			Please select one of these options:<br/>
-			        1: Replace the current Rakefile with a new Rakefile.  You will lose everything in the current Rakefile!<br/>
-			        2: Keep the current Rakefile, and add the rawr content to the top.<br/>
-			        3: Quit, leave the current Rakefile alone, and add nothing new.<br/>
-					<br/>
-			Your choice (1,2, or 3):<br/>
-			</p>
-			</div>
-			<p>
-				Option #2 really means that it will just require rawr, which will make the rawr tasks usable in your project.<br/>
-				Here's a rundown of the tasks: <br/>
-				</p>
-				<div class="details">
-				<p>
-				rake -T<br/>
-				rake rawr:build_data_jars<br/>
-				<strong>rake rawr:bundle:app</strong><br/>
-				<strong>rake rawr:bundle:exe</strong><br/>
-				<strong>rake rawr:clean</strong><br/>
-				rake rawr:compile<br/>
-				rake rawr:compile_java_classes<br/>
-				rake rawr:compile_ruby_classes<br/>
-				<strong>rake rawr:jar</strong><br/>
-				rake rawr:load_configuration<br/>
-				rake rawr:prepare<br/>
-				</p>
-				</div>
-				<p>
-					Of these tasks, the ones in bold are the ones that will see daily use.
-				</p>
-				<h2><a href="#" id="config">Configuration</a></h2>
-				<p>
-					Rawr will also generate a Ruby based configuration file to get you started. Here's what one looks like:
-					</p>
-						<div class="details">
-							<p>
-					c.project_name = 'ChangeMe'<br/>
-				  c.output_dir = 'package'<br/>
-				  c.main_ruby_file = 'main'<br/>
-				  c.main_java_file = 'org.rubyforge.rawr.Main'<br/>
-<br/>
-				  # Compile all Ruby and Java files recursively<br/>
-				  # Copy all other files taking into account exclusion filter<br/>
-				  c.source_dirs = ['src', 'lib/ruby']<br/>
-				  c.source_exclude_filter = []<br/>
-<br/>
-				  c.compile_ruby_files = true<br/>
-				  #c.java_lib_files = []  <br/>
-				  c.java_lib_dirs = ['lib/java']<br/>
-				  #c.files_to_copy = []<br/>
-<br/>
-				  c.target_jvm_version = 1.5<br/>
-				  #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}<br/>
-				  #c.jvm_arguments = ""<br/>
-<br/>
-				  # Bundler options<br/>
-				  # c.do_not_generate_plist = false<br/>
-				  
-					</p>
-					</div>
-					<p>
-						It explains itself! No documentation necessary here.<br/>
-						Actually, let's go over some of the defaults. With leading computer scientists working `round the clock, we have determined that the best place to put your source files is in the 'src' directory, while the best place for your Ruby libraries should be 'lib/ruby'. These libraries aren't .gem files per se, but frozen (in the Rails sense) Gems. See 'gem help unpack' for more about freezing these gems. For Java, we've chosen 'lib/java' for where all of our .jar files live. If these don't work, it's easy enough to change the defaults.<br/>
-						The <strong>c.jars[:data]</strong> entry you see is for moving content such as sound, images, and other data into a JAR. It is typical for a Java deployment to just be a series of JARs. :directory indicates where the resource exists in your project structure. :location_in_jar is the location the resources will be placed inside the JAR (which is a glorified zip file at this point), and there are :exclude and :include keys for filtering out some content (such as your Photoshop/Illustrator files you used to make your images).
-					</p>
-				<h2><a href="#" id="success">Success Stories</a></h2>
-				<p>
-					In order of reporting:<br>
-					<ul>
-					<li><a href="http://getjotbot.com">JotBot</li>
-				    </ul>
-				</p>
-			</div>
-							
-							
-	<div id="footer">
-					
-							<p>Template design by <a href="http://www.sixshootermedia.com">Six Shooter Media</a>. Sponsor: <a href="http://www.yours4money.com" rel="nofollow">Bonus</a>.<br />				
-					</div>
+            <h1 class="right">Rawr</h1>
+            <h1><a href="#">Rawr</a></h1>
 
-</body>
+        </div>
+
+        <ul id="nav">
+
+            <!--<li class="right"><input value="Search..." type="text" /></li>-->
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#rundown">The Rundown</a></li>
+            <li><a href="#config">Configuration</a></li>
+            <li><a href="#success">Success Stories</a></li>
+            <li><a href="http://kenai.com/projects/rawr/lists">Mailing Lists</a></li>
+            <li><a href="http://kenai.com/jira/browse/RAWR">Issues</a></li>
+            <li><a href="http://rubyforge.org/frs/?group_id=4854">Download</a></li>
+
+        </ul>
+
+        <div class="clear" />
+
+        <div id="sidebar">
+
+            <h2>Latest News or Comments</h2>
+            <p class="news">
+                Rawr 1.3.2 released! Compiling Ruby files should work much better now.
+            </p>
+            <p class="news">
+                A minor release for Rawr (1.1.2). Some XP/Vista fixes. Fixed the nasty process_file bug.
+            </p>
+            <p class="news">
+                A minor release for Rawr (1.1.1). Fixed a bug where Windows users on NTFS file systems and a username with spaces couldn't generate an exe.
+            </p>
+            <p class="news">
+                Rawr reaches 1.1! Some misc. bug fixes. Icon support for exe/app bundles. Exe bundles will now work inside dirs with spaces.
+            </p>
+            <p class="news">
+                Rawr now has a spiffy site and a logo! We're a real open source project now.
+                <!-- <a href="#" class="more">Read More »</a> -->
+            </p>
+
+            <p class="news">
+                Rawr reaches 1.0! Ruby files are compiled, the config file is no longer a YAML file, but a Ruby file. .exe and .app generation are much more mature now.
+            </p>
+       </div>
+
+        <div id="content">
+
+            <h2><a href="#" id="intro">Introduction</a></h2>
+            <p><img src="images/rawr_logo.png" alt="" align="right"/>	</p>
+            <p>
+
+                <strong>Rawr</strong>, a packaging and deployment tool, is all you'll ever need for your <a href="http://jruby.codehaus.org/">JRuby</a> projects. With Rawr, a simple, pre-generated configuration file turns your code into an executable jar, a .exe for Windows, and a .app for OS X.
+            </p>
+
+            <h2><a href="#" id="rundown">The Rundown</a></h2>
+            <p>
+            Rawr was created as a general purpose JRuby bundling and deployment tool to make life easier for <a href="http://monkeybars.rubyforge.org/">Monkeybars</a> and Railgun (now <a href="http://geminidev.wordpress.com/">Gemini</a>) projects. Rawr is a suite of Rake tasks that can non-invasively inject itself into your project.<br/>
+            Inside of your project with your favorite terminal/command line:<br/>
+            <div class="details">
+                <p>
+                    rawr install
+                </p>
+            </div>
+            <p>
+                Most of the time, you'll see something like this:
+            </p>
+            <div class="details">
+                <p>
+                    rawr has found an exisiting Rakefile.<br/>
+                    Please select one of these options:<br/>
+                    1: Replace the current Rakefile with a new Rakefile.  You will lose everything in the current Rakefile!<br/>
+                    2: Keep the current Rakefile, and add the rawr content to the top.<br/>
+                    3: Quit, leave the current Rakefile alone, and add nothing new.<br/>
+                    <br/>
+                    Your choice (1,2, or 3):<br/>
+                </p>
+            </div>
+            <p>
+                Option #2 really means that it will just require rawr, which will make the rawr tasks usable in your project.<br/>
+                Here's a rundown of the tasks: <br/>
+            </p>
+            <div class="details">
+                <p>
+                    rake -T<br/>
+                    rake rawr:build_data_jars<br/>
+                    <strong>rake rawr:bundle:app</strong><br/>
+                    <strong>rake rawr:bundle:exe</strong><br/>
+                    <strong>rake rawr:clean</strong><br/>
+                    rake rawr:compile<br/>
+                    rake rawr:compile_java_classes<br/>
+                    rake rawr:compile_ruby_classes<br/>
+                    <strong>rake rawr:jar</strong><br/>
+                    rake rawr:load_configuration<br/>
+                    rake rawr:prepare<br/>
+                </p>
+            </div>
+            <p>
+                Of these tasks, the ones in bold are the ones that will see daily use.
+            </p>
+            <h2><a href="#" id="config">Configuration</a></h2>
+            <p>
+                Rawr will also generate a Ruby based configuration file to get you started. Here's what one looks like:
+            </p>
+            <div class="details">
+                <p>
+                    c.project_name = 'ChangeMe'<br/>
+                    c.output_dir = 'package'<br/>
+                    c.main_ruby_file = 'main'<br/>
+                    c.main_java_file = 'org.rubyforge.rawr.Main'<br/>
+                    <br/>
+                    # Compile all Ruby and Java files recursively<br/>
+                    # Copy all other files taking into account exclusion filter<br/>
+                    c.source_dirs = ['src', 'lib/ruby']<br/>
+                    c.source_exclude_filter = []<br/>
+                    <br/>
+                    c.compile_ruby_files = true<br/>
+                    #c.java_lib_files = []  <br/>
+                    c.java_lib_dirs = ['lib/java']<br/>
+                    #c.files_to_copy = []<br/>
+                    <br/>
+                    c.target_jvm_version = 1.5<br/>
+                    #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}<br/>
+                    #c.jvm_arguments = ""<br/>
+                    <br/>
+                    # Bundler options<br/>
+                    # c.do_not_generate_plist = false<br/>
+
+                </p>
+            </div>
+            <p>
+                It explains itself! No documentation necessary here.<br/>
+                Actually, let's go over some of the defaults. With leading computer scientists working `round the clock, we have determined that the best place to put your source files is in the 'src' directory, while the best place for your Ruby libraries should be 'lib/ruby'. These libraries aren't .gem files per se, but frozen (in the Rails sense) Gems. See 'gem help unpack' for more about freezing these gems. For Java, we've chosen 'lib/java' for where all of our .jar files live. If these don't work, it's easy enough to change the defaults.<br/>
+                The <strong>c.jars[:data]</strong> entry you see is for moving content such as sound, images, and other data into a JAR. It is typical for a Java deployment to just be a series of JARs. :directory indicates where the resource exists in your project structure. :location_in_jar is the location the resources will be placed inside the JAR (which is a glorified zip file at this point), and there are :exclude and :include keys for filtering out some content (such as your Photoshop/Illustrator files you used to make your images).
+            </p>
+            <h2><a href="#" id="success">Success Stories</a></h2>
+            <p>
+                In order of reporting:<br>
+                <ul>
+                    <li><a href="http://getjotbot.com">JotBot</a></li>
+                </ul>
+            </p>
+        </div>
+
+
+        <div id="footer">
+
+            <p>Template design by <a href="http://www.sixshootermedia.com">Six Shooter Media</a>. Sponsor: <a href="http://www.yours4money.com" rel="nofollow">Bonus</a>.<br />
+        </div>
+
+    </body>
 </html>
