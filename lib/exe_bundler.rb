@@ -10,7 +10,7 @@ module Rawr
       return if File.exists? "#{root_path}/launch4j/bin"
       case prefix
       when 'win'
-        FileUtils.rename "#{root_path}/launch4j/bin-#{prefix} #{root_path}/launch4j/bin"
+        FileUtils.mv "#{root_path}/launch4j/bin-#{prefix}", "#{root_path}/launch4j/bin"
       else
         chmod 0755, "#{root_path}/launch4j/bin-#{prefix}/windres"
         chmod 0755, "#{root_path}/launch4j/bin-#{prefix}/ld"
