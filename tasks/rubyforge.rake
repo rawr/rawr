@@ -19,8 +19,6 @@ namespace :gem do
     user_config = YAML.load_file(File.expand_path("~/.rubyforge/user-config.yml"))
     auto_config = YAML.load_file(File.expand_path("~/.rubyforge/auto-config.yml"))
     rf = RubyForge.new(user_config, auto_config)
-    puts "newgem config: #{rf.userconfig.inspect}"
-    puts 'Logging in'
     rf.login
 
     c = rf.userconfig
