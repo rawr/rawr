@@ -67,7 +67,7 @@ namespace("rawr") do
 
 #        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
         if file_is_newer?("#{directory}/#{file}", target_file)
-          sh "javac -target #{Rawr::Options.data.target_jvm_version} -cp \"#{Rawr::Options.data.classpath.join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.source_dirs.join(delimiter)}\" -d \"#{Rawr::Options.data.compile_dir}\" \"#{directory}/#{file}\""
+          sh "javac -target #{Rawr::Options.data.target_jvm_version} -cp \"#{(Rawr::Options.data.classpath + Rawr::Options.data.source_dirs).join(delimiter)}\" -sourcepath \"#{Rawr::Options.data.source_dirs.join(delimiter)}\" -d \"#{Rawr::Options.data.compile_dir}\" \"#{directory}/#{file}\""
         end
       end
     end

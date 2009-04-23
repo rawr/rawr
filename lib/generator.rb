@@ -109,11 +109,12 @@ configuration do |c|
   c.compile_ruby_files = true
   #c.java_lib_files = []  
   c.java_lib_dirs = ['lib/java']
-  #c.files_to_copy = []
+  #c.files_to_copy = Dir['other_files/dir/**/*']
 
   c.target_jvm_version = 1.5
   #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
-  #c.jvm_arguments = ""
+  #c.jvm_arguments = "-server"
+  #c.java_library_path = "lib/java/native"
 
   # Bundler options
   # c.do_not_generate_plist = false

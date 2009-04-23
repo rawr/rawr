@@ -28,6 +28,7 @@ module Rawr
       @target_jvm_version = options.target_jvm_version
       @minimum_windows_jvm_version = options.minimum_windows_jvm_version
       @jvm_arguments = options.jvm_arguments
+      @java_library_path = options.java_library_path
 
       @startup_error_message     = options.windows_startup_error_message
       @bundled_jre_error_message = options.windows_bundled_jre_error_message
@@ -59,7 +60,7 @@ module Rawr
   <maxVersion></maxVersion>
   <initialHeapSize>0</initialHeapSize>
   <maxHeapSize>0</maxHeapSize>
-  #{"<args>" + @jvm_arguments + "</args>" unless @jvm_arguments.nil? || @jvm_arguments.strip.empty?}
+  <args>#{ @jvm_arguments unless @jvm_arguments.nil? || @jvm_arguments.strip.empty? } #{ "-Djava.library.path=" + @java_library_path unless @java_library_path.nil? || @java_library_path.strip.empty?}</args>
 </jre>
 <messages>
   <startupErr>#{@startup_error_message}</startupErr>

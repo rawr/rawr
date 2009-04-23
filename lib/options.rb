@@ -40,6 +40,7 @@ module Rawr
         c.minimum_windows_jvm_version = c.target_jvm_version
         c.jars = {}
         c.jvm_arguments = ""
+        c.java_library_path = ""
         
         c.windows_startup_error_message     = "There was an error starting the application."
         c.windows_bundled_jre_error_message = "There was an error with the bundled JRE for this app."
