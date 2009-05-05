@@ -49,6 +49,10 @@ module Rawr
             end
           end
         end
+
+        # Re-add the manifest file using the jar utility so that it
+        # is processed specially and thus signing will work.
+        `jar ufm #{zip_file_name} #{@directory}/META-INF/MANIFEST.MF`
       rescue
         puts "Errors opening the zip file: #{zip_file_name}"
       end
