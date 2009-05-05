@@ -138,7 +138,13 @@ namespace("rawr") do
   task :jar => ["rawr:compile", "rawr:build_data_jars"] do
     Rawr::Generator.create_manifest_file Rawr::Options.data
     Rawr::Generator.create_run_config_file(Rawr::Options.data)
-    Rawr::JarBuilder.new("#{Rawr::Options.data.project_name}.jar", :directory => Rawr::Options.data.compile_dir).build
+    archive_name = "#{Rawr::Options.data.project_name}.jar"
+    Rawr::Options.data.compile_dir
+    Rawr::JarBuilder.new(archive_name, :directory => Rawr::Options.data.compile_dir).build
+
+    # Re-add the manifest file using the jar utility so that it
+    # is processed as a manifest file and thus signing will work.
+    `jar ufm #{Rawr::Options.data.jar_output_dir}/#{archive_name} #{Rawr::Options.data.compile_dir}/META-INF/MANIFEST.MF`
 
     (Rawr::Options.data.classpath + Rawr::Options.data.files_to_copy).each do |file|
       FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.jar_output_dir}/#{file}"))
