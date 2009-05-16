@@ -15,7 +15,7 @@ module Rawr
       @mac_app_path = "#{@mac_path}/#{@project_name}.app"
       @java_app_deploy_path = "#{@mac_app_path}/Contents/Resources/Java"
       @target_jvm_version = options.target_jvm_version
-      @jvm_arguments = options.jvm_arguments
+      @jvm_arguments = options.jvm_arguments || ""
       @java_library_path = options.java_library_path
       
       @mac_icon_default = options.mac_icon_path.nil?
@@ -113,7 +113,10 @@ module Rawr
             <string>true</string>
             #{"<key>java.library.path</key>\n<string>$JAVAROOT/" + @java_library_path + "</string>" unless @java_library_path.nil? || @java_library_path.strip.empty?}
         </dict>
-        #{"<key>VMOptions</key>\n<string>" + @jvm_arguments + "</string>" unless @jvm_arguments.nil? || @jvm_arguments.strip.empty?}
+        <key>VMOptions</key>
+          <array>
+            #{@jvm_arguments.split(' ').map {|arg| "<string>" + arg + "</string>\n"}}
+          </array>
     </dict>
 </dict>
 </plist>
