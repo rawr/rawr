@@ -28,6 +28,8 @@ module Rawr
         c.main_ruby_file = 'main'
         c.main_java_file = 'org.rubyforge.rawr.Main'
 
+        c.copy_to_build = []
+        
         c.source_dirs = ['src', 'lib/ruby']
         c.source_exclude_filter = []
 
@@ -74,10 +76,18 @@ module Rawr
         c.windows_output_dir = "#{c.output_dir}/windows"
         c.osx_output_dir = "#{c.output_dir}/osx"
         c.linux_output_dir = "#{c.output_dir}/linux"
+
+        c.copy_to_build.each do |copy_hash|
+          to = File.join(c.jar_output_dir, copy_hash[:to])
+          from = copy_hash[:from] + '/.' # trailing slash makes cp behave differently
+          puts "copying from #{copy_hash[:from]} to #{File.join(c.jar_output_dir, copy_hash[:to])}"
+          FileUtils.mkdir_p to
+          FileUtils.cp_r from, to
+        end
         
         pwd = "#{Dir::pwd}/"
         c.classpath = (c.java_lib_dirs.map { |directory| 
-          Dir.glob("#{directory}/**/*.jar")
+          Dir.glob("#{directory.gsub('../', '')}/**/*.jar")
         } + c.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
         
         c.files_to_copy.map! {|file| file.sub(pwd, '')}
