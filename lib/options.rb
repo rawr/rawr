@@ -80,14 +80,13 @@ module Rawr
         c.copy_to_build.each do |copy_hash|
           to = File.join(c.jar_output_dir, copy_hash[:to])
           from = copy_hash[:from] + '/.' # trailing slash makes cp behave differently
-          puts "copying from #{copy_hash[:from]} to #{File.join(c.jar_output_dir, copy_hash[:to])}"
           FileUtils.mkdir_p to
           FileUtils.cp_r from, to
         end
-        
+
         pwd = "#{Dir::pwd}/"
         c.classpath = (c.java_lib_dirs.map { |directory| 
-          Dir.glob("#{directory.gsub('../', '')}/**/*.jar")
+          Dir.glob("#{directory}/**/*.jar")
         } + c.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
         
         c.files_to_copy.map! {|file| file.sub(pwd, '')}

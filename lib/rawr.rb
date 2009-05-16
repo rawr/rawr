@@ -147,8 +147,9 @@ namespace("rawr") do
     `jar ufm #{Rawr::Options.data.jar_output_dir}/#{archive_name} #{Rawr::Options.data.compile_dir}/META-INF/MANIFEST.MF`
 
     (Rawr::Options.data.classpath + Rawr::Options.data.files_to_copy).each do |file|
-      FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.jar_output_dir}/#{file}"))
-      File.copy(file, "#{Rawr::Options.data.jar_output_dir}/#{file}")
+      destination_file = file.gsub('../', '')
+      FileUtils.mkdir_p(File.dirname("#{Rawr::Options.data.jar_output_dir}/#{destination_file}"))
+      File.copy(file, "#{Rawr::Options.data.jar_output_dir}/#{destination_file}")
     end
   end
   
