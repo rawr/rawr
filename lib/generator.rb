@@ -1,13 +1,14 @@
 module Rawr
   class Generator
     def self.create_run_config_file(options)
-      File.open("#{options.compile_dir}/run_configuration", "w+") do |run_config_file|
+      File.open(File.join(options.compile_dir, 'run_configuration'), "w+") do |run_config_file|
         run_config_file << "main_ruby_file: " + options.main_ruby_file + "\n"
       end
     end
+    
     def self.create_manifest_file(options)
-      FileUtils.mkdir_p "#{options.compile_dir}/META-INF"
-      File.open("#{options.compile_dir}/META-INF/MANIFEST.MF", "w+") do |manifest_file|
+      FileUtils.mkdir_p File.join(options.compile_dir, 'META-INF')
+      File.open(File.join(options.compile_dir, 'META-INF', 'MANIFEST.MF'), "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
         manifest_file << "Class-Path: " + (options.classpath.map {|cp| cp.gsub('../', '')} + options.jars.keys.map{|key| "#{key}.jar"} + ["."]).join("\n  ") + "\n"
         manifest_file << "Main-Class: #{options.main_java_file}\n"

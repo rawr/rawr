@@ -20,7 +20,7 @@ describe Rawr::AppBundler do
   
   it "creates the proper directory structure for a .app" do
     begin
-      Rawr::AppBundler.new.create_clean_deployment_directory_structure("spec-temp", "spec-temp/native_deploy/mac", "spec-temp/native_deploy/mac/RawrSpec.app")
+      Rawr::AppBundler.new.create_clean_deployment_directory_structure("spec-temp/native_deploy/mac", "spec-temp/native_deploy/mac/RawrSpec.app")
       
       "spec-temp/native_deploy/mac/RawrSpec.app".should be_existing_file
       "spec-temp/native_deploy/mac/RawrSpec.app/Contents".should be_existing_file
@@ -35,8 +35,10 @@ describe Rawr::AppBundler do
   it "creates an Info.plist file if it didn't exist before in the application root" do
     begin
       "Info.plist".should_not be_existing_file
-      
+
       app_bundler = Rawr::AppBundler.new
+      app_bundler.instance_variable_set(:@mac_icon_path, "bar.icns")
+      app_bundler.instance_variable_set(:@jvm_arguments, 'arg1 arg2')
       app_bundler.generate_info_plist
       
       "Info.plist".should be_existing_file
