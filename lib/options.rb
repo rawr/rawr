@@ -1,7 +1,7 @@
 #require 'yaml'
 require 'singleton'
 require 'jar_builder'
-#require 'ostruct'
+require 'ostruct'
 require 'rubygems'
 
 # This value needs to stay at the top level so it can be overriden by
@@ -22,42 +22,44 @@ module Rawr
     end
 
     def load_configuration(file)
-      configuration do |c|
-        c.project_name = 'ChangeMe'
-        c.output_dir = 'package'
-        c.main_ruby_file = 'main'
-        c.main_java_file = 'org.rubyforge.rawr.Main'
-
-        c.copy_to_build = []
-        
-        c.source_dirs = ['src', 'lib/ruby']
-        c.source_exclude_filter = []
-
-        c.jruby_jar = 'lib/java/jruby-complete.jar'
-        c.compile_ruby_files = true
-        c.java_lib_files = []  
-        c.java_lib_dirs = ['lib/java']
-        c.files_to_copy = []
-        c.target_jvm_version = 1.5
-        c.minimum_windows_jvm_version = c.target_jvm_version
-        c.jars = {}
-        c.jvm_arguments = ""
-        c.java_library_path = ""
-        
-        c.windows_startup_error_message     = "There was an error starting the application."
-        c.windows_bundled_jre_error_message = "There was an error with the bundled JRE for this app."
-        c.windows_jre_version_error_message = "This application requires a newer version of Java. Please visit http://www.java.com"
-        c.windows_launcher_error_message    = "There was an error launching the application."
-        
-        c.do_not_generate_plist = false
-      end
+      default_configuration(@data)
       
       configuration_file = File.readlines(file)
       instance_eval configuration_file.join
-      process_configuration
+      process_configuration(@data)
     end
     
   private
+    def default_configuration(c)
+      c.project_name = 'ChangeMe'
+      c.output_dir = 'package'
+      c.main_ruby_file = 'main'
+      c.main_java_file = 'org.rubyforge.rawr.Main'
+
+      c.copy_to_build = []
+
+      c.source_dirs = ['src', 'lib/ruby']
+      c.source_exclude_filter = []
+
+      c.jruby_jar = 'lib/java/jruby-complete.jar'
+      c.compile_ruby_files = true
+      c.java_lib_files = []
+      c.java_lib_dirs = ['lib/java']
+      c.files_to_copy = []
+      c.target_jvm_version = 1.5
+      c.minimum_windows_jvm_version = c.target_jvm_version
+      c.jars = {}
+      c.jvm_arguments = ""
+      c.java_library_path = ""
+
+      c.windows_startup_error_message     = "There was an error starting the application."
+      c.windows_bundled_jre_error_message = "There was an error with the bundled JRE for this app."
+      c.windows_jre_version_error_message = "This application requires a newer version of Java. Please visit http://www.java.com"
+      c.windows_launcher_error_message    = "There was an error launching the application."
+
+      c.do_not_generate_plist = false
+    end
+
     def initialize
       @data = OpenStruct.new
     end
@@ -66,8 +68,8 @@ module Rawr
       yield @data
     end
     
-    def process_configuration
-      configuration do |c|
+    def process_configuration(c)
+#      configuration do |c|
         # Setup output directories for the various package types (jar, windows, osx, linux)
         c.base_dir = Dir::pwd
         c.output_dir = "#{c.base_dir}/#{c.output_dir}"
@@ -85,16 +87,12 @@ module Rawr
         end
 
         pwd = "#{Dir::pwd}/"
-        c.classpath = (c.java_lib_dirs.map { |directory| 
-          Dir.glob("#{directory}/**/*.jar")
-        } + c.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
+        c.classpath = build_classpath(c, pwd)
         
         c.files_to_copy.map! {|file| file.sub(pwd, '')}
         
         # Set up Jar packing settings
-        c.jars_to_build = c.jars.map do |key, jar_settings|
-          JarBuilder.new("#{key.to_s}.jar", jar_settings)
-        end
+        c.jars_to_build = get_jar_builders(c)
         
         # Check validity of source filters
         if c.source_exclude_filter.kind_of? Array
@@ -102,6 +100,18 @@ module Rawr
         else
           raise "Invalid source filter: #{c.source_exclude_filter.inspect}, source filters must be an array of regular expressions"
         end
+#      end
+    end
+
+    def build_classpath(config, pwd)
+      (config.java_lib_dirs.map { |directory|
+          Dir.glob("#{directory}/**/*.jar")
+        } + config.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
+    end
+
+    def get_jar_builders(config)
+      config.jars.map do |key, jar_settings|
+        JarBuilder.new("#{key.to_s}.jar", jar_settings)
       end
     end
   end

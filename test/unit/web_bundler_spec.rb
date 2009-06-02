@@ -1,7 +1,12 @@
-require 'spec_helpers'
+require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
 require 'bundler'
 require 'web_bundler'
 require 'rexml/document'
+
+#
+# The Web Bundler is not supported right now. Tests left for reference.
+# Maybe it will be supported in a later release!
+#
 
 describe Rawr::WebBundler do
   before :each do
@@ -9,6 +14,7 @@ describe Rawr::WebBundler do
   end
 
   it "adjusts the path of jars in the classpath " do
+    pending
     @web_bundler.instance_variable_set(:@base_dir, "/path/to/project/root")
     @web_bundler.instance_variable_set(:@output_dir, "/path/to/project/root/package")
     @web_bundler.instance_variable_set(:@package_dir, "/path/to/project/root/package/deploy")
@@ -20,6 +26,7 @@ describe Rawr::WebBundler do
   end
 
   it "creates a JNLP string from the web_start JNLP configuration values" do
+    pending
     expected_jnlp = <<-EXPECTED_JNLP
     <?xml version='1.0' encoding='UTF-8' ?>
 <jnlp spec='1.0+' codebase='http://www.happycamperstudios.com/monkeybars/rawrlib' href='RawrLib.jnlp'>
@@ -73,6 +80,7 @@ describe Rawr::WebBundler do
 
 
   it "takes a list of jar files and creates a set of resource child elements in the JNLP string" do
+    pending
     @web_bundler.instance_variable_set(:@base_dir, "/path/to/project/root")
     @web_bundler.instance_variable_set(:@output_dir, "/path/to/project/root/package")
     @web_bundler.instance_variable_set(:@package_dir, "/path/to/project/root/package/deploy")

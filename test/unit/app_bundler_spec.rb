@@ -1,5 +1,5 @@
+require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
 require 'app_bundler'
-require 'spec_helpers'
 
 describe Rawr::AppBundler do
   include CustomFileMatchers
@@ -7,6 +7,8 @@ describe Rawr::AppBundler do
   it "uses the main java class option" do
     app_bundler = Rawr::AppBundler.new
     app_bundler.instance_variable_set(:@main_java_class, "foo")
+    app_bundler.instance_variable_set(:@mac_icon_path, "bar.icns")
+    app_bundler.instance_variable_set(:@jvm_arguments, 'arg1 arg2')
     
     result_string = ""
     File.stub!(:open).and_yield(result_string)
