@@ -246,5 +246,5 @@ test/unit/generator_spec.rb
 test/unit/jar_builder_spec.rb
 test/unit/options_spec.rb
 test/unit/platform_spec.rb
-test/unit/spec_helpers.rb
+test/spec_helpers.rb
 test/unit/web_bundler_spec.rb

@@ -1,3 +1,6 @@
 pkg/*
 nbproject
 .DS_Store
+META-INF
+doc
+temp_deploy

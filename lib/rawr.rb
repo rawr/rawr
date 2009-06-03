@@ -13,7 +13,7 @@ def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
-namespace("rawr") do
+namespace :rawr do
 
   desc "Loads data from the build_configuration.rb file. You can override the file to be used by setting RAWR_CONFIG_FILE"
   task :load_configuration do
@@ -153,15 +153,15 @@ namespace("rawr") do
     end
   end
   
-  namespace :"bundle" do
+  namespace :bundle do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
-    task :app => [:"rawr:jar"] do
+    task :app => ["rawr:jar"] do
       require 'app_bundler'
       Rawr::AppBundler.new.deploy Rawr::Options.data
     end
 
     desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
-    task :exe => [:"rawr:jar"] do
+    task :exe => ["rawr:jar"] do
       require 'exe_bundler'
       Rawr::ExeBundler.new.deploy Rawr::Options.data
     end
@@ -169,14 +169,14 @@ namespace("rawr") do
 
   namespace :get do
     desc "Fetch the most recent stable jruby-complete.jar"
-    task :'current-stable-jruby' do
+    task 'current-stable-jruby' do
       require 'jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'stable', 'lib/java'
     end
 
     desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC"
-    task :'current-jruby' do
+    task 'current-jruby' do
       require 'jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'current', 'lib/java'

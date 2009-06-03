@@ -20,6 +20,7 @@ PROJ.rubyforge.name = 'rawr'
 PROJ.spec.files = FileList['test/**/*_spec.rb'],
 PROJ.spec.opts << '--color'
 PROJ.spec.libs << 'test/unit'
+PROJ.rdoc.exclude = %w(launch4j)
 PROJ.ruby_opts = []
 PROJ.libs << 'lib'
 PROJ.gem.dependencies << "rubyzip"
