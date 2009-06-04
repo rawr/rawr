@@ -24,6 +24,7 @@ PROJ.rdoc.exclude = %w(launch4j)
 PROJ.ruby_opts = []
 PROJ.libs << 'lib'
 PROJ.gem.dependencies << "rubyzip"
+PROJ.gem.platform = "java"
 
 task :default => 'spec'
 

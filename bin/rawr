@@ -2,6 +2,11 @@
 
 require 'fileutils'
 require 'rubygems'
+require 'rawr_verify'
+
+puts RUBY_PLATFORM
+Rawr::ensure_jruby_environment
+
 require 'rawr_version'
 require 'generator'
 

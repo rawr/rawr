@@ -1,5 +1,8 @@
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__))
 
+require 'rawr_verify'
+Rawr::ensure_jruby_environment
+
 require 'rubygems'
 require 'fileutils'
 require 'options'
