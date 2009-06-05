@@ -16,9 +16,14 @@ namespace :gem do
       puts "release_id = rf.add_release #{PROJ.rubyforge.name.inspect}, #{PROJ.name.inspect}, #{PROJ.version.inspect}, \"#{pkg}.tgz\""
       puts "rf.add_file #{PROJ.rubyforge.name.inspect}, #{PROJ.name.inspect}, release_id, \"#{pkg}.gem\""
     end
-    user_config = YAML.load_file(File.expand_path("~/.rubyforge/user-config.yml"))
-    auto_config = YAML.load_file(File.expand_path("~/.rubyforge/auto-config.yml"))
-    rf = RubyForge.new(user_config, auto_config)
+#    user_config = YAML.load_file(File.expand_path("~/.rubyforge/user-config.yml"))
+#    auto_config = YAML.load_file(File.expand_path("~/.rubyforge/auto-config.yml"))
+#    rf = RubyForge.new(user_config, auto_config)
+#    rf.login
+    rf = RubyForge.new
+    rf.configure
+    rf.autoconfig.merge! 'package_ids' => {'rawr' => 6057}, 'group_ids' => {'rawr' => 4854}
+    puts 'Logging in'
     rf.login
 
     c = rf.userconfig
