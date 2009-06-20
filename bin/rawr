@@ -21,8 +21,9 @@ def help(message = nil)
   Commands:
       install [-d dir] [-c class_name]
         -d/--directory: Directory to place Java main file in, defaults to 'src'
-        -c/--class: Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
-        -f/--file: Name of the Rawr configuration file, defaults to build_configuration.rb
+        -c/--class:     Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
+        -f/--file:      Name of the Rawr configuration file, defaults to build_configuration.rb
+        --no-download:  Do not automatically download the latest jruby-complete.jar
 
         Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
   ENDL
@@ -90,6 +91,7 @@ else
   when "-v" || "--version"
     puts "Rawr version #{Rawr::VERSION}"
   when "install"
+    @download_jruby = true # by default
     directory = "src"
     java_class = %w{org rubyforge rawr Main}
     config_file = File.expand_path("build_configuration.rb").split("/")
@@ -120,6 +122,9 @@ else
         else
           help("No Rawr configuration file name given")
         end
+      when "--no-download"
+        @download_jruby = false
+        ARGV.shift
       end
     end
 
@@ -143,9 +148,11 @@ else
     end
     
     create_rakefile
-    require 'jruby_release'
-    puts "Downloading jruby-complete.jar. This may take a moment..."
-    Rawr::JRubyRelease.get 'stable', 'lib/java'
+    if @download_jruby
+      require 'jruby_release'
+      puts "Downloading jruby-complete.jar. This may take a moment..."
+      Rawr::JRubyRelease.get 'stable', 'lib/java'
+    end
   else
     help("Unknown command '#{ARGV[0]}'")
   end
