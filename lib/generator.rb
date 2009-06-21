@@ -90,6 +90,7 @@ ENDL
     end
     
     def self.create_default_config_file(config_path, java_class)
+      puts config_path
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
 configuration do |c|
@@ -120,7 +121,7 @@ configuration do |c|
   # Bundler options
   # c.do_not_generate_plist = false
 end
-        ENDL
+ENDL
       end
     end
   end
