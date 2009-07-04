@@ -65,7 +65,9 @@ module Rawr
     end
 
     def download
-      open("jruby-complete.jar","wb").write(open(self.jar_url).read)
+      File.open("jruby-complete.jar","wb") do |f|
+        f.write(open(jar_url).read)
+      end
     end
 
     def move_to(destination)
