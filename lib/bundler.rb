@@ -11,7 +11,7 @@ module Rawr
 
     def copy_deployment_to(destination_path)
       FileUtils.mkdir_p destination_path
-      FileUtils.cp_r("#{@built_jar_path}/.", destination_path)
+      FileUtils.cp_r("#{@built_jar_path || @options.built_jar_path}/.", destination_path)
 #      relative_base_dir = @package_dir.sub("#{@base_dir}/", '')
 #      (relative_files_without_repo + relative_classpath).flatten.uniq.each do |file|
 #        file_utils.mkdir_p("#{add_trailing_slash(destination_path)}#{File.dirname(file).sub(relative_base_dir, '')}")
