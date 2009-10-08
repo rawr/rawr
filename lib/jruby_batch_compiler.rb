@@ -14,7 +14,7 @@ module Rawr
     def compile_dirs(src_dirs, dest_dir, options={})
       #options[:jruby_jar]  ||= 'lib/java/jruby-complete.jar'
       options[:exclude]    ||= []
-      options[:target_jvm] ||= '1.5'
+      options[:target_jvm] ||= '1.6'
       copy_only = options[:copy_only]  ||= false
 
       #TODO: Allow for copy-only and some other options
