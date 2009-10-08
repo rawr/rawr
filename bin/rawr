@@ -1,10 +1,8 @@
-#!/usr/bin/env jruby
+#!/usr/bin/env ruby
 
 require 'fileutils'
 require 'rubygems'
-require 'rawr_verify'
-
-Rawr::ensure_jruby_environment
+puts "Running as #{RUBY_PLATFORM}"
 
 require 'rawr_version'
 require 'generator'
