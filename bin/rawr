@@ -29,8 +29,12 @@ def help(message = nil)
 end
 
 def create_rakefile
-  if File.exist? "Rakefile"
-    handle_existing_rakefile
+  if File.exist?("Rakefile")
+    if !rakefile_contains_rawr?
+      handle_existing_rakefile
+    else
+      puts "Rakefile already contains Rawr tasks"
+    end
   else
     create_new_rakefile
   end
@@ -59,6 +63,15 @@ def create_new_rakefile
   File.open("Rakefile", "w") do |rakefile|
     rakefile.puts "require 'rawr'\n"
   end
+end
+
+def rakefile_contains_rawr?
+  File.open("Rakefile", "r") do |rakefile|
+    rakefile.each_line do |line|
+      return true if line =~ /^ *require +['"]rawr['"]/
+    end
+  end
+  return false
 end
 
 def handle_existing_rakefile
