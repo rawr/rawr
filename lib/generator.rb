@@ -113,7 +113,7 @@ configuration do |c|
   c.java_lib_dirs = ['lib/java']
   #c.files_to_copy = Dir['other_files/dir/**/*']
 
-  c.target_jvm_version = 1.5
+  c.target_jvm_version = 1.6
   #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
   #c.jvm_arguments = "-server"
   #c.java_library_path = "lib/java/native"

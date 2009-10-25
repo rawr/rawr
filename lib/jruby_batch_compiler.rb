@@ -86,7 +86,7 @@ module Rawr
       end
     end
 
-    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.5', copy_only=false)
+    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.6', copy_only=false)
       ruby_source_file_list = src_dirs.inject([]) do |list, directory|
         list << Dir.glob("#{directory}/**/*.rb").
           #reject{|file| File.directory?(file)}.
