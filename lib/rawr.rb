@@ -1,7 +1,7 @@
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__))
 
-puts "Running as #{RUBY_PLATFORM}"
-require 'rawr_verify'
+require 'rawr_environment'
+puts "Running in #{Rawr::ruby_environment}"
 Rawr::ensure_jruby_environment
 
 require 'rubygems'

@@ -1,4 +1,10 @@
 module Rawr
+  def ruby_environment
+    env_pieces = RUBY_DESCRIPTION.match(/^(.*?\)) .*?(\[.*?\])/)
+    return env_pieces[1..2].join(' ')
+  end
+  module_function :ruby_environment
+  
   def ensure_jruby_environment
     begin
       require 'java'

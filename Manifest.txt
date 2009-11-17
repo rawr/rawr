@@ -219,7 +219,7 @@ lib/launch4j/bin-win/windres.exe
 lib/options.rb
 lib/platform.rb
 lib/rawr.rb
-lib/rawr_verify.rb
+lib/rawr_environment.rb
 lib/rawr_bundle.rb
 lib/rawr_version.rb
 lib/web_bundler.rb

@@ -2,8 +2,8 @@
 
 require 'fileutils'
 require 'rubygems'
-puts "Running as #{RUBY_PLATFORM}"
 
+require 'rawr_environment'
 require 'rawr_version'
 require 'generator'
 
@@ -90,6 +90,8 @@ def handle_existing_rakefile
   end
   send options[choice].last
 end
+
+puts "Running in #{Rawr::ruby_environment}"
 
 @install_dir = '.'
 if ARGV.empty?
