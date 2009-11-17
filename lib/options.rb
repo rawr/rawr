@@ -2,7 +2,6 @@
 require 'singleton'
 require 'jar_builder'
 require 'ostruct'
-require 'rubygems'
 
 # This value needs to stay at the top level so it can be overriden by
 # client Rake files
