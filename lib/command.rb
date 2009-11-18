@@ -19,6 +19,10 @@ module Rawr
     end
 
     def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.6', copy_only=false)
+      require 'rawr_environment'
+      Rawr::ensure_jruby_environment
+      require 'jruby_batch_compiler'
+      
       if copy_only
         Rawr::JRubyBatchCompiler.new.compile_dirs(src_dirs, dest_dir, {:jruby_jar => jruby_jar, :exclude => exclude, :copy_only => copy_only})
       else

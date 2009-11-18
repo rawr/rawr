@@ -1,6 +1,5 @@
 require 'rawr_environment'
 puts "Running in #{Rawr::ruby_environment}"
-Rawr::ensure_jruby_environment
 
 require 'fileutils'
 require 'options'
@@ -8,7 +7,6 @@ require 'rbconfig'
 require 'platform'
 require 'generator'
 require 'jar_builder'
-require 'jruby_batch_compiler'
 
 def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
