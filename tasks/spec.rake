@@ -48,7 +48,7 @@ namespace :spec do
 end  # namespace :spec
 
 task :kill_jvm do
-  require 'java'
+  include Java
   java.lang.System.exit(0)
 end
 

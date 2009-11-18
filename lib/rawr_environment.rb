@@ -7,8 +7,8 @@ module Rawr
   
   def ensure_jruby_environment
     begin
-      require 'java'
-    rescue LoadError
+      include Java
+    rescue NameError
       warn <<-ERROR
 Rawr will only work from JRuby.
 First, remove the Rawr gem in your other environment to prevent conflicts:
