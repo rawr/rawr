@@ -3,6 +3,8 @@ require 'singleton'
 require 'jar_builder'
 require 'ostruct'
 
+require 'configuration'
+
 # This value needs to stay at the top level so it can be overriden by
 # client Rake files
 RAWR_CONFIG_FILE = 'build_configuration.rb'
@@ -30,7 +32,7 @@ module Rawr
     
   private
     def default_configuration(c)
-      c.project_name = 'ChangeMe'
+      c.project_name = Configuration.guess_project_name
       c.output_dir = 'package'
       c.main_ruby_file = 'main'
       c.main_java_file = 'org.rubyforge.rawr.Main'

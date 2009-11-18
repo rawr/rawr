@@ -1,3 +1,5 @@
+require 'configuration'
+
 module Rawr
   class Generator
     def self.create_run_config_file(options)
@@ -94,7 +96,7 @@ ENDL
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
 configuration do |c|
-  c.project_name = 'ChangeMe'
+  c.project_name = #{Configuration.guess_project_name.dump}
   c.output_dir = 'package'
   c.main_ruby_file = 'main'
   c.main_java_file = 'org.rubyforge.rawr.Main'
