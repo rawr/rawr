@@ -47,24 +47,32 @@ namespace :rawr do
     delimiter = Platform.instance.argument_delimiter
     
     java_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-      list << Dir.glob("#{directory}/**/*.java").
-        reject{|file| File.directory?(file)}.
-        map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-        reject{|file| RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-        map!{|file| OpenStruct.new(:file => file, :directory => directory)}
-    end.flatten!
+      all_java_files = Dir.glob("#{directory}/**/*.java").reject{|file| File.directory?(file)}
+      relative_filenames = all_java_files.map {|file| directory ? file.sub("#{directory}/", '') : file}
+      non_excluded_filenames = relative_filenames.reject {|file|
+        RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter|
+          (file =~ filter) || rejected
+        }
+      }
+      file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
+      list + file_list
+    end
     
     unless java_source_file_list.empty?
       FileUtils.mkdir_p("#{RAWR_OPTS.compile_dir}/META-INF")
-
+      
       java_source_file_list.each do |data|
         file = data.file
         directory = data.directory
-        target_file = "#{RAWR_OPTS.compile_dir}/#{file.sub(/\.java$/, '.class')}"
-
-#        if !File.exists?(target_file) || (File.mtime(target_file) < File.mtime("#{directory}/#{file}"))
-        if file_is_newer?("#{directory}/#{file}", target_file)
-          sh "javac -target #{RAWR_OPTS.target_jvm_version} -cp \"#{(RAWR_OPTS.classpath + RAWR_OPTS.source_dirs).join(delimiter)}\" -sourcepath \"#{RAWR_OPTS.source_dirs.join(delimiter)}\" -d \"#{RAWR_OPTS.compile_dir}\" \"#{directory}/#{file}\""
+        target_file = File.join(RAWR_OPTS.compile_dir, file.sub(/\.java$/, '.class'))
+        source_file = File.join(directory, file)
+        
+        if file_is_newer?(source_file, target_file)
+          target_jvm_version = [ '-target', RAWR_OPTS.target_jvm_version.to_s ]
+          classpath = ['-cp', (RAWR_OPTS.classpath + RAWR_OPTS.source_dirs).join(delimiter) ]
+          sourcepath = [ '-sourcepath', RAWR_OPTS.source_dirs.join(delimiter) ]
+          outdir = [ '-d', RAWR_OPTS.compile_dir ]
+          sh 'javac', *(target_jvm_version + classpath + sourcepath + outdir + [source_file])
         end
       end
     end
