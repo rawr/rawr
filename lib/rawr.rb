@@ -112,21 +112,26 @@ namespace :rawr do
 
   task :copy_other_file_in_source_dirs => "rawr:prepare" do
     non_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-      list << Dir.glob("#{directory}/**/*").
-            reject{|file| File.directory?(file)}.
-            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-            reject{|file| RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-            reject{|file| file =~ /\.rb|\.java|\.class/}.
-            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
-    end.flatten!
+      all_entries = Dir.glob("#{directory}/**/*")
+      all_files = all_entries.reject {|filename| File.directory?(filename)}.
+                              reject {|filename| filename =~ /\.(rb|java|class)$/}
+      relative_filenames = all_files.map {|filename| directory ? filename.sub("#{directory}/", '') : filename}
+      non_excluded_filenames = relative_filenames.reject {|file|
+        RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter|
+          (file =~ filter) || rejected
+        }
+      }
+      file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
+      list + file_list
+    end
     
     non_source_file_list.each do |data|
-      file = data.file
-      directory = data.directory
-      puts "Copying non-source file #{file} to #{RAWR_OPTS.compile_dir}/#{file}"
-      FileUtils.mkdir_p(File.dirname("#{RAWR_OPTS.compile_dir}/#{file}"))
-      if file_is_newer?("#{directory}/#{file}", "#{RAWR_OPTS.compile_dir}/#{file}")
-        File.copy("#{directory}/#{file}", "#{RAWR_OPTS.compile_dir}/#{file}")
+      orig_file_path = File.join(data.directory, data.file)
+      dest_file_path = File.join(RAWR_OPTS.compile_dir, data.file)
+      puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
+      FileUtils.mkdir_p(File.dirname(dest_file_path))
+      if file_is_newer?(orig_file_path, dest_file_path)
+        File.copy(orig_file_path, dest_file_path)
       end
     end
   end
