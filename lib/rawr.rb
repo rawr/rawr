@@ -12,12 +12,9 @@ def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
-namespace :rawr do
+Rawr::Options.load_configuration
 
-  desc "Loads data from the build_configuration.rb file. You can override the file to be used by setting RAWR_CONFIG_FILE"
-  task :load_configuration do
-    Rawr::Options.load_configuration
-  end
+namespace :rawr do
   
   desc "Build all data jars"
   task :build_data_jars => :prepare do
@@ -27,12 +24,12 @@ namespace :rawr do
   end
   
   desc "Removes generated content"
-  task :clean => "rawr:load_configuration" do
+  task :clean do
     FileUtils.remove_dir(Rawr::Options.data.output_dir) if File.directory? Rawr::Options.data.output_dir
   end
 
   desc "Creates the output directory and sub-directories, reads in configuration data"
-  task :prepare => "rawr:load_configuration" do
+  task :prepare do
     FileUtils.mkdir_p Rawr::Options.data.output_dir
     FileUtils.mkdir_p Rawr::Options.data.compile_dir
     FileUtils.mkdir_p Rawr::Options.data.jar_output_dir
@@ -40,7 +37,7 @@ namespace :rawr do
     FileUtils.mkdir_p Rawr::Options.data.osx_output_dir
     FileUtils.mkdir_p Rawr::Options.data.linux_output_dir
   end
-
+  
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
   
