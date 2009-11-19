@@ -9,11 +9,15 @@ module Rawr
     end
     
     def self.create_manifest_file(options)
+      lib_dirs = options.classpath.map {|cp| cp.gsub('../', '')}
+      lib_jars = options.jars.keys.map {|key| key.to_s + ".jar"}
+      libraries = lib_dirs + lib_jars + ["."]
+      
       FileUtils.mkdir_p File.join(options.compile_dir, 'META-INF')
       File.open(File.join(options.compile_dir, 'META-INF', 'MANIFEST.MF'), "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
-        manifest_file << "Class-Path: " + (options.classpath.map {|cp| cp.gsub('../', '')} + options.jars.keys.map{|key| "#{key}.jar"} + ["."]).join("\n  ") + "\n"
-        manifest_file << "Main-Class: #{options.main_java_file}\n"
+        manifest_file << "Class-Path: " + libraries.join("\n  ") + "\n"
+        manifest_file << "Main-Class: " + options.main_java_file + "\n"
       end
     end
     
