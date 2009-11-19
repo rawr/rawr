@@ -18,7 +18,7 @@ RAWR_OPTS = Rawr::Options.data
 namespace :rawr do
   
   desc "Build all data jars"
-  task :build_data_jars => :prepare do
+  task :build_data_jars => [ :jar_output_dir, :prepare ] do
     RAWR_OPTS.jars_to_build.each do |jar_builder|
       jar_builder.build
     end
@@ -31,19 +31,25 @@ namespace :rawr do
 
   desc "Creates the output directory and sub-directories, reads in configuration data"
   task :prepare do
-    FileUtils.mkdir_p RAWR_OPTS.output_dir
-    FileUtils.mkdir_p RAWR_OPTS.compile_dir
-    FileUtils.mkdir_p RAWR_OPTS.jar_output_dir
     FileUtils.mkdir_p RAWR_OPTS.windows_output_dir
     FileUtils.mkdir_p RAWR_OPTS.osx_output_dir
     FileUtils.mkdir_p RAWR_OPTS.linux_output_dir
   end
   
+  directory RAWR_OPTS.compile_dir
+  task :compile_dir => RAWR_OPTS.compile_dir
+  
+  directory File.join(RAWR_OPTS.compile_dir, "META-INF")
+  task :meta_inf_dir => File.join(RAWR_OPTS.compile_dir, "META-INF")
+  
+  directory RAWR_OPTS.jar_output_dir
+  task :jar_output_dir => RAWR_OPTS.jar_output_dir
+  
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
   
   desc "Compiles the Java source files specified in the source_dirs entry"
-  task :compile_java_classes => "rawr:prepare" do
+  task :compile_java_classes => [ :compile_dir, :meta_inf_dir  ] do
     delimiter = Platform.instance.argument_delimiter
     
     java_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
@@ -59,8 +65,6 @@ namespace :rawr do
     end
     
     unless java_source_file_list.empty?
-      FileUtils.mkdir_p("#{RAWR_OPTS.compile_dir}/META-INF")
-      
       java_source_file_list.each do |data|
         file = data.file
         directory = data.directory
@@ -79,13 +83,18 @@ namespace :rawr do
   end
   
   desc "Compiles the Ruby source files specified in the source_dirs entry"
-  task :compile_ruby_classes => "rawr:prepare" do
+  task :compile_ruby_classes => [ :compile_dir ] do
     require 'command'
-    Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs, RAWR_OPTS.compile_dir, RAWR_OPTS.jruby_jar, RAWR_OPTS.source_exclude_filter, RAWR_OPTS.target_jvm_version, !RAWR_OPTS.compile_ruby_files)
+    Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs,
+                                    RAWR_OPTS.compile_dir,
+                                    RAWR_OPTS.jruby_jar,
+                                    RAWR_OPTS.source_exclude_filter,
+                                    RAWR_OPTS.target_jvm_version,
+                                    !RAWR_OPTS.compile_ruby_files)
   end
 
   desc "Compiles the Duby source files specified in the source_dirs entry"
-  task :compile_duby_classes => "rawr:prepare" do
+  task :compile_duby_classes => [ :compile_dir ] do
     ruby_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*.duby").
             reject{|file| File.directory?(file)}.
@@ -118,7 +127,7 @@ namespace :rawr do
     end
   end
 
-  task :copy_other_file_in_source_dirs => "rawr:prepare" do
+  task :copy_other_file_in_source_dirs => [ :compile_dir ] do
     non_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
       all_entries = Dir.glob("#{directory}/**/*")
       all_files = all_entries.reject {|filename| File.directory?(filename)}.
@@ -145,7 +154,7 @@ namespace :rawr do
   end
   
   desc "Uses compiled output and creates an executable jar file."
-  task :jar => ["rawr:compile", "rawr:build_data_jars"] do
+  task :jar => [ :jar_output_dir, :compile_dir, "rawr:compile", "rawr:build_data_jars" ] do
     Rawr::Generator.create_manifest_file(RAWR_OPTS)
     Rawr::Generator.create_run_config_file(RAWR_OPTS)
     archive_name = RAWR_OPTS.project_name + ".jar"
