@@ -38,16 +38,12 @@ module Rawr
           file_list.each do |file|
             file_path_in_zip = "#{@location_in_jar}#{file}"
             src_file_path = File.join(@directory, file)
-            begin
-              zipfile.add(file_path_in_zip, src_file_path)
-            rescue => e
-              puts "Errors with the following zipfile call: " +
-                    "zipfile.add(#{file_path_in_zip.inspect}, #{src_file_path.inspect})"
-            end
+            zipfile.add(file_path_in_zip, src_file_path)
           end
         end
-      rescue
-        puts "Errors opening the zip file: #{zip_file_name}"
+      rescue => e
+        puts "Error during the creation of the jar file: #{zip_file_name}"
+        raise e
       end
     end
   end
