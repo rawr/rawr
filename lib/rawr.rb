@@ -33,7 +33,19 @@ OUTPUT_FILES.java_source_files =
     file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
     list + file_list
   end
-
+OUTPUT_FILES.non_source_file_list =
+  RAWR_OPTS.source_dirs.inject([]) do |list, directory|
+    all_entries = Dir.glob(File.join(directory, '**', '*'))
+    all_files = all_entries.reject {|filename| File.directory?(filename)}.
+                            reject {|filename| filename =~ /\.(rb|java|class)$/}
+    relative_filenames = all_files.map {|filename| directory ? filename.sub(File.join(directory,''), '') : filename}
+    non_excluded_filenames = relative_filenames.reject {|file|
+      RAWR_OPTS.source_exclude_filter.any? {|filter| file =~ filter }
+    }
+    file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
+    list + file_list
+  end
+  
 namespace :rawr do
   
   desc "Build all data jars"
@@ -82,10 +94,27 @@ namespace :rawr do
     end
   }
   
+  COPIED_NON_SOURCE_FILES = FileList.new
+  non_source_file_list = OUTPUT_FILES.non_source_file_list
+  non_source_file_list.each { |file_info|
+    orig_file_path = File.join(file_info.directory, file_info.file)
+    dest_file_path = File.join(OUTPUT_FILES.compile_dir, file_info.file)
+    dest_dir = File.dirname(dest_file_path)
+    
+    COPIED_NON_SOURCE_FILES.add(dest_file_path)
+    
+    directory dest_dir
+    
+    file dest_file_path => [ orig_file_path, dest_dir ] do
+      puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
+      File.copy(orig_file_path, dest_file_path)
+    end
+  }
+  
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => COMPILED_JAVA_CLASSES
   task :compile => 'rawr:compile_ruby_classes'
-  task :compile => 'rawr:copy_other_file_in_source_dirs'
+  task :compile => COPIED_NON_SOURCE_FILES
   
   desc "Compiles the Java source files specified in the source_dirs entry"
   task :compile_java_classes => COMPILED_JAVA_CLASSES
@@ -134,32 +163,8 @@ namespace :rawr do
       end
     end
   end
-
-  task :copy_other_file_in_source_dirs => [ OUTPUT_FILES.compile_dir ] do
-    non_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-      all_entries = Dir.glob("#{directory}/**/*")
-      all_files = all_entries.reject {|filename| File.directory?(filename)}.
-                              reject {|filename| filename =~ /\.(rb|java|class)$/}
-      relative_filenames = all_files.map {|filename| directory ? filename.sub("#{directory}/", '') : filename}
-      non_excluded_filenames = relative_filenames.reject {|file|
-        RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter|
-          (file =~ filter) || rejected
-        }
-      }
-      file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
-      list + file_list
-    end
-    
-    non_source_file_list.each do |data|
-      orig_file_path = File.join(data.directory, data.file)
-      dest_file_path = File.join(OUTPUT_FILES.compile_dir, data.file)
-      puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
-      FileUtils.mkdir_p(File.dirname(dest_file_path))
-      if file_is_newer?(orig_file_path, dest_file_path)
-        File.copy(orig_file_path, dest_file_path)
-      end
-    end
-  end
+  
+  task :copy_other_file_in_source_dirs => COPIED_NON_SOURCE_FILES
   
   file OUTPUT_FILES.base_jar_complete_path => "rawr:compile"
   file OUTPUT_FILES.base_jar_complete_path => OUTPUT_FILES.meta_inf_dir
