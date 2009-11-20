@@ -15,10 +15,17 @@ end
 Rawr::Options.load_configuration
 RAWR_OPTS = Rawr::Options.data
 
+# FIXME: move to a separate class
+OUTPUT_FILES = OpenStruct.new
+OUTPUT_FILES.jar_output_dir = RAWR_OPTS.jar_output_dir
+OUTPUT_FILES.base_jar_filename = RAWR_OPTS.project_name + ".jar"
+OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
+                                                OUTPUT_FILES.base_jar_filename)
+
 namespace :rawr do
   
   desc "Build all data jars"
-  task :build_data_jars => [ :jar_output_dir, :prepare ] do
+  task :build_data_jars => [ OUTPUT_FILES.jar_output_dir, :prepare ] do
     RAWR_OPTS.jars_to_build.each do |jar_builder|
       jar_builder.build
     end
@@ -42,8 +49,7 @@ namespace :rawr do
   directory File.join(RAWR_OPTS.compile_dir, "META-INF")
   task :meta_inf_dir => File.join(RAWR_OPTS.compile_dir, "META-INF")
   
-  directory RAWR_OPTS.jar_output_dir
-  task :jar_output_dir => RAWR_OPTS.jar_output_dir
+  directory OUTPUT_FILES.jar_output_dir
   
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
@@ -153,19 +159,25 @@ namespace :rawr do
     end
   end
   
-  desc "Uses compiled output and creates an executable jar file."
-  task :jar => [ :jar_output_dir, :compile_dir, "rawr:compile", "rawr:build_data_jars" ] do
+  file OUTPUT_FILES.base_jar_complete_path => [ OUTPUT_FILES.jar_output_dir, "rawr:compile" ] do
     Rawr::Generator.create_manifest_file(RAWR_OPTS)
     Rawr::Generator.create_run_config_file(RAWR_OPTS)
-    archive_name = RAWR_OPTS.project_name + ".jar"
+    archive_name = OUTPUT_FILES.base_jar_filename
     Rawr::JarBuilder.new(archive_name, :directory => RAWR_OPTS.compile_dir).build
     
     # Re-add the manifest file using the jar utility so that it
     # is processed as a manifest file and thus signing will work.
+    jar_path = OUTPUT_FILES.base_jar_complete_path
     jar_path = File.join(RAWR_OPTS.jar_output_dir, archive_name)
     manifest_path = File.join(RAWR_OPTS.compile_dir, 'META-INF', 'MANIFEST.MF')
     sh 'jar', 'ufm', jar_path, manifest_path
-    
+  end
+  
+  desc "Create a base jar file"
+  task :base_jar => OUTPUT_FILES.base_jar_complete_path
+  
+  desc "Uses compiled output and creates an executable jar file."
+  task :jar => [ OUTPUT_FILES.base_jar_complete_path, "rawr:build_data_jars" ] do
     (RAWR_OPTS.classpath + RAWR_OPTS.files_to_copy).each do |file|
       destination_file = file.gsub('../', '')
       destination_file_path = File.join(RAWR_OPTS.jar_output_dir, destination_file)
