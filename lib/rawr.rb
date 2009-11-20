@@ -2,6 +2,7 @@ require 'rawr_environment'
 puts "Running in #{Rawr::ruby_environment}"
 
 require 'fileutils'
+require 'core_ext'
 require 'options'
 require 'rbconfig'
 require 'platform'
@@ -24,28 +25,10 @@ OUTPUT_FILES.base_jar_filename = RAWR_OPTS.project_name + ".jar"
 OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
                                                 OUTPUT_FILES.base_jar_filename)
 OUTPUT_FILES.java_source_files =
-  RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-    all_java_files = Dir.glob(File.join(directory, '**', '*.java')).reject{|file| File.directory?(file)}
-    relative_filenames = all_java_files.map {|file| directory ? file.sub(File.join(directory, ''), '') : file}
-    non_excluded_filenames = relative_filenames.reject {|file|
-      RAWR_OPTS.source_exclude_filter.any? {|filter| file =~ filter}
-    }
-    file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
-    list + file_list
-  end
+  RAWR_OPTS.source_dirs.find_files_and_filter('*.java', RAWR_OPTS.source_exclude_filter)
 OUTPUT_FILES.non_source_file_list =
-  RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-    all_entries = Dir.glob(File.join(directory, '**', '*'))
-    all_files = all_entries.reject {|filename| File.directory?(filename)}.
-                            reject {|filename| filename =~ /\.(rb|java|class)$/}
-    relative_filenames = all_files.map {|filename| directory ? filename.sub(File.join(directory,''), '') : filename}
-    non_excluded_filenames = relative_filenames.reject {|file|
-      RAWR_OPTS.source_exclude_filter.any? {|filter| file =~ filter }
-    }
-    file_list = non_excluded_filenames.map {|file| OpenStruct.new(:file => file, :directory => directory)}
-    list + file_list
-  end
-  
+  RAWR_OPTS.source_dirs.find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
+
 namespace :rawr do
   
   desc "Build all data jars"
@@ -77,7 +60,7 @@ namespace :rawr do
   java_source_file_list = OUTPUT_FILES.java_source_files
   java_source_file_list.each { |file_info|
     delimiter = Platform.instance.argument_delimiter
-    file_name = file_info.file
+    file_name = file_info.filename
     directory = file_info.directory
     target_file = file_name.pathmap(File.join(OUTPUT_FILES.compile_dir, '%X.class'))
     source_file = File.join(directory, file_name)
@@ -97,8 +80,8 @@ namespace :rawr do
   COPIED_NON_SOURCE_FILES = FileList.new
   non_source_file_list = OUTPUT_FILES.non_source_file_list
   non_source_file_list.each { |file_info|
-    orig_file_path = File.join(file_info.directory, file_info.file)
-    dest_file_path = File.join(OUTPUT_FILES.compile_dir, file_info.file)
+    orig_file_path = File.join(file_info.directory, file_info.filename)
+    dest_file_path = File.join(OUTPUT_FILES.compile_dir, file_info.filename)
     dest_dir = File.dirname(dest_file_path)
     
     COPIED_NON_SOURCE_FILES.add(dest_file_path)
