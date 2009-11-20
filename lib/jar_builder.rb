@@ -40,12 +40,13 @@ module Rawr
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
           file_list.each do |file|
+            file_path_in_zip = "#{@location_in_jar}#{file}"
+            src_file_path = File.join(@directory, file)
             begin
-              zipfile.add("#{@location_in_jar}#{file}", "#{@directory}/#{file}")
+              zipfile.add(file_path_in_zip, src_file_path)
             rescue => e
-              param1 = "#{@location_in_jar}#{file}"
-              param2 = "#{@directory}/#{file}"
-              puts "Errors with the following zipfile call: zipfile.add(#{param1.inspect}, #{param2.inspect})"
+              puts "Errors with the following zipfile call: " +
+                    "zipfile.add(#{file_path_in_zip.inspect}, #{src_file_path.inspect})"
             end
           end
         end
