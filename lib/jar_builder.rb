@@ -11,23 +11,26 @@ module Rawr
       @location_in_jar = settings[:location_in_jar] || ''
       @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
     end
-
+    
+    def select_files_for_jar(items)
+      all_files = items.map { |item|
+        item_path = File.join(@directory, item)
+        if File.directory?(item_path)
+          Dir.glob(File.join(item_path, '**', '*'))
+        else
+          item_path #To maintain consistancy with first branch of if
+        end
+      }.flatten
+      relative_files = all_files.map {|file|
+        file.sub(File.join(@directory, ''), '')
+      }
+      file_list = relative_files.reject {|f| (f =~ @exclude) || File.directory?(f)}
+    end
+    
     def build
-      if @items
-        file_list = @items.map { |item|
-          if File.directory?("#{@directory}/#{item}")
-            Dir.glob("#{@directory}/#{item}/**/*")
-          else
-            "#{@directory}/#{item}" #To maintain consistancy with first branch of if
-          end
-        }.flatten.map! {|f| puts "before sub: #{f}"; f.sub("#{@directory}/", ''); puts "before sub: #{f}"; f}.reject {|f| (f =~ @exclude) || File.directory?(f)}
-      else
-        file_list = Dir.glob("#{@directory}/**/*").
-                              map! {|f| f.sub("#{@directory}/", '')}.
-                              reject {|f| (f =~ @exclude) || File.directory?(f)}
-      end
-                            
-      zip_file_name = "#{Rawr::Options.data.jar_output_dir}/#{@name}"
+      file_list = select_files_for_jar(@items.nil? ? [''] : @items)
+      
+      zip_file_name = File.join(Rawr::Options.data.jar_output_dir, @name)
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
       begin
