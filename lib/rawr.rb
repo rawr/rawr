@@ -17,6 +17,8 @@ RAWR_OPTS = Rawr::Options.data
 
 # FIXME: move to a separate class
 OUTPUT_FILES = OpenStruct.new
+OUTPUT_FILES.compile_dir = RAWR_OPTS.compile_dir
+OUTPUT_FILES.meta_inf_dir = File.join(OUTPUT_FILES.compile_dir, "META-INF")
 OUTPUT_FILES.jar_output_dir = RAWR_OPTS.jar_output_dir
 OUTPUT_FILES.base_jar_filename = RAWR_OPTS.project_name + ".jar"
 OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
@@ -25,7 +27,7 @@ OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
 namespace :rawr do
   
   desc "Build all data jars"
-  task :build_data_jars => [ OUTPUT_FILES.jar_output_dir, :prepare ] do
+  task :build_data_jars => [ OUTPUT_FILES.jar_output_dir, "rawr:prepare" ] do
     RAWR_OPTS.jars_to_build.each do |jar_builder|
       jar_builder.build
     end
@@ -43,11 +45,9 @@ namespace :rawr do
     FileUtils.mkdir_p RAWR_OPTS.linux_output_dir
   end
   
-  directory RAWR_OPTS.compile_dir
-  task :compile_dir => RAWR_OPTS.compile_dir
+  directory OUTPUT_FILES.compile_dir
   
-  directory File.join(RAWR_OPTS.compile_dir, "META-INF")
-  task :meta_inf_dir => File.join(RAWR_OPTS.compile_dir, "META-INF")
+  directory OUTPUT_FILES.meta_inf_dir
   
   directory OUTPUT_FILES.jar_output_dir
   
@@ -55,7 +55,7 @@ namespace :rawr do
   task :compile => ['rawr:compile_java_classes', 'rawr:compile_ruby_classes', 'rawr:copy_other_file_in_source_dirs']
   
   desc "Compiles the Java source files specified in the source_dirs entry"
-  task :compile_java_classes => [ :compile_dir, :meta_inf_dir  ] do
+  task :compile_java_classes => [ OUTPUT_FILES.compile_dir, OUTPUT_FILES.meta_inf_dir ] do
     delimiter = Platform.instance.argument_delimiter
     
     java_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
@@ -74,14 +74,14 @@ namespace :rawr do
       java_source_file_list.each do |data|
         file = data.file
         directory = data.directory
-        target_file = File.join(RAWR_OPTS.compile_dir, file.sub(/\.java$/, '.class'))
+        target_file = File.join(OUTPUT_FILES.compile_dir, file.sub(/\.java$/, '.class'))
         source_file = File.join(directory, file)
         
         if file_is_newer?(source_file, target_file)
           target_jvm_version = [ '-target', RAWR_OPTS.target_jvm_version.to_s ]
           classpath = ['-cp', (RAWR_OPTS.classpath + RAWR_OPTS.source_dirs).join(delimiter) ]
           sourcepath = [ '-sourcepath', RAWR_OPTS.source_dirs.join(delimiter) ]
-          outdir = [ '-d', RAWR_OPTS.compile_dir ]
+          outdir = [ '-d', OUTPUT_FILES.compile_dir ]
           sh 'javac', *(target_jvm_version + classpath + sourcepath + outdir + [source_file])
         end
       end
@@ -89,10 +89,10 @@ namespace :rawr do
   end
   
   desc "Compiles the Ruby source files specified in the source_dirs entry"
-  task :compile_ruby_classes => [ :compile_dir ] do
+  task :compile_ruby_classes => [ OUTPUT_FILES.compile_dir ] do
     require 'command'
     Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs,
-                                    RAWR_OPTS.compile_dir,
+                                    OUTPUT_FILES.compile_dir,
                                     RAWR_OPTS.jruby_jar,
                                     RAWR_OPTS.source_exclude_filter,
                                     RAWR_OPTS.target_jvm_version,
@@ -100,7 +100,7 @@ namespace :rawr do
   end
 
   desc "Compiles the Duby source files specified in the source_dirs entry"
-  task :compile_duby_classes => [ :compile_dir ] do
+  task :compile_duby_classes => [ OUTPUT_FILES.compile_dir ] do
     ruby_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
       list << Dir.glob("#{directory}/**/*.duby").
             reject{|file| File.directory?(file)}.
@@ -122,18 +122,18 @@ namespace :rawr do
       end
 
       processed_file = processed_file.sub(/\.duby$/, '.class')
-      target_file = "#{RAWR_OPTS.compile_dir}/#{processed_file}"
+      target_file = "#{OUTPUT_FILES.compile_dir}/#{processed_file}"
 
       if file_is_newer?("#{directory}/#{file}", target_file)
-        FileUtils.mkdir_p(File.dirname("#{RAWR_OPTS.compile_dir}/#{processed_file}"))
+        FileUtils.mkdir_p(File.dirname("#{OUTPUT_FILES.compile_dir}/#{processed_file}"))
 
         sh "dubyc -J-classpath #{directory}/#{file}"
-        File.move("#{directory}/#{processed_file}", "#{RAWR_OPTS.compile_dir}/#{processed_file}")
+        File.move("#{directory}/#{processed_file}", "#{OUTPUT_FILES.compile_dir}/#{processed_file}")
       end
     end
   end
 
-  task :copy_other_file_in_source_dirs => [ :compile_dir ] do
+  task :copy_other_file_in_source_dirs => [ OUTPUT_FILES.compile_dir ] do
     non_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
       all_entries = Dir.glob("#{directory}/**/*")
       all_files = all_entries.reject {|filename| File.directory?(filename)}.
@@ -150,7 +150,7 @@ namespace :rawr do
     
     non_source_file_list.each do |data|
       orig_file_path = File.join(data.directory, data.file)
-      dest_file_path = File.join(RAWR_OPTS.compile_dir, data.file)
+      dest_file_path = File.join(OUTPUT_FILES.compile_dir, data.file)
       puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
       FileUtils.mkdir_p(File.dirname(dest_file_path))
       if file_is_newer?(orig_file_path, dest_file_path)
@@ -163,13 +163,13 @@ namespace :rawr do
     Rawr::Generator.create_manifest_file(RAWR_OPTS)
     Rawr::Generator.create_run_config_file(RAWR_OPTS)
     archive_name = OUTPUT_FILES.base_jar_filename
-    Rawr::JarBuilder.new(archive_name, :directory => RAWR_OPTS.compile_dir).build
+    Rawr::JarBuilder.new(archive_name, :directory => OUTPUT_FILES.compile_dir).build
     
     # Re-add the manifest file using the jar utility so that it
     # is processed as a manifest file and thus signing will work.
     jar_path = OUTPUT_FILES.base_jar_complete_path
     jar_path = File.join(RAWR_OPTS.jar_output_dir, archive_name)
-    manifest_path = File.join(RAWR_OPTS.compile_dir, 'META-INF', 'MANIFEST.MF')
+    manifest_path = File.join(OUTPUT_FILES.compile_dir, 'META-INF', 'MANIFEST.MF')
     sh 'jar', 'ufm', jar_path, manifest_path
   end
   
