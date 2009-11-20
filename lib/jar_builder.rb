@@ -8,49 +8,42 @@ module Rawr
       @items = settings[:items] || nil
       raise "Invalid exclusion #{settings[:exclude].inspect} for #{name} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
       @exclude = settings[:exclude] || nil
-      @location_in_jar = if settings[:location_in_jar]
-                           if ['/', '\\'].member? settings[:location_in_jar][-1].chr
-                             settings[:location_in_jar]
-                           else
-                             "#{settings[:location_in_jar]}/"
-                           end
-                         else
-                           ''
-                         end
+      @location_in_jar = settings[:location_in_jar] || ''
+      @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
     end
-
+    
+    def select_files_for_jar(items)
+      all_files = items.map { |item|
+        item_path = File.join(@directory, item)
+        if File.directory?(item_path)
+          Dir.glob(File.join(item_path, '**', '*'))
+        else
+          item_path #To maintain consistancy with first branch of if
+        end
+      }.flatten
+      relative_files = all_files.map {|file|
+        file.sub(File.join(@directory, ''), '')
+      }
+      file_list = relative_files.reject {|f| (f =~ @exclude) || File.directory?(f)}
+    end
+    
     def build
-      if @items
-        file_list = @items.map { |item|
-          if File.directory?("#{@directory}/#{item}")
-            Dir.glob("#{@directory}/#{item}/**/*")
-          else
-            "#{@directory}/#{item}" #To maintain consistancy with first branch of if
-          end
-        }.flatten.map! {|f| puts "before sub: #{f}"; f.sub("#{@directory}/", ''); puts "before sub: #{f}"; f}.reject {|f| (f =~ @exclude) || File.directory?(f)}
-      else
-        file_list = Dir.glob("#{@directory}/**/*").
-                              map! {|f| f.sub("#{@directory}/", '')}.
-                              reject {|f| (f =~ @exclude) || File.directory?(f)}
-      end
-                            
-      zip_file_name = "#{Rawr::Options.data.jar_output_dir}/#{@name}"
+      file_list = select_files_for_jar(@items.nil? ? [''] : @items)
+      
+      zip_file_name = File.join(Rawr::Options.data.jar_output_dir, @name)
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
           file_list.each do |file|
-            begin
-              zipfile.add("#{@location_in_jar}#{file}", "#{@directory}/#{file}")
-            rescue => e
-              param1 = "#{@location_in_jar}#{file}"
-              param2 = "#{@directory}/#{file}"
-              puts "Errors with the following zipfile call: zipfile.add(#{param1.inspect}, #{param2.inspect})"
-            end
+            file_path_in_zip = "#{@location_in_jar}#{file}"
+            src_file_path = File.join(@directory, file)
+            zipfile.add(file_path_in_zip, src_file_path)
           end
         end
-      rescue
-        puts "Errors opening the zip file: #{zip_file_name}"
+      rescue => e
+        puts "Error during the creation of the jar file: #{zip_file_name}"
+        raise e
       end
     end
   end
