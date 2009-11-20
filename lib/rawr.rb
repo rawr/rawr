@@ -115,33 +115,26 @@ namespace :rawr do
 
   desc "Compiles the Duby source files specified in the source_dirs entry"
   task :compile_duby_classes => [ OUTPUT_FILES.compile_dir ] do
-    ruby_source_file_list = RAWR_OPTS.source_dirs.inject([]) do |list, directory|
-      list << Dir.glob("#{directory}/**/*.duby").
-            reject{|file| File.directory?(file)}.
-            map!{|file| directory ? file.sub("#{directory}/", '') : file}.
-            reject{|file| RAWR_OPTS.source_exclude_filter.inject(false) {|rejected, filter| (file =~ filter) || rejected} }.
-            map!{|file| OpenStruct.new(:file => file, :directory => directory)}
-    end.flatten!
-
-    ruby_source_file_list.each do |data|
-      file = data.file
-      directory = data.directory
-
-      relative_dir, name = File.split(file)
-
+    duby_source_file_list = RAWR_OPTS.source_dirs.find_files_and_filter('*.duby', RAWR_OPTS.source_exclude_filter)
+    duby_source_file_list.each do |file_info|
+      filename = file_info.filename
+      directory = file_info.directory
+      
+      relative_dir, name = File.split(filename)
+      
       if name[0..0] =~ /\d/
         processed_file = relative_dir + '/$' + name
       else
-        processed_file = file
+        processed_file = filename
       end
-
+      
       processed_file = processed_file.sub(/\.duby$/, '.class')
       target_file = "#{OUTPUT_FILES.compile_dir}/#{processed_file}"
-
-      if file_is_newer?("#{directory}/#{file}", target_file)
+      
+      if file_is_newer?("#{directory}/#{filename}", target_file)
         FileUtils.mkdir_p(File.dirname("#{OUTPUT_FILES.compile_dir}/#{processed_file}"))
-
-        sh "dubyc -J-classpath #{directory}/#{file}"
+        
+        sh "dubyc -J-classpath #{directory}/#{filename}"
         File.move("#{directory}/#{processed_file}", "#{OUTPUT_FILES.compile_dir}/#{processed_file}")
       end
     end
