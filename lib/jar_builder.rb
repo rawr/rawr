@@ -8,15 +8,8 @@ module Rawr
       @items = settings[:items] || nil
       raise "Invalid exclusion #{settings[:exclude].inspect} for #{name} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
       @exclude = settings[:exclude] || nil
-      @location_in_jar = if settings[:location_in_jar]
-                           if ['/', '\\'].member? settings[:location_in_jar][-1].chr
-                             settings[:location_in_jar]
-                           else
-                             "#{settings[:location_in_jar]}/"
-                           end
-                         else
-                           ''
-                         end
+      @location_in_jar = settings[:location_in_jar] || ''
+      @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
     end
 
     def build
