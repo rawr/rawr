@@ -26,6 +26,8 @@ OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
                                                 OUTPUT_FILES.base_jar_filename)
 OUTPUT_FILES.java_source_files =
   RAWR_OPTS.source_dirs.find_files_and_filter('*.java', RAWR_OPTS.source_exclude_filter)
+OUTPUT_FILES.ruby_source_files =
+  RAWR_OPTS.source_dirs.find_files_and_filter('*.rb', RAWR_OPTS.source_exclude_filter)
 OUTPUT_FILES.non_source_file_list =
   RAWR_OPTS.source_dirs.find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
 
@@ -77,6 +79,28 @@ namespace :rawr do
     end
   }
   
+  COMPILED_RUBY_CLASSES = FileList.new
+  ruby_source_file_list = OUTPUT_FILES.ruby_source_files
+  ruby_source_file_list.each { |file_info|
+    orig_file_path = File.join(file_info.directory, file_info.filename)
+    dest_file_path = File.join(OUTPUT_FILES.compile_dir, file_info.filename.pathmap('%X.class'))
+    dest_dir = File.dirname(dest_file_path)
+    
+    COMPILED_RUBY_CLASSES.add(dest_file_path)
+    
+    directory dest_dir
+    file dest_file_path => [ orig_file_path, dest_dir ] do
+      puts "Compile #{orig_file_path} into #{dest_file_path}"
+      require 'command'
+      Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs,
+                                      OUTPUT_FILES.compile_dir,
+                                      RAWR_OPTS.jruby_jar,
+                                      RAWR_OPTS.source_exclude_filter,
+                                      RAWR_OPTS.target_jvm_version,
+                                      !RAWR_OPTS.compile_ruby_files)
+    end
+  }
+  
   COPIED_NON_SOURCE_FILES = FileList.new
   non_source_file_list = OUTPUT_FILES.non_source_file_list
   non_source_file_list.each { |file_info|
@@ -96,22 +120,14 @@ namespace :rawr do
   
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => COMPILED_JAVA_CLASSES
-  task :compile => 'rawr:compile_ruby_classes'
+  task :compile => COMPILED_RUBY_CLASSES
   task :compile => COPIED_NON_SOURCE_FILES
   
   desc "Compiles the Java source files specified in the source_dirs entry"
   task :compile_java_classes => COMPILED_JAVA_CLASSES
   
   desc "Compiles the Ruby source files specified in the source_dirs entry"
-  task :compile_ruby_classes => [ OUTPUT_FILES.compile_dir ] do
-    require 'command'
-    Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs,
-                                    OUTPUT_FILES.compile_dir,
-                                    RAWR_OPTS.jruby_jar,
-                                    RAWR_OPTS.source_exclude_filter,
-                                    RAWR_OPTS.target_jvm_version,
-                                    !RAWR_OPTS.compile_ruby_files)
-  end
+  task :compile_ruby_classes => COMPILED_RUBY_CLASSES
 
   desc "Compiles the Duby source files specified in the source_dirs entry"
   task :compile_duby_classes => [ OUTPUT_FILES.compile_dir ] do
