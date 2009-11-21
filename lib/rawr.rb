@@ -174,7 +174,7 @@ namespace :rawr do
     # Re-add the manifest file using the jar utility so that it
     # is processed as a manifest file and thus signing will work.
     jar_path = OUTPUT_FILES.base_jar_complete_path
-    manifest_path = File.join(OUTPUT_FILES.compile_dir, 'META-INF', 'MANIFEST.MF')
+    manifest_path = File.join(OUTPUT_FILES.meta_inf_dir, 'MANIFEST.MF')
     sh 'jar', 'ufm', jar_path, manifest_path
   end
   
