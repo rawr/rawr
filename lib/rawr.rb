@@ -55,13 +55,6 @@ namespace :rawr do
     FileUtils.remove_dir(RAWR_OPTS.output_dir) if File.directory? RAWR_OPTS.output_dir
   end
   
-  desc "Creates the output directory and sub-directories, reads in configuration data"
-  task :prepare do
-    FileUtils.mkdir_p RAWR_OPTS.windows_output_dir
-    FileUtils.mkdir_p RAWR_OPTS.osx_output_dir
-    FileUtils.mkdir_p RAWR_OPTS.linux_output_dir
-  end
-  
   directory OUTPUT_FILES.compile_dir
   
   directory OUTPUT_FILES.meta_inf_dir
@@ -199,15 +192,18 @@ namespace :rawr do
     end
   end
   
+  directory RAWR_OPTS.windows_output_dir
+  directory RAWR_OPTS.osx_output_dir
+  
   namespace :bundle do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
-    task :app => ["rawr:jar"] do
+    task :app => [ "rawr:jar", RAWR_OPTS.osx_output_dir ] do
       require 'app_bundler'
       Rawr::AppBundler.new.deploy RAWR_OPTS
     end
 
     desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
-    task :exe => ["rawr:jar"] do
+    task :exe => [ "rawr:jar", RAWR_OPTS.windows_output_dir ] do
       require 'exe_bundler'
       Rawr::ExeBundler.new.deploy RAWR_OPTS
     end
