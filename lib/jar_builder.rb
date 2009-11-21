@@ -2,11 +2,12 @@ module Rawr
   class JarBuilder
     require 'zip/zip'
 
-    def initialize(name, settings)
-      @name = name
-      @directory = settings[:directory] || (raise "Missing directory value in configuration for #{name}")
+    def initialize(nick, jar_file_path, settings)
+      @nick = nick
+      @jar_file_path = jar_file_path
+      @directory = settings[:directory] || (raise "Missing directory value in configuration for #{nick}")
       @items = settings[:items] || nil
-      raise "Invalid exclusion #{settings[:exclude].inspect} for #{name} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
+      raise "Invalid exclusion #{settings[:exclude].inspect} for #{nick} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
       @exclude = settings[:exclude] || nil
       @location_in_jar = settings[:location_in_jar] || ''
       @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
@@ -30,7 +31,7 @@ module Rawr
     def build
       file_list = select_files_for_jar(@items.nil? ? [''] : @items)
       
-      zip_file_name = File.join(Rawr::Options.data.jar_output_dir, @name)
+      zip_file_name = @jar_file_path
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
       begin

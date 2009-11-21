@@ -30,21 +30,31 @@ OUTPUT_FILES.ruby_source_files =
   RAWR_OPTS.source_dirs.find_files_and_filter('*.rb', RAWR_OPTS.source_exclude_filter)
 OUTPUT_FILES.non_source_file_list =
   RAWR_OPTS.source_dirs.find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
+OUTPUT_FILES.extra_user_jars = RAWR_OPTS.jars
 
 namespace :rawr do
   
-  desc "Build all data jars"
-  task :build_data_jars => [ OUTPUT_FILES.jar_output_dir, "rawr:prepare" ] do
-    RAWR_OPTS.jars_to_build.each do |jar_builder|
-      jar_builder.build
+  PACKAGED_EXTRA_USER_JARS = FileList.new
+  extra_user_jars_list = OUTPUT_FILES.extra_user_jars
+  extra_user_jars_list.each { |jar_nick, jar_settings|
+    #FIXME: find source files and use as dependencies of each task
+    jar_file_path = File.join(OUTPUT_FILES.jar_output_dir, jar_nick.to_s + '.jar')
+    
+    PACKAGED_EXTRA_USER_JARS.add(jar_file_path)
+    
+    file jar_file_path => OUTPUT_FILES.jar_output_dir do
+      Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings).build
     end
-  end
+  }
+  
+  desc "Build all additional user jars"
+  task :build_extra_jars => PACKAGED_EXTRA_USER_JARS
   
   desc "Removes generated content"
   task :clean do
     FileUtils.remove_dir(RAWR_OPTS.output_dir) if File.directory? RAWR_OPTS.output_dir
   end
-
+  
   desc "Creates the output directory and sub-directories, reads in configuration data"
   task :prepare do
     FileUtils.mkdir_p RAWR_OPTS.windows_output_dir
@@ -163,13 +173,14 @@ namespace :rawr do
   file OUTPUT_FILES.base_jar_complete_path => OUTPUT_FILES.jar_output_dir do
     Rawr::Generator.create_manifest_file(RAWR_OPTS)
     Rawr::Generator.create_run_config_file(RAWR_OPTS)
-    archive_name = OUTPUT_FILES.base_jar_filename
-    Rawr::JarBuilder.new(archive_name, :directory => OUTPUT_FILES.compile_dir).build
+    builder = Rawr::JarBuilder.new(RAWR_OPTS.project_name,
+                                   OUTPUT_FILES.base_jar_complete_path,
+                                   :directory => OUTPUT_FILES.compile_dir)
+    builder.build
     
     # Re-add the manifest file using the jar utility so that it
     # is processed as a manifest file and thus signing will work.
     jar_path = OUTPUT_FILES.base_jar_complete_path
-    jar_path = File.join(RAWR_OPTS.jar_output_dir, archive_name)
     manifest_path = File.join(OUTPUT_FILES.compile_dir, 'META-INF', 'MANIFEST.MF')
     sh 'jar', 'ufm', jar_path, manifest_path
   end
@@ -178,7 +189,8 @@ namespace :rawr do
   task :base_jar => OUTPUT_FILES.base_jar_complete_path
   
   desc "Uses compiled output and creates an executable jar file."
-  task :jar => [ OUTPUT_FILES.base_jar_complete_path, "rawr:build_data_jars" ] do
+  task :jar => PACKAGED_EXTRA_USER_JARS
+  task :jar => OUTPUT_FILES.base_jar_complete_path do
     (RAWR_OPTS.classpath + RAWR_OPTS.files_to_copy).each do |file|
       destination_file = file.gsub('../', '')
       destination_file_path = File.join(RAWR_OPTS.jar_output_dir, destination_file)
