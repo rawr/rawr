@@ -13,6 +13,8 @@ module Rawr
       @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
     end
     
+    attr_reader :directory
+    
     def select_files_for_jar(items)
       real_files = FileList[items].pathmap(File.join(@directory, '%p'))
       selected_files = real_files.find_files_and_filter('*', [@exclude])
@@ -23,8 +25,12 @@ module Rawr
       return relative_selected_files
     end
     
+    def files_to_add
+      return select_files_for_jar(@items.nil? ? [''] : @items)
+    end
+    
     def build
-      file_list = select_files_for_jar(@items.nil? ? [''] : @items)
+      file_list = files_to_add
       
       zip_file_name = @jar_file_path
       puts "=== Creating jar file: #{zip_file_name}"

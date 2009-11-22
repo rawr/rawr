@@ -37,13 +37,18 @@ namespace :rawr do
   PACKAGED_EXTRA_USER_JARS = FileList.new
   extra_user_jars_list = OUTPUT_FILES.extra_user_jars
   extra_user_jars_list.each { |jar_nick, jar_settings|
-    #FIXME: find source files and use as dependencies of each task
     jar_file_path = File.join(OUTPUT_FILES.jar_output_dir, jar_nick.to_s + '.jar')
     
     PACKAGED_EXTRA_USER_JARS.add(jar_file_path)
     
-    file jar_file_path => OUTPUT_FILES.jar_output_dir do
-      Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings).build
+    jar_builder = Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings)
+    jar_builders ||= Hash.new
+    jar_builders[jar_nick] = jar_builder
+    files_to_add = FileList[jar_builder.files_to_add].pathmap(File.join(jar_builder.directory, '%p'))
+    
+    file jar_file_path => OUTPUT_FILES.jar_output_dir
+    file jar_file_path => files_to_add do
+      jar_builders[jar_nick].build
     end
   }
   
