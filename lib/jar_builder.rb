@@ -14,18 +14,13 @@ module Rawr
     end
     
     def select_files_for_jar(items)
-      all_files = items.map { |item|
-        item_path = File.join(@directory, item)
-        if File.directory?(item_path)
-          Dir.glob(File.join(item_path, '**', '*'))
-        else
-          item_path #To maintain consistancy with first branch of if
-        end
-      }.flatten
-      relative_files = all_files.map {|file|
-        file.sub(File.join(@directory, ''), '')
+      real_files = FileList[items].pathmap(File.join(@directory, '%p'))
+      selected_files = real_files.find_files_and_filter('*', [@exclude])
+      relative_selected_files = selected_files.map { |file_info|
+        full_path = File.join(file_info.directory, file_info.filename)
+        full_path.sub(File.join(@directory, ''), '')
       }
-      file_list = relative_files.reject {|f| (f =~ @exclude) || File.directory?(f)}
+      return relative_selected_files
     end
     
     def build
@@ -37,7 +32,11 @@ module Rawr
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
           file_list.each do |file|
-            file_path_in_zip = "#{@location_in_jar}#{file}"
+            file_path_in_zip = if @location_in_jar.empty?
+              file
+            else
+              File.join(@location_in_jar, file)
+            end
             src_file_path = File.join(@directory, file)
             zipfile.add(file_path_in_zip, src_file_path)
           end

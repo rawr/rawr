@@ -1,20 +1,30 @@
 # Extensions to core Ruby classes and modules
 
-module Enumerable
-  def find_files_and_filter(file_glob, filters)
-    self.inject([]) do |list, directory|
-      all_entries = Dir.glob(File.join(directory, '**', file_glob))
-      all_files = all_entries.reject {|filename| File.directory?(filename)}
-      relative_filenames = all_files.map {|filename|
-        directory ? filename.sub(File.join(directory,''), '') : filename
-      }
-      non_excluded_filenames = relative_filenames.reject {|file|
-        filters.any? {|filter| file =~ filter }
-      }
-      file_list = non_excluded_filenames.map {|filename|
-        OpenStruct.new(:filename => filename, :directory => directory)
-      }
-      list + file_list
+module Rake
+  class FileList
+    def find_files_and_filter(file_glob, filters)
+      self.inject([]) do |list, entry|
+        if !File.exist?(entry)
+          base_dir = ''
+          sub_entries = []
+        elsif File.directory?(entry)
+          base_dir = entry
+          sub_entries = Dir[File.join(base_dir, '**', file_glob)]
+        else
+          base_dir = ''
+          sub_entries = [entry]
+        end
+        
+        filtered_files = sub_entries.reject do |filename|
+          filters.any? { |filter| filename =~ filter } || File.directory?(filename)
+        end
+        pairs = filtered_files.map do |filename|
+          filename = filename.sub!(File.join(base_dir, ''), '') unless base_dir.empty?
+          OpenStruct.new(:filename => filename, :directory => base_dir)
+        end
+        
+        list + pairs
+      end
     end
   end
 end

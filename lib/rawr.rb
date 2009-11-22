@@ -25,11 +25,11 @@ OUTPUT_FILES.base_jar_filename = RAWR_OPTS.project_name + ".jar"
 OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
                                                 OUTPUT_FILES.base_jar_filename)
 OUTPUT_FILES.java_source_files =
-  RAWR_OPTS.source_dirs.find_files_and_filter('*.java', RAWR_OPTS.source_exclude_filter)
+  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*.java', RAWR_OPTS.source_exclude_filter)
 OUTPUT_FILES.ruby_source_files =
-  RAWR_OPTS.source_dirs.find_files_and_filter('*.rb', RAWR_OPTS.source_exclude_filter)
+  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*.rb', RAWR_OPTS.source_exclude_filter)
 OUTPUT_FILES.non_source_file_list =
-  RAWR_OPTS.source_dirs.find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
+  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
 OUTPUT_FILES.extra_user_jars = RAWR_OPTS.jars
 
 namespace :rawr do
