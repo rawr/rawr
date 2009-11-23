@@ -16,7 +16,6 @@ module Rawr
       lib_jars = options.jars.keys.map {|key| key.to_s + ".jar"}
       libraries = lib_dirs + lib_jars + ["."]
       
-      FileUtils.mkdir_p metainf_dir_path
       File.open(manifest_path, "w+") do |manifest_file|
         manifest_file << "Manifest-Version: 1.0\n"
         manifest_file << "Class-Path: " + libraries.join("\n  ") + "\n"
