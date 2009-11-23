@@ -3,9 +3,9 @@ puts "Running in #{Rawr::ruby_environment}"
 
 require 'fileutils'
 require 'core_ext'
-require 'options'
 require 'rbconfig'
 require 'platform'
+require 'configuration'
 require 'generator'
 require 'jar_builder'
 
@@ -13,24 +13,8 @@ def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
-Rawr::Options.load_configuration
-RAWR_OPTS = Rawr::Options.data
-
-# FIXME: move to a separate class
-OUTPUT_FILES = OpenStruct.new
-OUTPUT_FILES.compile_dir = RAWR_OPTS.compile_dir
-OUTPUT_FILES.meta_inf_dir = File.join(OUTPUT_FILES.compile_dir, "META-INF")
-OUTPUT_FILES.jar_output_dir = RAWR_OPTS.jar_output_dir
-OUTPUT_FILES.base_jar_filename = RAWR_OPTS.project_name + ".jar"
-OUTPUT_FILES.base_jar_complete_path = File.join(OUTPUT_FILES.jar_output_dir,
-                                                OUTPUT_FILES.base_jar_filename)
-OUTPUT_FILES.java_source_files =
-  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*.java', RAWR_OPTS.source_exclude_filter)
-OUTPUT_FILES.ruby_source_files =
-  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*.rb', RAWR_OPTS.source_exclude_filter)
-OUTPUT_FILES.non_source_file_list =
-  FileList[RAWR_OPTS.source_dirs].find_files_and_filter('*', RAWR_OPTS.source_exclude_filter + [/\.(rb|java|class)$/])
-OUTPUT_FILES.extra_user_jars = RAWR_OPTS.jars
+RAWR_CONFIG_FILE = 'build_configuration.rb'
+OUTPUT_FILES = Rawr::Configuration.load_from_file(RAWR_CONFIG_FILE)
 
 namespace :rawr do
   
@@ -57,7 +41,7 @@ namespace :rawr do
   
   desc "Removes generated content"
   task :clean do
-    FileUtils.remove_dir(RAWR_OPTS.output_dir) if File.directory? RAWR_OPTS.output_dir
+    FileUtils.remove_dir(OUTPUT_FILES.output_dir) if File.directory? OUTPUT_FILES.output_dir
   end
   
   directory OUTPUT_FILES.compile_dir
@@ -76,9 +60,9 @@ namespace :rawr do
     source_file = File.join(directory, file_name)
     COMPILED_JAVA_CLASSES.add(target_file)
     
-    target_jvm_version = [ '-target', RAWR_OPTS.target_jvm_version.to_s ]
-    classpath = ['-cp', (RAWR_OPTS.classpath + RAWR_OPTS.source_dirs).join(delimiter) ]
-    sourcepath = [ '-sourcepath', RAWR_OPTS.source_dirs.join(delimiter) ]
+    target_jvm_version = [ '-target', OUTPUT_FILES.target_jvm_version.to_s ]
+    classpath = ['-cp', (OUTPUT_FILES.classpath + OUTPUT_FILES.source_dirs).join(delimiter) ]
+    sourcepath = [ '-sourcepath', OUTPUT_FILES.source_dirs.join(delimiter) ]
     outdir = [ '-d', OUTPUT_FILES.compile_dir ]
     base_javac_args = target_jvm_version + classpath + sourcepath + outdir
     
@@ -100,12 +84,12 @@ namespace :rawr do
     file dest_file_path => [ orig_file_path, dest_dir ] do
       puts "Compile #{orig_file_path} into #{dest_file_path}"
       require 'command'
-      Rawr::Command.compile_ruby_dirs(RAWR_OPTS.source_dirs,
+      Rawr::Command.compile_ruby_dirs(OUTPUT_FILES.source_dirs,
                                       OUTPUT_FILES.compile_dir,
-                                      RAWR_OPTS.jruby_jar,
-                                      RAWR_OPTS.source_exclude_filter,
-                                      RAWR_OPTS.target_jvm_version,
-                                      !RAWR_OPTS.compile_ruby_files)
+                                      OUTPUT_FILES.jruby_jar,
+                                      OUTPUT_FILES.source_exclude_filter,
+                                      OUTPUT_FILES.target_jvm_version,
+                                      !OUTPUT_FILES.compile_ruby_files)
     end
   }
   
@@ -139,7 +123,7 @@ namespace :rawr do
 
   desc "Compiles the Duby source files specified in the source_dirs entry"
   task :compile_duby_classes => [ OUTPUT_FILES.compile_dir ] do
-    duby_source_file_list = RAWR_OPTS.source_dirs.find_files_and_filter('*.duby', RAWR_OPTS.source_exclude_filter)
+    duby_source_file_list = OUTPUT_FILES.source_dirs.find_files_and_filter('*.duby', OUTPUT_FILES.source_exclude_filter)
     duby_source_file_list.each do |file_info|
       filename = file_info.filename
       directory = file_info.directory
@@ -169,9 +153,9 @@ namespace :rawr do
   file OUTPUT_FILES.base_jar_complete_path => "rawr:compile"
   file OUTPUT_FILES.base_jar_complete_path => OUTPUT_FILES.meta_inf_dir
   file OUTPUT_FILES.base_jar_complete_path => OUTPUT_FILES.jar_output_dir do
-    Rawr::Generator.create_manifest_file(RAWR_OPTS)
-    Rawr::Generator.create_run_config_file(RAWR_OPTS)
-    builder = Rawr::JarBuilder.new(RAWR_OPTS.project_name,
+    Rawr::Generator.create_manifest_file(OUTPUT_FILES)
+    Rawr::Generator.create_run_config_file(OUTPUT_FILES)
+    builder = Rawr::JarBuilder.new(OUTPUT_FILES.project_name,
                                    OUTPUT_FILES.base_jar_complete_path,
                                    :directory => OUTPUT_FILES.compile_dir)
     builder.build
@@ -189,28 +173,28 @@ namespace :rawr do
   desc "Uses compiled output and creates an executable jar file."
   task :jar => PACKAGED_EXTRA_USER_JARS
   task :jar => OUTPUT_FILES.base_jar_complete_path do
-    (RAWR_OPTS.classpath + RAWR_OPTS.files_to_copy).each do |file|
+    (OUTPUT_FILES.classpath + OUTPUT_FILES.files_to_copy).each do |file|
       destination_file = file.gsub('../', '')
-      destination_file_path = File.join(RAWR_OPTS.jar_output_dir, destination_file)
+      destination_file_path = File.join(OUTPUT_FILES.jar_output_dir, destination_file)
       FileUtils.mkdir_p(File.dirname(destination_file_path))
       File.copy(file, destination_file_path)
     end
   end
   
-  directory RAWR_OPTS.windows_output_dir
-  directory RAWR_OPTS.osx_output_dir
+  directory OUTPUT_FILES.windows_output_dir
+  directory OUTPUT_FILES.osx_output_dir
   
   namespace :bundle do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
-    task :app => [ "rawr:jar", RAWR_OPTS.osx_output_dir ] do
+    task :app => [ "rawr:jar", OUTPUT_FILES.osx_output_dir ] do
       require 'app_bundler'
-      Rawr::AppBundler.new.deploy RAWR_OPTS
+      Rawr::AppBundler.new.deploy OUTPUT_FILES
     end
 
     desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
-    task :exe => [ "rawr:jar", RAWR_OPTS.windows_output_dir ] do
+    task :exe => [ "rawr:jar", OUTPUT_FILES.windows_output_dir ] do
       require 'exe_bundler'
-      Rawr::ExeBundler.new.deploy RAWR_OPTS
+      Rawr::ExeBundler.new.deploy OUTPUT_FILES
     end
   end
 

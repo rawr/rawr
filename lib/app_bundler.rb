@@ -71,7 +71,7 @@ module Rawr
     end
     
     def generate_info_plist
-      unless Rawr::Options.data.do_not_generate_plist
+      unless Rawr::Configuration.current.mac_do_not_generate_plist
         mac_icon_filename = @mac_icon_path.sub(File.dirname(@mac_icon_path) + '/', '')
 
         File.open "Info.plist", 'w' do |file|
