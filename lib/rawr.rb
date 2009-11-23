@@ -105,7 +105,7 @@ namespace :rawr do
     
     file dest_file_path => [ orig_file_path, dest_dir ] do
       puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
-      File.copy(orig_file_path, dest_file_path)
+      copy orig_file_path, dest_file_path
     end
   }
   
@@ -176,7 +176,7 @@ namespace :rawr do
       destination_file = file.gsub('../', '')
       destination_file_path = File.join(CONFIG.jar_output_dir, destination_file)
       FileUtils.mkdir_p(File.dirname(destination_file_path))
-      File.copy(file, destination_file_path)
+      copy file, destination_file_path
     end
   end
   
