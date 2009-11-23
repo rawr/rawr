@@ -1,5 +1,5 @@
-require 'jruby/jrubyc'
 require 'ostruct'
+require 'jruby/jrubyc'
 
 module Rawr
   class JRubyBatchCompiler

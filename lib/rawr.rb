@@ -2,6 +2,7 @@ require 'rawr_environment'
 puts "Running in #{Rawr::ruby_environment}"
 
 require 'fileutils'
+
 require 'core_ext'
 require 'platform'
 require 'configuration'

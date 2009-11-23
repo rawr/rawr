@@ -1,7 +1,3 @@
-require 'fileutils'
-
-include FileUtils
-
 namespace "rawr:bundle" do
 
   desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
