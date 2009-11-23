@@ -38,27 +38,6 @@ module Rawr
         File.copy("#{src_dir}/#{file}", "#{dest_dir}/#{file}")
       end
     end
-#      if copy_only
-#        processed_file = file
-#        target_file = "#{dest_dir}/#{file}"
-#      else
-#        relative_dir, name = File.split(file)
-#        processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
-#        target_file = "#{dest_dir}/#{processed_file}"
-#      end
-#
-#      if file_is_newer?("#{directory}/#{file}", target_file)
-#        FileUtils.mkdir_p(File.dirname("#{dest_dir}/#{processed_file}"))
-#
-#        if copy_only
-#          File.copy("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
-#        else
-#          # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
-#          # TODO: Speed up compiling by not invoking java for each file...
-#          sh "java -jar #{jruby_jar} -S jrubyc #{directory}/#{file}"
-#          File.move("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
-#        end
-#      end
 
     def glob_ruby_files(src_dirs, excludes)
       src_dirs.inject([]) do |file_globs, directory|
