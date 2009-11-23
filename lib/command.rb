@@ -12,7 +12,7 @@ module Rawr
       end
 
       version ||= 'current'
-      destination ||= './lib/java'
+      destination ||= Rawr::Configuration.current_config.java_lib_dirs.first
 
       require 'jruby_release'
       JRubyRelease.get version, destination
