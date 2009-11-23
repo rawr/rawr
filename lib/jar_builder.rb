@@ -11,6 +11,7 @@ module Rawr
       @exclude = settings[:exclude] || nil
       @location_in_jar = settings[:location_in_jar] || ''
       @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
+      @dir_mapping = settings[:dir_mapping] || proc { |dir| dir }
     end
     
     attr_reader :directory
@@ -38,10 +39,11 @@ module Rawr
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
           file_list.each do |file|
+            remapped_file_path = @dir_mapping[file]
             file_path_in_zip = if @location_in_jar.empty?
-              file
+              remapped_file_path
             else
-              File.join(@location_in_jar, file)
+              File.join(@location_in_jar, remapped_file_path)
             end
             src_file_path = File.join(@directory, file)
             zipfile.add(file_path_in_zip, src_file_path)

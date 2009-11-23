@@ -45,6 +45,9 @@ namespace :rawr do
   end
   
   directory CONFIG.compile_dir
+  directory CONFIG.compiled_java_classes_path
+  directory CONFIG.compiled_ruby_files_path
+  directory CONFIG.compiled_non_source_files_path
   
   directory CONFIG.meta_inf_dir
   
@@ -56,17 +59,17 @@ namespace :rawr do
     delimiter = Platform.instance.argument_delimiter
     file_name = file_info.filename
     directory = file_info.directory
-    target_file = file_name.pathmap(File.join(CONFIG.compile_dir, '%X.class'))
     source_file = File.join(directory, file_name)
+    target_file = File.join(CONFIG.compiled_java_classes_path, file_name.pathmap('%X.class'))
     COMPILED_JAVA_CLASSES.add(target_file)
     
     target_jvm_version = [ '-target', CONFIG.target_jvm_version.to_s ]
     classpath = ['-cp', (CONFIG.classpath + CONFIG.source_dirs).join(delimiter) ]
     sourcepath = [ '-sourcepath', CONFIG.source_dirs.join(delimiter) ]
-    outdir = [ '-d', CONFIG.compile_dir ]
+    outdir = [ '-d', CONFIG.compiled_java_classes_path ]
     base_javac_args = target_jvm_version + classpath + sourcepath + outdir
     
-    file target_file => [ source_file, CONFIG.compile_dir ] do
+    file target_file => [ source_file, CONFIG.compiled_java_classes_path ] do
       sh 'javac', *(base_javac_args + [source_file])
     end
   }
@@ -75,7 +78,7 @@ namespace :rawr do
   ruby_source_file_list = CONFIG.ruby_source_files
   ruby_source_file_list.each { |file_info|
     orig_file_path = File.join(file_info.directory, file_info.filename)
-    dest_file_path = File.join(CONFIG.compile_dir, file_info.filename.pathmap('%X.class'))
+    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename.pathmap('%X.class'))
     dest_dir = File.dirname(dest_file_path)
     
     COMPILED_RUBY_CLASSES.add(dest_file_path)
@@ -85,7 +88,7 @@ namespace :rawr do
       puts "Compile #{orig_file_path} into #{dest_file_path}"
       require 'command'
       Rawr::Command.compile_ruby_dirs(CONFIG.source_dirs,
-                                      CONFIG.compile_dir,
+                                      CONFIG.compiled_ruby_files_path,
                                       CONFIG.jruby_jar,
                                       CONFIG.source_exclude_filter,
                                       CONFIG.target_jvm_version,
@@ -97,7 +100,7 @@ namespace :rawr do
   non_source_file_list = CONFIG.non_source_file_list
   non_source_file_list.each { |file_info|
     orig_file_path = File.join(file_info.directory, file_info.filename)
-    dest_file_path = File.join(CONFIG.compile_dir, file_info.filename)
+    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
     dest_dir = File.dirname(dest_file_path)
     
     COPIED_NON_SOURCE_FILES.add(dest_file_path)
@@ -155,9 +158,11 @@ namespace :rawr do
   file CONFIG.base_jar_complete_path => CONFIG.jar_output_dir do
     Rawr::Generator.create_manifest_file(CONFIG)
     Rawr::Generator.create_run_config_file(CONFIG)
+    root_as_base = proc do |path| path.sub(/^(java|ruby|non-source)./, '') end
     builder = Rawr::JarBuilder.new(CONFIG.project_name,
                                    CONFIG.base_jar_complete_path,
-                                   :directory => CONFIG.compile_dir)
+                                   {:directory => CONFIG.compile_dir,
+                                    :dir_mapping => root_as_base})
     builder.build
     
     # Re-add the manifest file using the jar utility so that it

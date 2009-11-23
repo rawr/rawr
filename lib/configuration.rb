@@ -111,6 +111,18 @@ module Rawr
       File.join(self.output_dir, 'classes')
     end
     
+    def compiled_java_classes_path
+      File.join(self.compile_dir, 'java')
+    end
+    
+    def compiled_ruby_files_path
+      File.join(self.compile_dir, 'ruby')
+    end
+    
+    def compiled_non_source_files_path
+      File.join(self.compile_dir, 'non-source')
+    end
+    
     def meta_inf_dir
       File.join(self.compile_dir, "META-INF")
     end
