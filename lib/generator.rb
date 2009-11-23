@@ -103,7 +103,7 @@ ENDL
       File.open(config_path, "w+") do |config_file|
         config_file << <<-ENDL
 configuration do |c|
-  c.project_name = #{Configuration.guess_project_name.dump}
+  c.project_name = #{Rawr::Configuration::OPTIONS[0].default.dump}
   c.output_dir = 'package'
   c.main_ruby_file = 'main'
   c.main_java_file = 'org.rubyforge.rawr.Main'
@@ -128,7 +128,7 @@ configuration do |c|
   #c.java_library_path = "lib/java/native"
 
   # Bundler options
-  # c.do_not_generate_plist = false
+  # c.mac_do_not_generate_plist = false
 end
 ENDL
       end

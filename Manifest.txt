@@ -24,6 +24,7 @@ data/website/images/rawr_logo.png
 data/website/index.html
 lib/app_bundler.rb
 lib/command.rb
+lib/configuration.rb
 lib/bundler.rb
 lib/exe_bundler.rb
 lib/generator.rb
@@ -216,7 +217,6 @@ lib/launch4j/bin-linux/windres
 lib/launch4j/bin-win/COPYING
 lib/launch4j/bin-win/ld.exe
 lib/launch4j/bin-win/windres.exe
-lib/options.rb
 lib/platform.rb
 lib/rawr.rb
 lib/rawr_environment.rb
