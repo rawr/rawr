@@ -26,6 +26,8 @@ module Rawr
       Option.new(:jvm_arguments, [String], ''),
       Option.new(:java_library_path, [String], ''),
       
+      Option.new(:extra_user_jars, Hash, Hash.new),
+      
       # Platform-specific options
       Option.new(:mac_do_not_generate_plist, false),
     ]
@@ -98,11 +100,9 @@ module Rawr
     
     
     # FIXME: add checks to inner fields
-    def extra_user_jars
-      return Hash.new
+    def jars
+      extra_user_jars
     end
-    
-    alias :jars :extra_user_jars
     
     
     # Derived, non-configurable settings
