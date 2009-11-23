@@ -2,41 +2,47 @@ module Rawr
   class JarBuilder
     require 'zip/zip'
 
-    def initialize(name, settings)
-      @name = name
-      @directory = settings[:directory] || (raise "Missing directory value in configuration for #{name}")
+    def initialize(nick, jar_file_path, settings)
+      @nick = nick
+      @jar_file_path = jar_file_path
+      @directory = settings[:directory] || (raise "Missing directory value in configuration for #{nick}")
       @items = settings[:items] || nil
-      raise "Invalid exclusion #{settings[:exclude].inspect} for #{name} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
+      raise "Invalid exclusion #{settings[:exclude].inspect} for #{nick} configuration: exclusion must be a Regexp" unless (settings[:exclude].nil? || settings[:exclude].kind_of?(Regexp))
       @exclude = settings[:exclude] || nil
       @location_in_jar = settings[:location_in_jar] || ''
       @location_in_jar += "/" unless @location_in_jar =~ %r{(^$)|([\\/]$)}
     end
     
+    attr_reader :directory
+    
     def select_files_for_jar(items)
-      all_files = items.map { |item|
-        item_path = File.join(@directory, item)
-        if File.directory?(item_path)
-          Dir.glob(File.join(item_path, '**', '*'))
-        else
-          item_path #To maintain consistancy with first branch of if
-        end
-      }.flatten
-      relative_files = all_files.map {|file|
-        file.sub(File.join(@directory, ''), '')
+      real_files = FileList[items].pathmap(File.join(@directory, '%p'))
+      selected_files = real_files.find_files_and_filter('*', [@exclude])
+      relative_selected_files = selected_files.map { |file_info|
+        full_path = File.join(file_info.directory, file_info.filename)
+        full_path.sub(File.join(@directory, ''), '')
       }
-      file_list = relative_files.reject {|f| (f =~ @exclude) || File.directory?(f)}
+      return relative_selected_files
+    end
+    
+    def files_to_add
+      return select_files_for_jar(@items.nil? ? [''] : @items)
     end
     
     def build
-      file_list = select_files_for_jar(@items.nil? ? [''] : @items)
+      file_list = files_to_add
       
-      zip_file_name = File.join(Rawr::Options.data.jar_output_dir, @name)
+      zip_file_name = @jar_file_path
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
           file_list.each do |file|
-            file_path_in_zip = "#{@location_in_jar}#{file}"
+            file_path_in_zip = if @location_in_jar.empty?
+              file
+            else
+              File.join(@location_in_jar, file)
+            end
             src_file_path = File.join(@directory, file)
             zipfile.add(file_path_in_zip, src_file_path)
           end

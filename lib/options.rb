@@ -92,9 +92,6 @@ module Rawr
         
         c.files_to_copy.map! {|file| file.sub(pwd, '')}
         
-        # Set up Jar packing settings
-        c.jars_to_build = get_jar_builders(c)
-        
         # Check validity of source filters
         if c.source_exclude_filter.kind_of? Array
           c.source_exclude_filter.each{|filter| raise "Invalid source filter: #{filter.inspect}, contents of source filters array must be regular expressions" unless filter.kind_of? Regexp}
@@ -108,12 +105,6 @@ module Rawr
       (config.java_lib_dirs.map { |directory|
           Dir.glob("#{directory}/**/*.jar")
         } + config.java_lib_files).flatten.map!{|file| file.sub(pwd, '')}
-    end
-
-    def get_jar_builders(config)
-      config.jars.map do |key, jar_settings|
-        JarBuilder.new("#{key.to_s}.jar", jar_settings)
-      end
     end
   end
 end
