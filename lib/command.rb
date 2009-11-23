@@ -12,13 +12,13 @@ module Rawr
       end
 
       version ||= 'current'
-      destination ||= './lib/java'
+      destination ||= Rawr::Configuration.current_config.java_lib_dirs.first
 
       require 'jruby_release'
       JRubyRelease.get version, destination
     end
 
-    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.6', copy_only=false)
+    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar, exclude, target_jvm, copy_only)
       require 'rawr_environment'
       Rawr::ensure_jruby_environment
       require 'jruby_batch_compiler'
