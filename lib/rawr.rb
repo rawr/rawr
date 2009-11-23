@@ -3,7 +3,6 @@ puts "Running in #{Rawr::ruby_environment}"
 
 require 'fileutils'
 require 'core_ext'
-require 'rbconfig'
 require 'platform'
 require 'configuration'
 require 'generator'
