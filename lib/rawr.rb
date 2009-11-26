@@ -14,7 +14,10 @@ def file_is_newer?(source, target)
 end
 
 RAWR_CONFIG_FILE = 'build_configuration.rb'
-CONFIG = Rawr::Configuration.load_from_file(RAWR_CONFIG_FILE)
+CONFIG = Rawr::Configuration.default
+if File.exist?(RAWR_CONFIG_FILE)
+  CONFIG.load_from_file!(RAWR_CONFIG_FILE)
+end
 
 namespace :rawr do
   
