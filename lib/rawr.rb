@@ -13,10 +13,24 @@ def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
-RAWR_CONFIG_FILE = 'build_configuration.rb'
+specified_config_file = false
+if Object.constants.include?('RAWR_CONFIG_FILE')
+  # RAWR_CONFIG_FILE can be set in the project's Rakefile
+  specified_config_file = true
+else
+  if ENV.include?('RAWR_CONFIG_FILE')
+    RAWR_CONFIG_FILE = ENV["RAWR_CONFIG_FILE"]
+    specified_config_file = true
+  else
+    RAWR_CONFIG_FILE = 'build_configuration.rb'
+  end
+end
+
 CONFIG = Rawr::Configuration.default
 if File.exist?(RAWR_CONFIG_FILE)
   CONFIG.load_from_file!(RAWR_CONFIG_FILE)
+elsif specified_config_file
+  raise "Rawr configuration file \"#{RAWR_CONFIG_FILE}\" does not exist."
 end
 
 namespace :rawr do
