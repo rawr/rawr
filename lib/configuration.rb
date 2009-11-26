@@ -63,7 +63,7 @@ module Rawr
     def set_option(option_name, value)
       opt = option(option_name)
       if opt.nil? then raise "Unknown Rawr option #{option_name}" end
-      opt.value = value unless option_accepts_value?(opt, value, true)
+      opt.value = value unless !option_accepts_value?(opt, value, true)
     end
     
     def get_option(option_name)
