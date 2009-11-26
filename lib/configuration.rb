@@ -7,7 +7,7 @@ module Rawr
     FilePath = String
     
     OPTIONS = [
-      Option.new(:project_name, FilePath, File.basename(Dir.pwd)),
+      Option.new(:project_name, String, File.basename(Dir.pwd)),
       Option.new(:output_dir, FilePath, 'package'),
       
       Option.new(:main_ruby_file, String, 'main'),
