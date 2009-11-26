@@ -16,10 +16,11 @@ def help(message = nil)
       rawr command [options]
 
   Commands:
-      install [-d dir] [-c class_name] [install dir or .]
+      install [options] [install dir or .]
         -d/--directory: Directory to place Java main file in, defaults to 'src'
         -c/--class:     Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
         -f/--file:      Name of the Rawr configuration file, defaults to build_configuration.rb
+        --no-config:    Do not generate a Rawr configuration file
         --no-download:  Do not automatically download the latest jruby-complete.jar
 
         Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
@@ -107,6 +108,7 @@ else
     directory = "src"
     java_class = %w{org rubyforge rawr Main}
     config_file = "build_configuration.rb"
+    write_config_file = true
     ARGV.shift
     until ARGV.empty?
       case ARGV[0]
@@ -134,6 +136,9 @@ else
         else
           help("No Rawr configuration file name given")
         end
+      when "--no-config"
+        write_config_file = false
+        ARGV.shift
       when "--no-download"
         @download_jruby = false
         ARGV.shift
@@ -144,11 +149,14 @@ else
 
     FileUtils.mkdir_p @install_dir unless @install_dir == '.'
     FileUtils.cd @install_dir do
-      if File.exist? config_file
-        puts "Configuration file '#{config_file}' exists, skipping"
-      else
-        puts "Creating Rawr configuration file #{config_file}"
-        Rawr::Generator.create_default_config_file(config_file, java_class.join("."))
+      if write_config_file
+        puts "write config file"
+        if File.exist? config_file
+          puts "Configuration file '#{config_file}' exists, skipping"
+        else
+          puts "Creating Rawr configuration file #{config_file}"
+          Rawr::Generator.create_default_config_file(config_file, java_class.join("."))
+        end
       end
 
       resolved_package = java_class[0...-1].join(".")
