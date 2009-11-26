@@ -100,36 +100,24 @@ ENDL
     def self.create_default_config_file(config_path, java_class)
       puts config_path
       File.open(config_path, "w+") do |config_file|
-        config_file << <<-ENDL
-configuration do |c|
-  c.project_name = #{Rawr::Configuration::OPTIONS[0].default.dump}
-  c.output_dir = 'package'
-  c.main_ruby_file = 'main'
-  c.main_java_file = 'org.rubyforge.rawr.Main'
-
-  # Compile all Ruby and Java files recursively
-  # Copy all other files taking into account exclusion filter
-  c.source_dirs = ['src', 'lib/ruby']
-  c.source_exclude_filter = []
-
-  # Location of the jruby-complete.jar. Override this if your jar lives elsewhere.
-  # This allows Rawr to make sure it uses a compatible jrubyc when compiling,
-  # so the class files are always compatible, regardless of your system JRuby.
-  #c.jruby_jar = 'lib/java/jruby-complete.jar'
-  c.compile_ruby_files = true
-  #c.java_lib_files = []  
-  c.java_lib_dirs = ['lib/java']
-  #c.files_to_copy = Dir['other_files/dir/**/*']
-
-  c.target_jvm_version = 1.6
-  #c.jars[:data] = { :directory => 'data/images', :location_in_jar => 'images', :exclude => /bak/}
-  #c.jvm_arguments = "-server"
-  #c.java_library_path = "lib/java/native"
-
-  # Bundler options
-  # c.mac_do_not_generate_plist = false
-end
-ENDL
+        config_file << "configuration do |c|\n"
+        Rawr::Configuration::OPTIONS.each do |option|
+          doc_string = option.comment
+          doc_string ||= "Undocumented option '#{option.name}'"
+          config_file << "\t# #{doc_string}\n"
+          config_file << "\t# default value: #{option.default.inspect}\n"
+          config_file << "\t#\n"
+          case option.name
+          when :extra_user_jars
+            config_file << "\t#c.extra_user_jars[:data] = { :directory => 'data/images/png',\n"
+            config_file << "\t#                             :location_in_jar => 'images',\n"
+            config_file << "\t#                             :exclude => /*.bak$/ }\n"
+          else
+            config_file << "\t#c.#{option.name} = #{option.default.inspect}\n"
+          end
+          config_file << "\n"
+        end
+        config_file << "end\n"
       end
     end
   end

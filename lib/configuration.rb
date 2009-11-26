@@ -32,14 +32,18 @@ module Rawr
       Option.new(:mac_do_not_generate_plist, false),
     ]
     
-    def initialize(file_path)
-      configuration_file = File.readlines(file_path)
-      instance_eval(configuration_file.join)
+    def initialize
       self.class.current_config = self
     end
     
-    def self.load_from_file(file_path)
-      return self.new(file_path)
+    def self.default
+      return self.new
+    end
+    
+    def load_from_file!(file_path)
+      configuration_file = File.readlines(file_path).join
+      instance_eval(configuration_file)
+      self.class.current_config = self
     end
     
     def configuration
