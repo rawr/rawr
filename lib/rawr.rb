@@ -193,8 +193,9 @@ namespace :rawr do
   task :base_jar => CONFIG.base_jar_complete_path
   
   desc "Uses compiled output and creates an executable jar file."
+  task :jar => CONFIG.base_jar_complete_path
   task :jar => PACKAGED_EXTRA_USER_JARS
-  task :jar => CONFIG.base_jar_complete_path do
+  task :jar do
     (CONFIG.classpath + CONFIG.files_to_copy).each do |file|
       destination_file = file.gsub('../', '')
       destination_file_path = File.join(CONFIG.jar_output_dir, destination_file)
