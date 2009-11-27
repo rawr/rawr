@@ -23,7 +23,22 @@ module Rawr
         full_path = File.join(file_info.directory, file_info.filename)
         full_path.sub(File.join(@directory, ''), '')
       }
-      return relative_selected_files
+      
+      manifest_path = 'META-INF/MANIFEST.MF'
+      
+      if relative_selected_files.include?(manifest_path)
+        relative_selected_files.delete_if { |filename| filename =~ /^META-INF(\/|\/MANIFEST.MF)?$/ }
+        # The JAR file specification requires META-INF and MANIFEST.MF
+        # to be the first two entries of the zip file.
+        # A zip file that does not have META-INF and MANIFEST.MF in the
+        # correct places is not recognized by Java as a JAR file, just
+        # a simple zip file
+        ordered_files = ['META-INF', manifest_path] + relative_selected_files
+      else
+        ordered_files = relative_selected_files
+      end
+      
+      return ordered_files
     end
     
     def files_to_add

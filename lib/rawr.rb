@@ -181,12 +181,6 @@ namespace :rawr do
                                    {:directory => CONFIG.compile_dir,
                                     :dir_mapping => root_as_base})
     builder.build
-    
-    # Re-add the manifest file using the jar utility so that it
-    # is processed as a manifest file and thus signing will work.
-    jar_path = CONFIG.base_jar_complete_path
-    manifest_path = File.join(CONFIG.meta_inf_dir, 'MANIFEST.MF')
-    sh 'jar', 'ufm', jar_path, manifest_path
   end
   
   desc "Create a base jar file"
