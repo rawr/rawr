@@ -1,3 +1,5 @@
+require 'set'
+
 module Rawr
   class Configuration
     
@@ -5,6 +7,7 @@ module Rawr
     
     Option = Struct.new(:name, :type, :default, :comment, :value)
     FilePath = String
+    Boolean = Set.new([TrueClass, FalseClass])
     
     OPTIONS = [
       Option.new(:project_name, String, File.basename(Dir.pwd)),
@@ -16,7 +19,7 @@ module Rawr
       Option.new(:source_dirs, [FilePath], ['src', 'lib/ruby']),
       Option.new(:source_exclude_filter, [Regexp], []),
       Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
-      Option.new(:compile_ruby_files, TrueClass, true), #FIXME: generic boolean type
+      Option.new(:compile_ruby_files, Boolean, true),
       Option.new(:java_lib_files, [FilePath], []),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
@@ -87,15 +90,39 @@ module Rawr
         allows_lists = false
       end
       
+      is_compatible = proc { |object, type_spec|
+        if type_spec.is_a?(Set)
+          type_spec.any? { |t| object.is_a?(t) }
+        else
+          object.is_a?(type_spec)
+        end
+      }
+      
       if value.is_a? Array
-        if !allows_lists then return false end
-        acceptable_value = value.all? { |x| x.is_a?(base_type) }
+        if !allows_lists then
+          if raise_on_mismatch
+            raise "'#{option.name}' value cannot be a list of value values, #{value.inspect} given"
+          end
+          return false
+        end
+        acceptable_value = value.all? { |item| is_compatible[item, base_type] }
       else
-        acceptable_value = value.is_a?(base_type)
+        acceptable_value = is_compatible[value, base_type]
       end
       
       if raise_on_mismatch && !acceptable_value
-        raise "#{option.name} must be a #{type}, #{value}:#{value.class} given"
+        type_info =  type.is_a?(Array) ? "a list of " : "of type "
+        
+        types = type.is_a?(Set) ? type : [type]
+        type_info += types.collect { |t| t.to_s }.join(" or ")
+        
+        values = [value].flatten(1)
+        value_info = values.collect { |v| v.inspect + ":" + v.class.to_s }.join(", ")
+        if value.is_a?(Array)
+          value_info = "[" + value_info + "]"
+        end
+        
+        raise "'#{option.name}' must be #{type_info}, #{value_info} given"
       end
       
       return acceptable_value
