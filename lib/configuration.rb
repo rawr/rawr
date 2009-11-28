@@ -7,6 +7,7 @@ module Rawr
     
     Option = Struct.new(:name, :type, :default, :comment, :value)
     FilePath = String
+    Boolean = Set.new([TrueClass, FalseClass])
     
     OPTIONS = [
       Option.new(:project_name, String, File.basename(Dir.pwd)),
@@ -18,7 +19,7 @@ module Rawr
       Option.new(:source_dirs, [FilePath], ['src', 'lib/ruby']),
       Option.new(:source_exclude_filter, [Regexp], []),
       Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
-      Option.new(:compile_ruby_files, TrueClass, true), #FIXME: generic boolean type
+      Option.new(:compile_ruby_files, Boolean, true),
       Option.new(:java_lib_files, [FilePath], []),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
