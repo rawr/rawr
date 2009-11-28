@@ -99,14 +99,30 @@ module Rawr
       }
       
       if value.is_a? Array
-        if !allows_lists then return false end
+        if !allows_lists then
+          if raise_on_mismatch
+            raise "'#{option.name}' value cannot be a list of value values, #{value.inspect} given"
+          end
+          return false
+        end
         acceptable_value = value.all? { |item| is_compatible[item, base_type] }
       else
         acceptable_value = is_compatible[value, base_type]
       end
       
       if raise_on_mismatch && !acceptable_value
-        raise "#{option.name} must be a #{type}, #{value}:#{value.class} given"
+        type_info =  type.is_a?(Array) ? "a list of " : "of type "
+        
+        types = type.is_a?(Set) ? type : [type]
+        type_info += types.collect { |t| t.to_s }.join(" or ")
+        
+        values = [value].flatten(1)
+        value_info = values.collect { |v| v.inspect + ":" + v.class.to_s }.join(", ")
+        if value.is_a?(Array)
+          value_info = "[" + value_info + "]"
+        end
+        
+        raise "'#{option.name}' must be #{type_info}, #{value_info} given"
       end
       
       return acceptable_value
