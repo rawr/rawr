@@ -1,3 +1,5 @@
+require 'set'
+
 module Rawr
   class Configuration
     
@@ -87,11 +89,19 @@ module Rawr
         allows_lists = false
       end
       
+      is_compatible = proc { |object, type_spec|
+        if type_spec.is_a?(Set)
+          type_spec.any? { |t| object.is_a?(t) }
+        else
+          object.is_a?(type_spec)
+        end
+      }
+      
       if value.is_a? Array
         if !allows_lists then return false end
-        acceptable_value = value.all? { |x| x.is_a?(base_type) }
+        acceptable_value = value.all? { |item| is_compatible[item, base_type] }
       else
-        acceptable_value = value.is_a?(base_type)
+        acceptable_value = is_compatible[value, base_type]
       end
       
       if raise_on_mismatch && !acceptable_value
