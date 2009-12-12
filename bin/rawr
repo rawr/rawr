@@ -5,7 +5,7 @@ require 'rubygems'
 
 require 'rawr_environment'
 require 'rawr_version'
-require 'generator'
+require File.expand_path(File.join(File.dirname(__FILE__), 'generator'))
 
 def help(message = nil)
   puts message + "\\\n-----------------------------------\\\n" unless message.nil?

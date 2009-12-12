@@ -3,7 +3,11 @@ require 'app_bundler'
 
 describe Rawr::AppBundler do
   include CustomFileMatchers
-  
+
+  before :each do
+    Rawr::Configuration.current_config = Rawr::Configuration.default
+  end
+
   it "uses the main java class option" do
     app_bundler = Rawr::AppBundler.new
     app_bundler.instance_variable_set(:@main_java_class, "foo")

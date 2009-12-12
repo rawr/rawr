@@ -71,11 +71,11 @@ module Rawr
     end
     
     def generate_info_plist
-      unless Rawr::Configuration.current.mac_do_not_generate_plist
-        mac_icon_filename = @mac_icon_path.sub(File.dirname(@mac_icon_path) + '/', '')
+      return if Rawr::Configuration.current_config.mac_do_not_generate_plist
+      mac_icon_filename = @mac_icon_path.sub(File.dirname(@mac_icon_path) + '/', '')
 
-        File.open "Info.plist", 'w' do |file|
-          file << <<-INFO_ENDL
+      File.open "Info.plist", 'w' do |file|
+        file << <<-INFO_ENDL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
@@ -122,7 +122,6 @@ module Rawr
 </dict>
 </plist>
 INFO_ENDL
-        end
       end
     end
   end
