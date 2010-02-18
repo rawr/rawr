@@ -1,7 +1,7 @@
 require 'configuration'
 
 module Rawr
-  class Generator
+  class Creator
     def self.create_run_config_file(options)
       File.open(File.join(options.compile_dir, 'run_configuration'), "w+") do |run_config_file|
         run_config_file << "main_ruby_file: " + options.main_ruby_file + "\n"

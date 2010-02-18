@@ -1,12 +1,12 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'generator'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'creator'))
 require 'fileutils'
 
-describe Rawr::Generator do
+describe Rawr::Creator do
   include CustomFileMatchers
   
   before :each do
-    @generator = Rawr::Generator
+    @creator = Rawr::Creator
     @config = OpenStruct.new
   end
   
@@ -18,7 +18,7 @@ describe Rawr::Generator do
       @config.compile_dir         = '.'
       @config.native_library_dirs = []
 
-      @generator.create_run_config_file @config
+      @creator.create_run_config_file @config
 
       'run_configuration'.should be_existing_file
       #TODO: This is an awful test, refactor into CustomFileMatchers for better self-documenting code
@@ -38,7 +38,7 @@ describe Rawr::Generator do
       @config.main_java_file = 'org.rawr.test.Main'
       @config.jars           = {}
       @config.compile_dir    = 'rawr-spec-temp-test'
-      @generator.create_manifest_file @config
+      @creator.create_manifest_file @config
 
       'rawr-spec-temp-test/META-INF/MANIFEST.MF'.should be_existing_file
       #TODO: This is an awful test, refactor into CustomFileMatchers for better self-documenting code
@@ -50,7 +50,7 @@ describe Rawr::Generator do
   
   # just see if the file is created, and has some content
   it "creates a build configuration file" do
-    @generator.create_default_config_file('test_configuration.yaml', 'org.rawr.test.Main')
+    @creator.create_default_config_file('test_configuration.yaml', 'org.rawr.test.Main')
     
     'test_configuration.yaml'.should be_existing_file
     #TODO: This is an awful test, refactor into CustomFileMatchers for better self-documenting code
@@ -59,7 +59,7 @@ describe Rawr::Generator do
   end
   
   it "creates a Java main file" do
-    @generator.create_java_main_file('TestMain.java', 'org.rawr.test', 'Main')
+    @creator.create_java_main_file('TestMain.java', 'org.rawr.test', 'Main')
     
     'TestMain.java'.should be_existing_file
     #TODO: This is an awful test, refactor into CustomFileMatchers for better self-documenting code
