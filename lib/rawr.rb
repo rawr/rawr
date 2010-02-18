@@ -6,7 +6,7 @@ require 'fileutils'
 require 'core_ext'
 require 'platform'
 require 'configuration'
-require 'generator'
+require 'creator'
 require 'jar_builder'
 
 def file_is_newer?(source, target)
@@ -173,8 +173,8 @@ namespace :rawr do
   file CONFIG.base_jar_complete_path => "rawr:compile"
   file CONFIG.base_jar_complete_path => CONFIG.meta_inf_dir
   file CONFIG.base_jar_complete_path => CONFIG.jar_output_dir do
-    Rawr::Generator.create_manifest_file(CONFIG)
-    Rawr::Generator.create_run_config_file(CONFIG)
+    Rawr::Creator.create_manifest_file(CONFIG)
+    Rawr::Creator.create_run_config_file(CONFIG)
     root_as_base = proc do |path| path.sub(/^(java|ruby|non-source)./, '') end
     builder = Rawr::JarBuilder.new(CONFIG.project_name,
                                    CONFIG.base_jar_complete_path,

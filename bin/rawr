@@ -5,7 +5,8 @@ require 'rubygems'
 
 require 'rawr_environment'
 require 'rawr_version'
-require File.expand_path(File.join(File.dirname(__FILE__), 'generator'))
+require 'creator'
+# require File.expand_path(File.join(File.dirname(__FILE__), 'creator'))
 
 def help(message = nil)
   puts message + "\\\n-----------------------------------\\\n" unless message.nil?
@@ -155,7 +156,7 @@ else
           puts "Configuration file '#{config_file}' exists, skipping"
         else
           puts "Creating Rawr configuration file #{config_file}"
-          Rawr::Generator.create_default_config_file(config_file, java_class.join("."))
+          Rawr::Creator.create_default_config_file(config_file, java_class.join("."))
         end
       end
 
@@ -167,7 +168,7 @@ else
       else
         puts "Creating Java class #{resolved_file}"
         FileUtils.mkdir_p(resolved_dir)
-        Rawr::Generator.create_java_main_file(resolved_file, resolved_package, java_class.last)
+        Rawr::Creator.create_java_main_file(resolved_file, resolved_package, java_class.last)
       end
 
       create_rakefile

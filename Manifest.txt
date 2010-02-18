@@ -28,7 +28,7 @@ lib/command.rb
 lib/configuration.rb
 lib/core_ext.rb
 lib/exe_bundler.rb
-lib/generator.rb
+lib/creator.rb
 lib/jar_builder.rb
 lib/jruby_batch_compiler.rb
 lib/jruby_release.rb
@@ -248,7 +248,7 @@ tasks/test.rake
 test/spec_helpers.rb
 test/unit/app_bundler_spec.rb
 test/unit/bundler_spec.rb
-test/unit/generator_spec.rb
+test/unit/creator_spec.rb
 test/unit/jar_builder_spec.rb
 test/unit/kde_bundler_spec.rb
 test/unit/options_spec.rb
