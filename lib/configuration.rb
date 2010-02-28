@@ -25,7 +25,6 @@ module Rawr
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
       
       Option.new(:target_jvm_version, Numeric, 1.6),
-      #Option.new(:jars),
       Option.new(:jvm_arguments, [String], ''),
       Option.new(:java_library_path, [String], ''),
       
@@ -33,8 +32,8 @@ module Rawr
       
       # Platform-specific options
       Option.new(:mac_do_not_generate_plist, false),
-      Option.new(:mac_icon_path, FilePath, 'GenericJavaApp.icns'),
-      Option.new(:windows_icon_path, FilePath, 'GenericJavaApp.ico')
+      Option.new(:mac_icon_path, FilePath),
+      Option.new(:windows_icon_path, FilePath)
     ]
     
     def initialize
