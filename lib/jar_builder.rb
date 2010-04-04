@@ -2,7 +2,6 @@ module Rawr
   module FileHelpers
 
     def add_dirs file_list
-      puts "\nadd_dirs has file_list\n#{file_list.inspect}"
       # Here's the assumption:  If we have a file path that contains one or more
       # path separators, then we assume the we can break the path up
       # drop the last part and use each remaining segment combo
@@ -27,8 +26,6 @@ module Rawr
 
         file_list.concat dirs
         file_list.uniq! 
-        puts "#{'_'*40}\nHave file list with \n#{file_list.sort.join("\n")}\n#{'_'*40}\n"
-
     end
 
   end
@@ -62,7 +59,6 @@ module Rawr
         full_path.sub(File.join(@directory, ''), '')
       }
 
-      puts "#{'-' * 40}\nAdd directories to jar set ...\n#{'-' * 40}\n"
 
       add_dirs relative_selected_files
       
@@ -89,8 +85,6 @@ module Rawr
    
     # This currently returns an array with the files included on the jar
     def build
-
-      puts "\n#{'-'*40}\nBuilding jar file with\n#{files_to_add.join("\n")}\n#{'-'*40}\n"  
       zip_file_name = @jar_file_path
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
