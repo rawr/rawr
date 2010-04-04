@@ -3,7 +3,7 @@ require 'jruby/jrubyc'
 
 module Rawr
   class JRubyBatchCompiler
-    include JRubyCompiler
+    include JRuby::Compiler
 
     def self.compile_argv
       dest_dir = ARGV.pop
@@ -12,6 +12,8 @@ module Rawr
     end
 
     def compile_dirs(src_dirs, dest_dir, options={})
+      puts "   compile_dirs has src_dirs = #{src_dirs.inspect}"
+
       #options[:jruby_jar]  ||= 'lib/java/jruby-complete.jar'
       options[:exclude]    ||= []
       options[:target_jvm] ||= '1.6'
@@ -21,12 +23,20 @@ module Rawr
       ruby_globs = glob_ruby_files(src_dirs, options[:exclude])
 
       ruby_globs.each do |glob_data|
+        puts  "   ruby_globs.each has glob_data = #{glob_data.inspect}"
         files     = glob_data.files
         directory = glob_data.directory
+        
+        next if files.empty? # Otherwise jrubyc breaks since we cannot compile nothing
+
         if copy_only
           copy_files(files, directory, dest_dir)
         else
-          compile_files(files.map {|file| "#{directory}/#{file}"}, directory, '', dest_dir)
+          file_set = files.map {|file| "#{directory}/#{file}"}
+          raise "Empty file set in #{__FILE__}." if file_set.empty?
+          puts "    Go compile #{file_set.inspect}"
+           compile_files(  file_set, directory, '',     dest_dir)
+          # compile_files(  argv,                                     basedir,   prefix, target,     java, classpath)
         end
       end
     end
@@ -42,6 +52,7 @@ module Rawr
     def glob_ruby_files(src_dirs, excludes)
       src_dirs.inject([]) do |file_globs, directory|
         glob = Dir.glob("#{directory}/**/*.rb")
+        puts "   glob_ruby_files has directory '#{directory}' glob #{glob.inspect}"
         reject_directories!(glob)
         strip_directory!(glob, directory)
         reject_excluded_matches!(glob, excludes)

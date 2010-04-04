@@ -1,6 +1,6 @@
-Rawr 1.3.9
+Rawr 1.4.0
     by David Koontz, James Britt, and Logan Barnett
-    http://www.rubyforge.org/projects/rawr
+    http://kenai.com/projects/rawr
 
 == DESCRIPTION:
   
@@ -17,6 +17,7 @@ file that you can include into your project to do the building of the project.
 
 == REQUIREMENTS:
 
+* jruby
 * javac
 * jar
 * rake

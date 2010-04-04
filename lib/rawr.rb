@@ -1,5 +1,5 @@
 require 'rawr_environment'
-puts "Running in #{Rawr::ruby_environment}"
+puts "\n#{'-'*80}\nRunning in #{Rawr::ruby_environment}\n#{'-'*80}\n"
 
 require 'fileutils'
 
@@ -49,6 +49,7 @@ namespace :rawr do
     
     file jar_file_path => CONFIG.jar_output_dir
     file jar_file_path => files_to_add do
+          puts "+ + Go build jar  for #{jar_nick}"
       jar_builders[jar_nick].build
     end
   }
@@ -180,6 +181,7 @@ namespace :rawr do
                                    CONFIG.base_jar_complete_path,
                                    {:directory => CONFIG.compile_dir,
                                     :dir_mapping => root_as_base})
+    puts "Go build #{CONFIG.base_jar_complete_path}"
     builder.build
   end
   

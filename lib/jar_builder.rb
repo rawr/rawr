@@ -1,7 +1,43 @@
 module Rawr
+  module FileHelpers
+
+    def add_dirs file_list
+      puts "\nadd_dirs has file_list\n#{file_list.inspect}"
+      # Here's the assumption:  If we have a file path that contains one or more
+      # path separators, then we assume the we can break the path up
+      # drop the last part and use each remaining segment combo
+      # as directory.
+      #
+      # For example, given
+      #   foo/bar/baz
+      # we treat foo/bar and foo as directories and add them to the array.
+      #
+        dirs = []
+        file_list.each do |path|
+           chunks  = path.split File::SEPARATOR    
+           next if chunks.size == 0
+           chunks.pop
+           next if chunks.size == 0
+           new_path = ''
+           chunks.each do |c|
+              new_path << c + File::SEPARATOR
+              dirs << new_path.dup.sub( /#{File::SEPARATOR}$/, '')
+           end
+        end
+
+        file_list.concat dirs
+        file_list.uniq! 
+        puts "#{'_'*40}\nHave file list with \n#{file_list.sort.join("\n")}\n#{'_'*40}\n"
+
+    end
+
+  end
+
   class JarBuilder
     require 'zip/zip'
-
+    include FileHelpers
+   # What *are* these things?  What do you do with +settings+? Why would you set +:items+ ?
+    # Why must there be a :directory setting, and what is it for?
     def initialize(nick, jar_file_path, settings)
       @nick = nick
       @jar_file_path = jar_file_path
@@ -16,6 +52,8 @@ module Rawr
     
     attr_reader :directory
     
+    
+  
     def select_files_for_jar(items)
       real_files = FileList[items].pathmap(File.join(@directory, '%p'))
       selected_files = real_files.find_files_and_filter('*', [@exclude])
@@ -23,6 +61,10 @@ module Rawr
         full_path = File.join(file_info.directory, file_info.filename)
         full_path.sub(File.join(@directory, ''), '')
       }
+
+      puts "#{'-' * 40}\nAdd directories to jar set ...\n#{'-' * 40}\n"
+
+      add_dirs relative_selected_files
       
       manifest_path = 'META-INF/MANIFEST.MF'
       
@@ -44,16 +86,18 @@ module Rawr
     def files_to_add
       return select_files_for_jar(@items.nil? ? [''] : @items)
     end
-    
+   
+    # This currently returns an array with the files included on the jar
     def build
-      file_list = files_to_add
-      
+
+      puts "\n#{'-'*40}\nBuilding jar file with\n#{files_to_add.join("\n")}\n#{'-'*40}\n"  
       zip_file_name = @jar_file_path
       puts "=== Creating jar file: #{zip_file_name}"
       File.delete(zip_file_name) if File.exists? zip_file_name
       begin
         Zip::ZipFile.open(zip_file_name, Zip::ZipFile::CREATE) do |zipfile|
-          file_list.each do |file|
+
+          files_to_add.each do |file|
             remapped_file_path = @dir_mapping[file]
             file_path_in_zip = if @location_in_jar.empty?
               remapped_file_path
@@ -64,6 +108,7 @@ module Rawr
             zipfile.add(file_path_in_zip, src_file_path)
           end
         end
+
       rescue => e
         puts "Error during the creation of the jar file: #{zip_file_name}"
         raise e
