@@ -150,6 +150,7 @@ namespace :rawr do
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => COMPILED_JAVA_CLASSES
   task :compile => COMPILED_RUBY_CLASSES
+  task :compile => COPIED_SOURCE_FILES
   task :compile => COPIED_NON_SOURCE_FILES
   
   desc "Compiles the Java source files specified in the source_dirs entry"
