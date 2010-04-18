@@ -15,7 +15,6 @@ module Rawr
       #options[:jruby_jar]  ||= 'lib/java/jruby-complete.jar'
       options[:exclude]    ||= []
       options[:target_jvm] ||= '1.6'
-      copy_only = options[:copy_only]  ||= false
 
       #TODO: Allow for copy-only and some other options
       ruby_globs = glob_ruby_files(src_dirs, options[:exclude])
@@ -27,30 +26,18 @@ module Rawr
         
         next if files.empty? # Otherwise jrubyc breaks since we cannot compile nothing
 
-        if copy_only
-          copy_files(files, directory, dest_dir)
-        else
-          file_set = files.map {|file| "#{directory}/#{file}"}
-          raise "Empty file set in #{__FILE__}." if file_set.empty?
-          puts "    Go compile #{file_set.inspect}"
-          begin
-            # JRuby >= 1.5
-            compiler = JRuby::Compiler
-          rescue NameError => e
-            # JRuby 1.4
-            # XXX: remove once JRuby 1.4 is no longer supported
-            compiler = JRubyCompiler
-          end
-          compiler.compile_files(file_set, directory, '', dest_dir)
+        file_set = files.map {|file| "#{directory}/#{file}"}
+        raise "Empty file set in #{__FILE__}." if file_set.empty?
+        puts "    Go compile #{file_set.inspect}"
+        begin
+          # JRuby >= 1.5
+          compiler = JRuby::Compiler
+        rescue NameError => e
+          # JRuby 1.4
+          # XXX: remove once JRuby 1.4 is no longer supported
+          compiler = JRubyCompiler
         end
-      end
-    end
-
-    def copy_files(files, src_dir, dest_dir)
-      files.each do |file|
-        #target_file = "#{dest_dir}/#{file}"
-        FileUtils.mkdir_p(File.dirname("#{dest_dir}/#{file}"))
-        File.copy("#{src_dir}/#{file}", "#{dest_dir}/#{file}")
+        compiler.compile_files(file_set, directory, '', dest_dir)
       end
     end
 
@@ -81,7 +68,7 @@ module Rawr
       end
     end
 
-    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.6', copy_only=false)
+    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar='lib/java/jruby-complete.jar', exclude=[], target_jvm='1.6')
       ruby_source_file_list = src_dirs.inject([]) do |list, directory|
         list << Dir.glob("#{directory}/**/*.rb").
           #reject{|file| File.directory?(file)}.
@@ -94,26 +81,17 @@ module Rawr
         file = data.file
         directory = data.directory
 
-        if copy_only
-          processed_file = file
-          target_file = "#{dest_dir}/#{file}"
-        else
-          relative_dir, name = File.split(file)
-          processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
-          target_file = "#{dest_dir}/#{processed_file}"
-        end
+        relative_dir, name = File.split(file)
+        processed_file = Java::org::jruby::util::JavaNameMangler.mangle_filename_for_classpath(file, Dir.pwd, "", true) + '.class'
+        target_file = "#{dest_dir}/#{processed_file}"
 
         if file_is_newer?("#{directory}/#{file}", target_file)
           FileUtils.mkdir_p(File.dirname("#{dest_dir}/#{processed_file}"))
 
-          if copy_only
-            File.copy("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
-          else
-            # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
-            # TODO: Speed up compiling by not invoking java for each file...
-            sh "java -jar #{jruby_jar} -S jrubyc #{directory}/#{file}"
-            File.move("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
-          end
+          # There's no jrubyc.bat/com/etc for Windows. jruby -S works universally here
+          # TODO: Speed up compiling by not invoking java for each file...
+          sh "java -jar #{jruby_jar} -S jrubyc #{directory}/#{file}"
+          File.move("#{directory}/#{processed_file}", "#{dest_dir}/#{processed_file}")
         end
       end
     end

@@ -131,8 +131,7 @@ namespace :rawr do
                                       CONFIG.compiled_ruby_files_path,
                                       CONFIG.jruby_jar,
                                       CONFIG.source_exclude_filter,
-                                      CONFIG.target_jvm_version,
-                                      !CONFIG.compile_ruby_files)
+                                      CONFIG.target_jvm_version)
     end
   }
   
