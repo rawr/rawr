@@ -92,7 +92,7 @@ namespace :rawr do
   }
   
   COMPILED_RUBY_CLASSES = FileList.new
-  ruby_source_file_list = CONFIG.ruby_source_files
+  ruby_source_file_list = CONFIG.ruby_source_files_to_compile
   ruby_source_file_list.each { |file_info|
     orig_file_path = File.join(file_info.directory, file_info.filename)
     dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename.pathmap('%X.class'))
@@ -110,6 +110,23 @@ namespace :rawr do
                                       CONFIG.source_exclude_filter,
                                       CONFIG.target_jvm_version,
                                       !CONFIG.compile_ruby_files)
+    end
+  }
+  
+  COPIED_SOURCE_FILES = FileList.new
+  ruby_source_file_list = CONFIG.ruby_source_files_to_copy
+  ruby_source_file_list.each { |file_info|
+    orig_file_path = File.join(file_info.directory, file_info.filename)
+    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
+    dest_dir = File.dirname(dest_file_path)
+    
+    COPIED_SOURCE_FILES.add(dest_file_path)
+    
+    directory dest_dir
+    
+    file dest_file_path => [ orig_file_path, dest_dir ] do
+      puts "Copying source file #{orig_file_path} into #{dest_file_path}"
+      copy orig_file_path, dest_file_path
     end
   }
   
@@ -170,7 +187,10 @@ namespace :rawr do
   
   task :copy_other_file_in_source_dirs => COPIED_NON_SOURCE_FILES
   
-  file CONFIG.base_jar_complete_path => "rawr:compile"
+  file CONFIG.base_jar_complete_path => COMPILED_JAVA_CLASSES
+  file CONFIG.base_jar_complete_path => COMPILED_RUBY_CLASSES
+  file CONFIG.base_jar_complete_path => COPIED_SOURCE_FILES
+  file CONFIG.base_jar_complete_path => COPIED_NON_SOURCE_FILES
   file CONFIG.base_jar_complete_path => CONFIG.meta_inf_dir
   file CONFIG.base_jar_complete_path => CONFIG.jar_output_dir do
     Rawr::Creator.create_manifest_file(CONFIG)

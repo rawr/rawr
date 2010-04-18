@@ -188,6 +188,14 @@ module Rawr
       FileList[self.source_dirs].find_files_and_filter('*.rb', self.source_exclude_filter)
     end
     
+    def ruby_source_files_to_compile
+      self.compile_ruby_files ? self.ruby_source_files : FileList.new
+    end
+    
+    def ruby_source_files_to_copy
+      self.compile_ruby_files ? FileList.new : self.ruby_source_files
+    end
+    
     def non_source_file_list
       FileList[self.source_dirs].find_files_and_filter('*', self.source_exclude_filter + [/\.(rb|java|class)$/])
     end
