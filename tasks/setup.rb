@@ -26,7 +26,7 @@ PROJ = OpenStruct.new(
   :libs => [],
   :history_file => 'History.txt',
   :manifest_file => 'Manifest.txt',
-  :readme_file => 'README.txt',
+  :readme_file => 'README.md',
 
   # Announce
   :ann => OpenStruct.new(
@@ -168,7 +168,7 @@ HAVE_SVN = (Dir.entries(Dir.pwd).include?('.svn') and
 # specified.
 #
 #    changes = paragraphs_of('History.txt', 0..1).join("\n\n")
-#    summary, *description = paragraphs_of('README.txt', 3, 3..8)
+#    summary, *description = paragraphs_of('README.md', 3, 3..8)
 #
 def paragraphs_of( path, *paragraphs )
   title = String === paragraphs.first ? paragraphs.shift : nil

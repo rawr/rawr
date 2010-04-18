@@ -1,6 +1,6 @@
 History.txt
 Manifest.txt
-README.txt
+README.md
 Rakefile
 bin/rawr
 data/GenericJavaApp.icns
