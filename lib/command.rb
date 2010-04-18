@@ -23,7 +23,6 @@ module Rawr
       Rawr::ensure_jruby_environment
       require 'jruby_batch_compiler'
       
-      puts "compile_ruby_dirs has src_dirs = #{src_dirs.inspect}"
       if copy_only
         Rawr::JRubyBatchCompiler.new.compile_dirs(src_dirs, dest_dir, {:jruby_jar => jruby_jar, :exclude => exclude, :copy_only => copy_only})
       else
