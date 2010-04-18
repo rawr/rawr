@@ -3,8 +3,6 @@ require 'jruby/jrubyc'
 
 module Rawr
   class JRubyBatchCompiler
-    include JRuby::Compiler
-
     def self.compile_argv
       dest_dir = ARGV.pop
       # TODO: add ability to carry options through
@@ -35,8 +33,15 @@ module Rawr
           file_set = files.map {|file| "#{directory}/#{file}"}
           raise "Empty file set in #{__FILE__}." if file_set.empty?
           puts "    Go compile #{file_set.inspect}"
-           compile_files(  file_set, directory, '',     dest_dir)
-          # compile_files(  argv,                                     basedir,   prefix, target,     java, classpath)
+          begin
+            # JRuby >= 1.5
+            compiler = JRuby::Compiler
+          rescue NameError => e
+            # JRuby 1.4
+            # XXX: remove once JRuby 1.4 is no longer supported
+            compiler = JRubyCompiler
+          end
+          compiler.compile_files(file_set, directory, '', dest_dir)
         end
       end
     end
