@@ -16,13 +16,14 @@ module Rawr
       Option.new(:main_ruby_file, String, 'main'),
       Option.new(:main_java_file, String, 'org.rubyforge.rawr.Main'),
       
-      Option.new(:source_dirs, [FilePath], ['src', 'lib/ruby']),
-      Option.new(:source_exclude_filter, [Regexp], []),
-      Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
-      Option.new(:compile_ruby_files, Boolean, true),
+      Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
+      Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
+      Option.new(:compile_ruby_files, Boolean, true, "Whether Ruby source files should be compiled into .class files"),
+      
       Option.new(:java_lib_files, [FilePath], []),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
+      Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
       
       Option.new(:target_jvm_version, Numeric, 1.6),
       Option.new(:jvm_arguments, [String], ''),
