@@ -13,6 +13,29 @@ def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
+def generate_copy_tasks_for(files, source_or_not)
+  copied_file_list = FileList.new
+  
+  files.each do |file_info|
+    orig_file_path = File.join(file_info.directory, file_info.filename)
+    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
+    dest_dir = File.dirname(dest_file_path)
+    
+    copied_file_list.add(dest_file_path)
+    
+    directory dest_dir
+    
+    file dest_file_path => [ orig_file_path, dest_dir ] do
+      puts "Copying #{source_or_not} file #{orig_file_path} to #{dest_file_path}"
+      copy orig_file_path, dest_file_path
+    end
+  end
+  
+  return copied_file_list
+end
+
+
+
 specified_config_file = false
 if Object.constants.include?('RAWR_CONFIG_FILE')
   # RAWR_CONFIG_FILE can be set in the project's Rakefile
@@ -113,39 +136,8 @@ namespace :rawr do
     end
   }
   
-  COPIED_SOURCE_FILES = FileList.new
-  ruby_source_file_list = CONFIG.ruby_source_files_to_copy
-  ruby_source_file_list.each { |file_info|
-    orig_file_path = File.join(file_info.directory, file_info.filename)
-    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
-    dest_dir = File.dirname(dest_file_path)
-    
-    COPIED_SOURCE_FILES.add(dest_file_path)
-    
-    directory dest_dir
-    
-    file dest_file_path => [ orig_file_path, dest_dir ] do
-      puts "Copying source file #{orig_file_path} into #{dest_file_path}"
-      copy orig_file_path, dest_file_path
-    end
-  }
-  
-  COPIED_NON_SOURCE_FILES = FileList.new
-  non_source_file_list = CONFIG.non_source_file_list
-  non_source_file_list.each { |file_info|
-    orig_file_path = File.join(file_info.directory, file_info.filename)
-    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
-    dest_dir = File.dirname(dest_file_path)
-    
-    COPIED_NON_SOURCE_FILES.add(dest_file_path)
-    
-    directory dest_dir
-    
-    file dest_file_path => [ orig_file_path, dest_dir ] do
-      puts "Copying non-source file #{orig_file_path} to #{dest_file_path}"
-      copy orig_file_path, dest_file_path
-    end
-  }
+  COPIED_SOURCE_FILES = generate_copy_tasks_for(CONFIG.ruby_source_files_to_copy, "source")
+  COPIED_NON_SOURCE_FILES = generate_copy_tasks_for(CONFIG.non_source_file_list, "non-source")
   
   desc 'Compiles all the Java source and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => COMPILED_JAVA_CLASSES
