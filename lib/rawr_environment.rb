@@ -1,4 +1,14 @@
 module Rawr
+  # Returns a short human-readable description of the interpreter on
+  # which Rawr is running.
+  # 
+  # @example Output on MRI 1.8.7
+  #   "ruby 1.8.7 (2009-06-12 patchlevel 174) [x86_64-linux]"
+  # 
+  # @example Output on JRuby 1.4
+  #   "jruby 1.4.0 (ruby 1.8.7 patchlevel 174) [amd64-java]"
+  # 
+  # @return [String] a short description of the current Ruby interpreter
   def ruby_environment
     env_pieces = RUBY_DESCRIPTION.match(/^(.*?\)) .*?(\[.*?\])/)
     return env_pieces[1..2].join(' ')
