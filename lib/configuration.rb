@@ -23,7 +23,6 @@ module Rawr
       Option.new(:java_lib_files, [FilePath], []),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
-      Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
       
       Option.new(:target_jvm_version, Numeric, 1.6),
       Option.new(:jvm_arguments, [String], ''),

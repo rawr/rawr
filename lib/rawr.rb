@@ -129,7 +129,6 @@ namespace :rawr do
       require 'command'
       Rawr::Command.compile_ruby_dirs(CONFIG.source_dirs,
                                       CONFIG.compiled_ruby_files_path,
-                                      CONFIG.jruby_jar,
                                       CONFIG.source_exclude_filter,
                                       CONFIG.target_jvm_version)
     end
