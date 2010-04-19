@@ -18,16 +18,15 @@ module Rawr
       JRubyRelease.get version, destination
     end
 
-    def self.compile_ruby_dirs(src_dirs, dest_dir, jruby_jar, exclude, target_jvm)
+    def self.compile_ruby_dirs(src_dirs, dest_dir, exclude, target_jvm)
       require 'rawr_environment'
       Rawr::ensure_jruby_environment
       require 'jruby_batch_compiler'
       
-      #TODO: Set target jvm here
-      rawr_dir = File.expand_path(File.dirname(__FILE__))
-      compiler_cmd = "require '#{rawr_dir}/jruby_batch_compiler'; " +
-                     "Rawr::JRubyBatchCompiler.compile_argv"
-      sh 'java', '-jar', jruby_jar, '-e', compiler_cmd, *(src_dirs + [dest_dir])
+      options = Hash.new
+      options[:targer_jvm] = target_jvm
+      options[:exclude] = exclude
+      JRubyBatchCompiler.new.compile_dirs(src_dirs, dest_dir, options)
     end
   end
 end
