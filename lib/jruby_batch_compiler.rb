@@ -11,11 +11,7 @@ module Rawr
 
     def compile_dirs(src_dirs, dest_dir, options={})
       puts "   compile_dirs has src_dirs = #{src_dirs.inspect}"
-
-      #options[:jruby_jar]  ||= 'lib/java/jruby-complete.jar'
-      options[:exclude]    ||= []
-      options[:target_jvm] ||= '1.6'
-
+      
       #TODO: Allow for copy-only and some other options
       ruby_globs = glob_ruby_files(src_dirs, options[:exclude])
 
