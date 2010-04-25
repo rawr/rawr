@@ -16,10 +16,10 @@ module Rawr
       Option.new(:main_ruby_file, String, 'main'),
       Option.new(:main_java_file, String, 'org.rubyforge.rawr.Main'),
       
-      Option.new(:source_dirs, [FilePath], ['src', 'lib/ruby']),
-      Option.new(:source_exclude_filter, [Regexp], []),
-      Option.new(:jruby_jar, FilePath, 'lib/java/jruby-complete.jar'),
-      Option.new(:compile_ruby_files, Boolean, true),
+      Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
+      Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
+      Option.new(:compile_ruby_files, Boolean, true, "Whether Ruby source files should be compiled into .class files"),
+      
       Option.new(:java_lib_files, [FilePath], []),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
@@ -185,6 +185,14 @@ module Rawr
     
     def ruby_source_files
       FileList[self.source_dirs].find_files_and_filter('*.rb', self.source_exclude_filter)
+    end
+    
+    def ruby_source_files_to_compile
+      self.compile_ruby_files ? self.ruby_source_files : FileList.new
+    end
+    
+    def ruby_source_files_to_copy
+      self.compile_ruby_files ? FileList.new : self.ruby_source_files
     end
     
     def non_source_file_list
