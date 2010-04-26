@@ -43,7 +43,7 @@ module Rawr
     def self.default
       return self.new
     end
-    
+  
     def load_from_file!(file_path)
       configuration_file = File.readlines(file_path).join
       instance_eval(configuration_file)

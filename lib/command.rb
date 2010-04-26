@@ -24,7 +24,7 @@ module Rawr
       require 'jruby_batch_compiler'
       
       options = Hash.new
-      options[:targer_jvm] = target_jvm
+      options[:target_jvm] = target_jvm
       options[:exclude] = exclude
       JRubyBatchCompiler.new.compile_dirs(src_dirs, dest_dir, options)
     end
