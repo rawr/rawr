@@ -10,18 +10,18 @@ module Rawr
     Boolean = Set.new([TrueClass, FalseClass])
     
     OPTIONS = [
-      Option.new(:project_name, String, File.basename(Dir.pwd)),
+      Option.new(:project_name, String, File.basename(Dir.pwd) , "The name for your resulting application file (e.g., if the project_name is 'foo' then you'll get foo.jar, foo.exe, etc.)"), 
       Option.new(:output_dir, FilePath, 'package'),
       
-      Option.new(:main_ruby_file, String, 'main'),
-      Option.new(:main_java_file, String, 'org.rubyforge.rawr.Main'),
+      Option.new(:main_ruby_file, String, 'main', "The main ruby file to invoke, minus the .rb extension"),
+      Option.new(:main_java_file, String, 'org.rubyforge.rawr.Main', 'The fully-qualified name of the main Java file used to initiate the application.'),
       
       Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
       Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
       Option.new(:compile_ruby_files, Boolean, true, "Whether Ruby source files should be compiled into .class files"),
       
-      Option.new(:java_lib_files, [FilePath], []),
-      Option.new(:java_lib_dirs, [FilePath], ['lib/java']),
+      Option.new(:java_lib_files, [FilePath], [], "A list of individual Java library files to include."),
+      Option.new(:java_lib_dirs, [FilePath], ['lib/java'], "A list of directories for rawr to include . All files in the given directories get bundled up."),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
       
       Option.new(:target_jvm_version, Numeric, 1.6),

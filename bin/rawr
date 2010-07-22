@@ -85,10 +85,15 @@ class RawrChoices < UserChoices::Command
 
 
   def add_sources builder
-    # order matters.  What comes first has higher precedence
-    builder.add_source(CommandLineSource, :usage, "Usage: ruby #{$0} [options] ")
+    # Order matters.  What comes first has higher precedence
+
+    builder.add_source CommandLineSource, :usage,
+                       "Usage:  rawr [options] install [project/path]\n" +
+                       "Sets up rawr in the current directory, or in 'project/path' if one is given.\n#{@parser}"
+
     builder.add_source(EnvironmentSource, :with_prefix, "rawr_")
     builder.add_source(YamlConfigFileSource, :from_file, ".rawr") 
+
   end
 
   def add_choices builder
@@ -97,54 +102,57 @@ class RawrChoices < UserChoices::Command
     default_java_main_directory = 'src'
     default_build_configuration_file =  'build_configuration.rb'
 
-    # This sets up help for -h
-
+    builder.add_choice(:wordy, :type=>:boolean , :default => false) { | command_line |
+      command_line.uses_option "-w", "--wordy", 
+                               "Wordy: See more info while rawr is executing." 
+    }
 
     builder.add_choice( :class, :type=>:string, :default => default_java_class ) { | command_line |
-      command_line.uses_option("-c", "--class FULL_CLASS_NAME", 
-             "Main Java class. Default is #{default_java_class}")
+      command_line.uses_option "-c", "--class FULL_CLASS_NAME", 
+                               "Main Java class. Default is #{default_java_class}"
     }
 
     builder.add_choice(:directory, :type=>:string , :default => default_java_main_directory) { | command_line |
-      command_line.uses_option("-d", "--directory DIRECTORY_NAME", 
-             "Directory to place Java main file in, defaults to '#{default_java_main_directory}' " )
+      command_line.uses_option "-d", "--directory DIRECTORY_NAME", 
+                               "Directory to place Java main file in, defaults to '#{default_java_main_directory}' " 
     }
 
-
     builder.add_choice(:build_config_file, :type=>:string , :default => default_build_configuration_file ) { | command_line |
-      command_line.uses_option("-f", "--file BUILD_CONFIGURATION_FILE", 
-              "Name of the Rawr configuration file, defaults to '#{default_build_configuration_file}'")
+      command_line.uses_option "-f", "--file BUILD_CONFIGURATION_FILE", 
+                              "Name of the Rawr configuration file, defaults to '#{default_build_configuration_file}'"
     }
 
 
     builder.add_choice(:local_jruby_jar, :type=>:string , :default => nil ) { | command_line |
-      command_line.uses_option("-j", "--local-jruby-jar PATH_TO_LOCAL_JRUBY_JAR", 
-              "Complete path to a local copy of jruby-complete.jar. If not defined then the jar will be downloaded for jruby.org")
+      command_line.uses_option "-j", "--local-jruby-jar PATH_TO_LOCAL_JRUBY_JAR", 
+                               "Complete path to a local copy of jruby-complete.jar. If not defined then the jar will be downloaded for jruby.org"
     }
-    
+
 
     builder.add_choice(:no_config, :type=>:boolean, :default => false  ) { | command_line |
-      command_line.uses_switch "--no-config", "Do not generate a Rawr configuration file"
+      command_line.uses_option '-x', "--no-config", "Do not generate a Rawr configuration file"
     }
 
+    builder.add_choice(:show_version, :type=>:boolean, :default => false  ) { | command_line |
+      command_line.uses_option '-v', "--version", "Show the rawr version number"
+    }
 
     builder.add_choice(:no_download, :type=>:boolean, :default => false  ) { | command_line |
-      command_line.uses_switch "--no-jar", "Do not automatically copy or download the latest jruby-complete.jar into the project"
+      command_line.uses_option '-n', "--no-jar", "Do not automatically copy or download the latest jruby-complete.jar into the project"
     }
 
-   builder.add_choice(:command) { | command_line |
-      command_line.uses_arglist
-    } 
-
+    #  This is what will grab the actual command passed to rawr and any additional arguments for that command.
+    #  For example,    
+    #    $ rawr install  foo/bar
+    # gives us 
+    #   :command => ['install',   'foo/bar'] 
+    # in our options hash
+    builder.add_choice(:command) { | command_line | command_line.uses_arglist } 
 
   end
 
- 
-  def execute
-    puts "Java main class #{@user_choices[:class]} will be used." 
-    puts "The class file will go into the #{@user_choices[:directory]} directory." 
-    puts "The build_config file is '#{@user_choices[:build_config_file]}' ."
 
+  def execute
     if Rawr::Main.valid_options?  @user_choices
       Rawr::Main.project @user_choices
     else
