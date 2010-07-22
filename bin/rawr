@@ -166,10 +166,10 @@ class RawrChoices < UserChoices::Command
     puts "The class file will go into the #{@user_choices[:directory]} directory." 
     puts "The build_config file is '#{@user_choices[:build_config_file]}' ."
 
-    if Rawr::Rawr.valid_options?  @user_choices
-      Rawr::Rawr.project @user_choices
+    if Rawr::Main.valid_options?  @user_choices
+      Rawr::Main.project @user_choices
     else
-      warn "\nThere were one or more problems with your parameters: \n\t#{Rawr::Rawr.errors.join("\n\t")}\n\nRun 'rawr -h' for a list of options."
+      warn "\nThere were one or more problems with your parameters: \n\t#{Rawr::Main.errors.join("\n\t")}\n\nRun 'rawr -h' for a list of options."
     end
   end
 
