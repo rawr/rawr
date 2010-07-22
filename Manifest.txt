@@ -27,6 +27,7 @@ lib/bundler.rb
 lib/command.rb
 lib/configuration.rb
 lib/core_ext.rb
+lib/rawr_main.rb
 lib/exe_bundler.rb
 lib/creator.rb
 lib/jar_builder.rb

@@ -1,5 +1,4 @@
 require 'rawr_environment'
-puts "\n#{'-'*80}\nRunning in #{Rawr::ruby_environment}\n#{'-'*80}\n"
 
 require 'fileutils'
 

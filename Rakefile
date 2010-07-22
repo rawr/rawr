@@ -11,9 +11,9 @@ ensure_in_path 'lib'
 require 'rawr_version'
 
 PROJ.name = 'rawr'
-PROJ.authors = 'David Koontz, Logan Barnett, James Britt'
-PROJ.email = 'david@koontzfamily.org'
-PROJ.url = 'http://rubyforge.org/projects/rawr/'
+PROJ.authors = 'James Britt, Logan Barnett, David Koontz'
+PROJ.email = 'james@neurogami.com'
+PROJ.url = 'http://github.com/rawr/rawr'
 PROJ.version = Rawr::VERSION
 PROJ.summary = "Rawr is a packaging and deployment solution for JRuby applications."
 PROJ.rubyforge.name = 'rawr'
@@ -23,7 +23,7 @@ PROJ.spec.libs << 'test/unit'
 PROJ.rdoc.exclude = %w(launch4j)
 PROJ.ruby_opts = []
 PROJ.libs << 'lib'
-PROJ.gem.dependencies << "rubyzip"
+PROJ.gem.dependencies = %w{ user-choices rubyzip }
 PROJ.gem.platform = "java"
 
 task :default => 'spec'

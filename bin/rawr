@@ -3,33 +3,38 @@
 require 'fileutils'
 require 'rubygems'
 
+require 'pp'
+require 'user-choices'
+
+require 'rawr_main'
 require 'rawr_environment'
 require 'rawr_version'
 require 'creator'
-# require File.expand_path(File.join(File.dirname(__FILE__), 'creator'))
 
-def help(message = nil)
-  puts message + "\\\n-----------------------------------\\\n" unless message.nil?
-  puts <<-ENDL
-  Usage:
-      rawr -h/--help
-      rawr -v/--version
-      rawr command [options]
 
-  Commands:
-      install [options] [install dir or .]
-        -d/--directory: Directory to place Java main file in, defaults to 'src'
-        -c/--class:     Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
-        -f/--file:      Name of the Rawr configuration file, defaults to build_configuration.rb
-        --no-config:    Do not generate a Rawr configuration file
-        --no-download:  Do not automatically download the latest jruby-complete.jar
+# Should not need this if we have UserChoices in play
+#def help message = nil
+#  puts message + "\\\n-----------------------------------\\\n" unless message.nil?
+#  puts <<-ENDL
+#  Usage:
+#      rawr -h/--help
+#      rawr -v/--version
+#      rawr command [options]
 
-        Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
-  ENDL
-end
+#  Commands:
+#      install [options] [install dir or .]
+#        -d/--directory: Directory to place Java main file in, defaults to 'src'
+#        -c/--class:     Name of Java class (with package) to generate, defaults to org.rubyforge.rawr.Main
+#        -f/--file:      Name of the Rawr configuration file, defaults to build_configuration.rb
+#        --no-config:    Do not generate a Rawr configuration file
+#        --no-download:  Do not automatically download the latest jruby-complete.jar
+
+#        Installs a main class file and app configuration file into your project.  Also creates a default Rakefile if none exists.
+#  ENDL
+#end
 
 def create_rakefile
-  if File.exist?("Rakefile")
+  if File.exist? "Rakefile"
     if !rakefile_contains_rawr?
       handle_existing_rakefile
     else
@@ -95,90 +100,170 @@ end
 
 puts "Running in #{Rawr::ruby_environment}"
 
-@install_dir = '.'
-if ARGV.empty?
-  help
-else
-  case ARGV[0]
-  when "-h" || "--help"
-    help
-  when "-v" || "--version"
-    puts "Rawr version #{Rawr::VERSION}"
-  when "install"
-    @download_jruby = true # by default
-    directory = "src"
-    java_class = %w{org rubyforge rawr Main}
-    config_file = "build_configuration.rb"
-    write_config_file = true
-    ARGV.shift
-    until ARGV.empty?
-      case ARGV[0]
-      when "-c" || "--class"
-        if ARGV[1]
-          java_class = ARGV[1].split(".")
-          java_class[-1].capitalize!
-          ARGV.shift; ARGV.shift
-        else
-          help("No class file name given")
-          break
-        end
-      when "-d" || "--directory"
-        if ARGV[1]
-          directory = ARGV[1]
-          ARGV.shift; ARGV.shift
-        else
-          help("No directory name given")
-          break
-        end
-      when "-f" || "--file"
-        if ARGV[1]
-          config_file = File.expand_path(ARGV[1]).split("/")
-          ARGV.shift; ARGV.shift
-        else
-          help("No Rawr configuration file name given")
-        end
-      when "--no-config"
-        write_config_file = false
-        ARGV.shift
-      when "--no-download"
-        @download_jruby = false
-        ARGV.shift
-      else
-        @install_dir = ARGV.shift
-      end
-    end
 
-    FileUtils.mkdir_p @install_dir unless @install_dir == '.'
-    FileUtils.cd @install_dir do
-      if write_config_file
-        puts "write config file"
-        if File.exist? config_file
-          puts "Configuration file '#{config_file}' exists, skipping"
-        else
-          puts "Creating Rawr configuration file #{config_file}"
-          Rawr::Creator.create_default_config_file(config_file, java_class.join("."))
-        end
-      end
+class RawrChoices < UserChoices::Command
+  include UserChoices 
 
-      resolved_package = java_class[0...-1].join(".")
-      resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
-      resolved_file = "#{resolved_dir}/#{java_class.last}.java"
-      if File.exist? resolved_file
-        puts "Java class '#{resolved_file}' exists, skipping"
-      else
-        puts "Creating Java class #{resolved_file}"
-        FileUtils.mkdir_p(resolved_dir)
-        Rawr::Creator.create_java_main_file(resolved_file, resolved_package, java_class.last)
-      end
 
-      create_rakefile
-      if @download_jruby
-        require 'jruby_release'
-        puts "Downloading jruby-complete.jar. This may take a moment..."
-        Rawr::JRubyRelease.get 'stable', 'lib/java'
-      end
-    end
-  else
-    help("Unknown command '#{ARGV[0]}'")
+  def add_sources builder
+    # Seems that order matter.  What comes first has higher precedence
+    builder.add_source(CommandLineSource, :usage, "Usage: ruby #{$0} [options] ")
+    builder.add_source(EnvironmentSource, :with_prefix, "rawr_")
+    builder.add_source(YamlConfigFileSource, :from_file, ".rawr") 
   end
+
+  def add_choices builder
+
+    default_java_class = 'org.rubyforge.rawr.Main'
+    default_java_main_directory = 'src'
+    default_build_configuration_file =  'build_configuration.rb'
+
+    # This sets up help for -h
+
+
+    builder.add_choice( :class, :type=>:string, :default => default_java_class ) { | command_line |
+      command_line.uses_option("-c", "--class FULL_CLASS_NAME", 
+             "Main Java class. Default is #{default_java_class}")
+    }
+
+    builder.add_choice(:directory, :type=>:string , :default => default_java_main_directory) { | command_line |
+      command_line.uses_option("-d", "--directory DIRECTORY_NAME", 
+             "Directory to place Java main file in, defaults to '#{default_java_main_directory}' " )
+    }
+
+
+    builder.add_choice(:build_config_file, :type=>:string , :default => default_build_configuration_file ) { | command_line |
+      command_line.uses_option("-f", "--file BUILD_CONFIGURATION_FILE", 
+              "Name of the Rawr configuration file, defaults to '#{default_build_configuration_file}'")
+    }
+
+
+    builder.add_choice(:local_jruby_jar, :type=>:string , :default => nil ) { | command_line |
+      command_line.uses_option("-j", "--local-jruby-jar PATH_TO_LOCAL_JRUBY_JAR", 
+              "Complete path to a local copy of jruby-complete.jar. If not defined then the jar will be downloaded for jruby.org")
+    }
+    
+
+    builder.add_choice(:no_config, :type=>:boolean, :default => false  ) { | command_line |
+      command_line.uses_switch "--no-config", "Do not generate a Rawr configuration file"
+    }
+
+
+    builder.add_choice(:no_download, :type=>:boolean, :default => false  ) { | command_line |
+      command_line.uses_switch "--no-jar", "Do not automatically copy or download the latest jruby-complete.jar into the project"
+    }
+
+   builder.add_choice(:command) { | command_line |
+      command_line.uses_arglist
+    } 
+
+
+  end
+
+ 
+  def execute
+    puts "Java main class #{@user_choices[:class]} will be used." 
+    puts "The class file will go into the #{@user_choices[:directory]} directory." 
+    puts "The build_config file is '#{@user_choices[:build_config_file]}' ."
+
+    if Rawr::Rawr.valid_options?  @user_choices
+      Rawr::Rawr.project @user_choices
+    else
+      warn "\nThere were one or more problems with your parameters: \n\t#{Rawr::Rawr.errors.join("\n\t")}\n\nRun 'rawr -h' for a list of options."
+    end
+  end
+
 end
+
+
+S4tUtils.with_pleasant_exceptions do
+  RawrChoices.new.execute
+end
+
+#@install_dir = '.'
+#if ARGV.empty?
+#  help
+#else
+#  case ARGV[0]
+#  when "-h" || "--help"
+#    help
+#  when "-v" || "--version"
+#    puts "Rawr version #{Rawr::VERSION}"
+#  when "install"
+#    @download_jruby = true # by default
+#    directory = "src"
+#    java_class = %w{org rubyforge rawr Main}
+#    config_file = "build_configuration.rb"
+#    write_config_file = true
+#    ARGV.shift
+#    until ARGV.empty?
+#      case ARGV[0]
+#      when "-c" || "--class"
+#        if ARGV[1]
+#          java_class = ARGV[1].split(".")
+#          java_class[-1].capitalize!
+#          ARGV.shift; ARGV.shift
+#        else
+#          help("No class file name given")
+#          break
+#        end
+#      when "-d" || "--directory"
+#        if ARGV[1]
+#          directory = ARGV[1]
+#          ARGV.shift; ARGV.shift
+#        else
+#          help("No directory name given")
+#          break
+#        end
+#      when "-f" || "--file"
+#        if ARGV[1]
+#          config_file = File.expand_path(ARGV[1]).split("/")
+#          ARGV.shift; ARGV.shift
+#        else
+#          help("No Rawr configuration file name given"
+#        end
+#      when "--no-config"
+#        write_config_file = false
+#        ARGV.shift
+#      when "--no-download"
+#        @download_jruby = false
+#        ARGV.shift
+#      else
+#        @install_dir = ARGV.shift
+#      end
+#    end
+
+#    FileUtils.mkdir_p @install_dir unless @install_dir == '.'
+#    FileUtils.cd @install_dir do
+#      if write_config_file
+#        puts "write config file"
+#        if File.exist? config_file
+#          puts "Configuration file '#{config_file}' exists, skipping"
+#        else
+#          puts "Creating Rawr configuration file #{config_file}"
+#          Rawr::Creator.create_default_config_file(config_file, java_class.join("."))
+#        end
+#      end
+
+#      resolved_package = java_class[0...-1].join(".")
+#      resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
+#      resolved_file = "#{resolved_dir}/#{java_class.last}.java"
+#      if File.exist? resolved_file
+#        puts "Java class '#{resolved_file}' exists, skipping"
+#      else
+#        puts "Creating Java class #{resolved_file}"
+#        FileUtils.mkdir_p(resolved_dir)
+#        Rawr::Creator.create_java_main_file(resolved_file, resolved_package, java_class.last)
+#      end
+
+#      create_rakefile
+#      if @download_jruby
+#        require 'jruby_release'
+#        puts "Downloading jruby-complete.jar. This may take a moment..."
+#        Rawr::JRubyRelease.get 'stable', 'lib/java'
+#      end
+#    end
+#  else
+#    help("Unknown command '#{ARGV[0]}'")
+#  end
+#end
