@@ -1,3 +1,9 @@
+== 1.4.2 / 2010-07-22
+
+* Well  a lot has changed since the last entry. :)
+* This release adds in `user-choices` for rawr configuration options.
+* Among the options is to have rawr skip downloading the jruby jar, and copy over a local file instead.
+
 == 0.5.0 / 2008-??-??
 
 
