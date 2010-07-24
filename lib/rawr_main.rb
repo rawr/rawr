@@ -1,5 +1,11 @@
 require 'jruby_release'
 
+class String
+  def to_b
+    self =~ /true/i ? true : false
+  end
+end
+
 module Rawr
   class Main
 
@@ -26,7 +32,7 @@ module Rawr
     end
 
     def self.w msg
-       puts(msg) if @@wordy
+      puts(msg) if @@wordy
     end
 
     def self.project current_options
@@ -50,7 +56,15 @@ module Rawr
       end
     end
 
+
+    def self.adjust current_options
+      current_options.each do |k, v|
+        current_options[k] = v.to_b if v =~/true|false/i
+      end
+    end
+
     def self.handle_install current_options
+      adjust current_options
       w "Running 'install' with options\n#{current_options.pretty_inspect}"
       java_class = current_options[:class].split(".")
       raise "No main java class was defined." if java_class.empty?

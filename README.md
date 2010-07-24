@@ -1,4 +1,4 @@
-Rawr 1.4.2
+Rawr 1.4.3
 ==========
 
 James Britt, Logan Barnett, David Koontz

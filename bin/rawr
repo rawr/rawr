@@ -129,16 +129,20 @@ class RawrChoices < UserChoices::Command
     }
 
 
-    builder.add_choice(:no_config, :type=>:boolean, :default => false  ) { | command_line |
-      command_line.uses_option '-x', "--no-config", "Do not generate a Rawr configuration file"
+    builder.add_choice(:no_config, :type=>:string, :default => 'false'  ) { | command_line |
+      command_line.uses_option '-x', "--noconfig TRUE_OR_FALSE", "Do not generate a Rawr configuration file"
     }
 
-    builder.add_choice(:show_version, :type=>:boolean, :default => false  ) { | command_line |
+    builder.add_choice(:show_version, :type=>:boolean, :default => 'false'  ) { | command_line |
       command_line.uses_option '-v', "--version", "Show the rawr version number"
     }
 
-    builder.add_choice(:no_download, :type=>:boolean, :default => false  ) { | command_line |
-      command_line.uses_option '-n', "--no-jar", "Do not automatically copy or download the latest jruby-complete.jar into the project"
+    builder.add_choice(:no_download, :type=>:string, :default => 'false'  ) { | command_line |
+      command_line.uses_option '-n', "--nodownload TRUE_OR_FALSE", "Do not download the latest jruby-complete.jar into the project"
+    }
+
+    builder.add_choice(:no_jar, :type=>:string, :default => 'false'  ) { | command_line |
+      command_line.uses_option '-z', "--nojar TRUE_OR_FALSE", "Do not automatically copy or download the latest jruby-complete.jar into the project"
     }
 
     #  This is what will grab the actual command passed to rawr and any additional arguments for that command.

@@ -5,3 +5,4 @@ nbproject
 META-INF
 doc
 temp_deploy
+tasks/neurogami.rake
