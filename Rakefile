@@ -28,6 +28,8 @@ ruby_opts  []
 libs << 'lib'
 gem.dependencies  %w{ user-choices rubyzip }
 gem.platform  "java"
+gem.need_tar false
+gem.need_zip false
 
 }
 
