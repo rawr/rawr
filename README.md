@@ -1,4 +1,4 @@
-Rawr 1.4.3
+Rawr 1.4.4
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -40,7 +40,7 @@ INSTALL
 STUFF
 -----
 
-`Rawr` 1.4.2 introduces the use of Brian Marick's [user-choices](http://user-choices.rubyforge.org/)  library to handle initial configuration properties.
+`Rawr` 1.4.2 introduced the use of Brian Marick's [user-choices](http://user-choices.rubyforge.org/)  library to handle initial configuration properties.
 
 What this means in practice is that there are multiple ways to configure how `rawr` handles the `install` command.
 
@@ -65,3 +65,6 @@ LICENSE
 -------
 
 Rawr is released under the Ruby License.
+
+
+Feed your head.

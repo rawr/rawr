@@ -32,7 +32,7 @@ module Rawr
     end
 
     def self.w msg
-      puts(msg) if @@wordy
+      warn(msg) if @@wordy || ENV['WORDY']
     end
 
     def self.project current_options
@@ -52,7 +52,6 @@ module Rawr
         handle_install current_options
       else
         warn "'#{command}' is not a defined command. "
-        w "Your configuration values are:\n#{current_options.pretty_inspect}"
       end
     end
 
@@ -65,16 +64,16 @@ module Rawr
 
     def self.handle_install current_options
       adjust current_options
-      w "Running 'install' with options\n#{current_options.pretty_inspect}"
+      
       java_class = current_options[:class].split(".")
-      raise "No main java class was defined." if java_class.empty?
+      java_class = current_options[:class].split(".")
+      java_class = current_options[:class].split(".")
 
+      raise "No main java class was defined." if java_class.empty?
       directory = current_options[:directory]
       raise "No directory name for the main Java class was given." if directory.nil? || directory.to_s.strip.empty?
-
-      config_file = current_options[:build_config_file]
-      raise "No Rawr configuration file name was given." if config_file.nil? || config_file.to_s.strip.empty?
-
+      config_path = current_options[:build_config_file]
+      raise "No Rawr configuration file name was given." if config_path.nil? || config_path.to_s.strip.empty?
       write_config_file = !current_options[:no_config]
       w "The choice to create a config file  is #{write_config_file}, based on the :no_config value #{current_options[:no_config].inspect}"
 
@@ -83,17 +82,29 @@ module Rawr
       w "The choice to download a JRuby jar is #{download_jruby}, as determined by :no_download = #{current_options[:no_download].inspect} and   :no_jar = #{current_options[:no_jar].inspect}"
 
       install_dir = current_options[:command].empty? ? '.' : current_options[:command].join(' ') 
+      
+      begin
+            current_options['project_name'] = install_dir
+      rescue Exception
+
+        raise
+      end
+     
+      w "install_dir is '#{install_dir}'"
+     
+     w "current_options['project_name']  = #{current_options['project_name'] 
+     }"
       FileUtils.mkdir_p install_dir unless install_dir == '.'
 
       FileUtils.cd install_dir do
 
         if write_config_file
-          puts "write config file"
-          if File.exist? config_file
-            puts "Configuration file '#{config_file}' exists, skipping"
+          warn "write config file"
+          if File.exist? config_path
+            warn "Configuration file '#{config_path}' exists, skipping"
           else
-            puts "Creating Rawr configuration file #{config_file}"
-            ::Rawr::Creator.create_default_config_file(config_file, java_class.join("."))
+            warn "Creating Rawr configuration file #{config_path}"
+            ::Rawr::Creator.create_default_config_file(config_path, java_class.join("."), current_options['project_name'])
           end
         else
           warn "No configuration file will be created because of your rawr settings"
@@ -104,9 +115,9 @@ module Rawr
         resolved_file = "#{resolved_dir}/#{java_class.last}.java"
 
         if File.exist? resolved_file
-          puts "Java class '#{resolved_file}' exists, skipping"
+          warn "Java class '#{resolved_file}' exists, skipping"
         else
-          puts "Creating Java class #{resolved_file}"
+          warn "Creating Java class #{resolved_file}"
           FileUtils.mkdir_p(resolved_dir)
           ::Rawr::Creator.create_java_main_file(resolved_file, resolved_package, java_class.last)
         end
@@ -116,7 +127,7 @@ module Rawr
         if download_jruby
 
           require 'jruby_release'
-          puts "Downloading jruby-complete.jar. This may take a moment..."
+          warn "Downloading jruby-complete.jar. This may take a moment..."
           require 'jruby_release'
           ::Rawr::JRubyRelease.get 'stable', 'lib/java'
 
@@ -124,23 +135,23 @@ module Rawr
           unless current_options[:no_jar] 
             if current_options[:local_jruby_jar].to_s.strip.empty?
               warn "The rawr configuration indicates copying over a local jruby-complete.jar, but there is no file path defined for this."
-              w "Your 'install' configuration is:\n#{current_options.pretty_inspect}"
+              warn "Your 'install' configuration is:\n#{current_options.pretty_inspect}"
             else
-              copy_to = File.expand_path "#{install_dir}/lib/java"
+              copy_to = File.expand_path "lib/java"
               FileUtils.mkdir_p copy_to
               if File.exist? "#{copy_to}/jruby-complete.jar"
                 warn "#{copy_to}/jruby-complete.jar already exists.  Not copying."
               else
-                puts "Copying #{current_options[:local_jruby_jar]} to #{copy_to} ..."
+                warn "Copying #{current_options[:local_jruby_jar]} to #{copy_to} ..."
                 FileUtils.cp current_options[:local_jruby_jar], copy_to
               end
             end # current_options[:local_jruby_jar].to_s.strip.empty?
           else 
-            puts "Based on the given configuration, no jruby-complete.jar file will be added to the project."
+            warn "Based on the given configuration, no jruby-complete.jar file will be added to the project."
           end  # current_options[:no_jar] 
         end # if download_jruby
       end # install_dr do
-      puts "All done! "
+      warn "All done! "
     end
   end
 end

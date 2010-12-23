@@ -8,9 +8,10 @@ module Rawr
     Option = Struct.new(:name, :type, :default, :comment, :value)
     FilePath = String
     Boolean = Set.new([TrueClass, FalseClass])
+
     
     OPTIONS = [
-      Option.new(:project_name, String, File.basename(Dir.pwd) , "The name for your resulting application file (e.g., if the project_name is 'foo' then you'll get foo.jar, foo.exe, etc.)"), 
+      Option.new(:project_name, String, File.basename(Dir.pwd) , "The name for your resulting application file (e.g., if the project_name is 'foo' then you'll get foo.jar, foo.exe, etc.)", nil), 
       Option.new(:output_dir, FilePath, 'package'),
       
       Option.new(:main_ruby_file, String, 'main', "The main ruby file to invoke, minus the .rb extension"),
@@ -36,6 +37,19 @@ module Rawr
       Option.new(:windows_icon_path, FilePath)
     ]
     
+    def self.project_name= name
+      o = Rawr::Configuration::OPTIONS.find { |opt| opt.name == :project_name }
+      raise "Failed to find option :project_name to set new value" unless o 
+      o.value = name 
+      o.default = name
+    end
+
+     def self.project_name
+      o = Rawr::Configuration::OPTIONS.find { |opt| opt.name == :project_name }
+      raise "Failed to locate project_name from #{o.pretty_inspect}" if o.value.to_s.strip.empty? && o.default.to_s.strip.empty? 
+      o.value || o.default
+    end
+
     def initialize
       self.class.current_config = self
     end
@@ -61,15 +75,15 @@ module Rawr
     def method_missing(sym, *args)
       method = sym.to_s
       value = args.first # Assert args.size == 1
-      if method.ends_with('=')
+      if method.to_s =~ /=$/
         set_option(method[0..-2], value)
       else
         get_option(method)
       end
     end
     
-    def set_option(option_name, value)
-      opt = option(option_name)
+    def set_option option_name, value
+      opt = option option_name
       if opt.nil? then raise "Unknown Rawr option #{option_name}" end
       opt.value = value unless !option_accepts_value?(opt, value, true)
     end

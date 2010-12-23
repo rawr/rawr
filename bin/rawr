@@ -17,7 +17,7 @@ def create_rakefile
     if !rakefile_contains_rawr?
       handle_existing_rakefile
     else
-      puts "Rakefile already contains Rawr tasks"
+      warn "Rakefile already contains Rawr tasks"
     end
   else
     create_new_rakefile
@@ -25,11 +25,11 @@ def create_rakefile
 end
 
 def quit_and_do_nothing_with_rakefile 
-  puts "Rawr will now exit, and leave your Rakefile as-is."
+  warn "Rawr will now exit, and leave your Rakefile as-is."
 end
 
 def prepend_to_current_rakefile
-  puts "Rawr will now prepend new Rawr task content to your current Rakefile ..."
+  warn "Rawr will now prepend new Rawr task content to your current Rakefile ..."
   current = IO.read( 'Rakefile')
   File.open("Rakefile", "w") do |rakefile|
     rakefile.puts "require 'rawr'\n"
@@ -38,12 +38,12 @@ def prepend_to_current_rakefile
 end
 
 def replace_with_new_rakefile
-  puts "Rawr will now replace your current Rakefile with a new one ..."
+  warn "Rawr will now replace your current Rakefile with a new one ..."
   create_new_rakefile
 end
 
 def create_new_rakefile
-  puts "Creating Rakefile ..."
+  warn "Creating Rakefile ..."
   File.open("Rakefile", "w") do |rakefile|
     rakefile.puts "require 'rawr'\n"
   end
@@ -77,7 +77,6 @@ def handle_existing_rakefile
   send options[choice].last
 end
 
-puts "Running in #{Rawr::ruby_environment}"
 
 
 class RawrChoices < UserChoices::Command
@@ -157,7 +156,10 @@ class RawrChoices < UserChoices::Command
 
 
   def execute
+     warn "Running in #{Rawr::ruby_environment}"
+
     if Rawr::Main.valid_options?  @user_choices
+      warn "Create rawr files using #{@user_choices.pretty_inspect}"
       Rawr::Main.project @user_choices
     else
       warn "\nThere were one or more problems with your parameters: \n\t#{Rawr::Main.errors.join("\n\t")}\n\nRun 'rawr -h' for a list of options."

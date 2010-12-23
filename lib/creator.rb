@@ -96,12 +96,23 @@ public class #{java_class}
 ENDL
       end
     end
+   
     
-    def self.create_default_config_file(config_path, java_class)
-      puts config_path
+    def self.w msg
+      warn(msg) if  ENV['WORDY']
+    end
+
+    def self.create_default_config_file config_path, java_class, project_name=nil
+      w "Creating default config file in '#{config_path}'  with project_name #{project_name} ..."
+      
+      Rawr::Configuration.project_name = project_name if project_name
+
+      w "Project name is #{Rawr::Configuration.project_name}"
+
       File.open(config_path, "w+") do |config_file|
         config_file << "configuration do |c|\n"
         Rawr::Configuration::OPTIONS.each do |option|
+          warn "option #{option.name}: #{option.value || option.default}"
           doc_string = option.comment
           doc_string ||= "Undocumented option '#{option.name}'"
           config_file << "\t# #{doc_string}\n"
