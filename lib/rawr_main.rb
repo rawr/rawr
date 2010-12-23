@@ -81,15 +81,14 @@ module Rawr
 
       w "The choice to download a JRuby jar is #{download_jruby}, as determined by :no_download = #{current_options[:no_download].inspect} and   :no_jar = #{current_options[:no_jar].inspect}"
 
-      install_dir = current_options[:command].empty? ? '.' : current_options[:command].join(' ') 
+      install_dir = current_options[:command].empty? ? Dir.pwd : current_options[:command].join(' ') 
       
-      begin
-            current_options['project_name'] = install_dir
-      rescue Exception
-
-        raise
-      end
-     
+      current_options['project_name'] =  if install_dir == '.'
+                                               Dir.pwd.split(File::SEPARATOR).last
+                                             else
+                                               install_dir.split(File::SEPARATOR).last
+                                             end
+      
       w "install_dir is '#{install_dir}'"
      
      w "current_options['project_name']  = #{current_options['project_name'] 
