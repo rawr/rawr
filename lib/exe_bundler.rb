@@ -42,13 +42,14 @@ module Rawr
       copy_deployment_to @java_app_deploy_path
       puts "Creating Windows application in #{@built_jar_path}/#{@project_name}.exe"
 
+      
       File.open(@launch4j_config_file, 'w') do |file|
         file << <<-CONFIG_ENDL
 <launch4jConfig>
 <dontWrapJar>true</dontWrapJar>
 <headerType>0</headerType>
 <jar>#{@project_name}.jar</jar>
-<outfile>#{@java_app_deploy_path}/#{@project_name}.exe</outfile>
+<outfile>#{@project_name}.exe</outfile>
 <errTitle></errTitle>
 <jarArgs></jarArgs>
 <chdir></chdir>
@@ -99,9 +100,9 @@ CONFIG_ENDL
         link_launch4j_bin('mac', file_dir_name)
       end
 
-
-      warn "call: java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
-      sh "java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
+      cmd = "java -jar \"#{file_dir_name}/launch4j/launch4j.jar\" \"#{@launch4j_config_file}\""
+      warn "call: #{cmd}"
+      sh cmd 
     end
 
   end

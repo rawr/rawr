@@ -63,7 +63,8 @@ namespace :rawr do
     jar_file_path = File.join(CONFIG.jar_output_dir, jar_nick.to_s + '.jar')
     
     PACKAGED_EXTRA_USER_JARS.add(jar_file_path)
-    
+   
+# In order for @items to be set, JarBuilder.new has to have jar_settings contain an :items entry that points to the list of files
     jar_builder = Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings)
     jar_builders ||= Hash.new
     jar_builders[jar_nick] = jar_builder
