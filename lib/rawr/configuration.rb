@@ -14,6 +14,8 @@ module Rawr
       Option.new(:project_name, String, File.basename(Dir.pwd) , "The name for your resulting application file (e.g., if the project_name is 'foo' then you'll get foo.jar, foo.exe, etc.)", nil), 
       Option.new(:output_dir, FilePath, 'package'),
       
+      Option.new(:executable_type, String, 'gui', "The type of executable to create (console or gui)"),
+
       Option.new(:main_ruby_file, String, 'main', "The main ruby file to invoke, minus the .rb extension"),
       Option.new(:main_java_file, String, 'org.rubyforge.rawr.Main', 'The fully-qualified name of the main Java file used to initiate the application.'),
       

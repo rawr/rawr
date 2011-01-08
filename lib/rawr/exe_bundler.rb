@@ -1,7 +1,7 @@
 require 'fileutils'
 
-require 'bundler'
-require 'platform'
+require 'rawr/bundler'
+require 'rawr/platform'
 
 module Rawr
   class ExeBundler < Bundler  
@@ -36,7 +36,8 @@ module Rawr
       @jre_version_error_message = options.windows_jre_version_error_message
       @launcher_error_message    = options.windows_launcher_error_message
       @icon_path                 = options.windows_icon_path
-
+      @executable_type           = options.executable_type
+      
       @launch4j_config_file = "#{@java_app_deploy_path}/configuration.xml"
 
       copy_deployment_to @java_app_deploy_path
@@ -47,7 +48,7 @@ module Rawr
         file << <<-CONFIG_ENDL
 <launch4jConfig>
 <dontWrapJar>true</dontWrapJar>
-<headerType>0</headerType>
+<headerType>#{@executable_type}</headerType>
 <jar>#{@project_name}.jar</jar>
 <outfile>#{@project_name}.exe</outfile>
 <errTitle></errTitle>
@@ -79,17 +80,12 @@ CONFIG_ENDL
       # Set ACL permissions to allow launch4j bundler to run on Windows
       if Platform.instance.using_windows?
         # Check for FAT32 vs NTFS, the cacls command doesn't work on FAT32 nor is it required
-        output = `fsutil fsinfo volumeinfo #{file_dir_name.split(':')[0]}:\\`
+        volume = file_dir_name.split(":").first.upcase + ':'
+        output = `fsutil fsinfo ntfsinfo #{volume}`
         # fsutil can only work with admin priviledges
         raise output if output =~ /requires that you have administrative privileges/
-        # ===== Sample output of 'fsutil fsinfo volumeinfo c:\'
-        # Volume Name :
-        # Volume Serial Number : 0x80a5650a
-        # Max Component Length : 255
-        # File System Name : FAT32
-        # Preserves Case of filenames
-        # Supports Unicode in filenames
-        if 'NTFS' == output.split("\n")[3].split(':')[1].strip
+        raise output if output =~ /Error:/
+        if 'NTFS' == output.split("\n")[0][0..3]
           sh "echo y | cacls \"#{file_dir_name}/launch4j/bin-win/windres.exe\" /G \"#{ENV['USERNAME']}\":F"
           sh "echo y | cacls \"#{file_dir_name}/launch4j/bin-win/ld.exe\" /G \"#{ENV['USERNAME']}\":F"
         end

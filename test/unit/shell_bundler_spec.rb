@@ -1,5 +1,5 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require 'shell_bundler'
+require 'rawr/shell_bundler'
 
 describe "Rawr::ShellBundler" do
   describe ".sh creation" do

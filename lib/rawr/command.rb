@@ -14,14 +14,14 @@ module Rawr
       version ||= 'current'
       destination ||= Rawr::Configuration.current_config.java_lib_dirs.first
 
-      require 'jruby_release'
+      require 'rawr/jruby_release'
       JRubyRelease.get version, destination
     end
 
     def self.compile_ruby_dirs(src_dirs, dest_dir, exclude, target_jvm)
-      require 'rawr_environment'
+      require 'rawr/rawr_environment'
       Rawr::ensure_jruby_environment
-      require 'jruby_batch_compiler'
+      require 'rawr/jruby_batch_compiler'
       
       options = Hash.new
       options[:target_jvm] = target_jvm

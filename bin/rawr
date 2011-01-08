@@ -6,10 +6,10 @@ require 'rubygems'
 require 'pp'
 require 'user-choices'
 
-require 'rawr_main'
-require 'rawr_environment'
-require 'rawr_version'
-require 'creator'
+require 'rawr/rawr_main'
+require 'rawr/rawr_environment'
+require 'rawr/rawr_version'
+require 'rawr/creator'
 
 
 def create_rakefile

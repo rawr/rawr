@@ -1,10 +1,10 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require 'jar_builder'
+require 'rawr/jar_builder'
 
 require 'rubygems'
 require 'rake'
 require 'fileutils'
-require 'lib/core_ext'
+require 'rawr/core_ext'
 
 
 

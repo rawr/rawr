@@ -1,7 +1,7 @@
 require 'fileutils'
 
-require 'bundler'
-require 'platform'
+require 'rawr/bundler'
+require 'rawr/platform'
 
 module Rawr
   class ShellBundler < Bundler

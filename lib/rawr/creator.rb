@@ -1,4 +1,4 @@
-require 'configuration'
+require 'rawr/configuration'
 
 module Rawr
   class Creator

@@ -1,5 +1,6 @@
 require 'fileutils'
-require 'bundler'
+require 'rawr/bundler'
+
 # See http://developer.apple.com/documentation/Java/Reference/Java_InfoplistRef/Articles/JavaDictionaryInfo.plistKeys.html for details
 
 module Rawr

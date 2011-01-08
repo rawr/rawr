@@ -1,5 +1,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'creator'))
+#require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'creator'))
+require 'rawr/creator'
 require 'fileutils'
 
 describe Rawr::Creator do

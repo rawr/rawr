@@ -1,12 +1,12 @@
-require 'rawr_environment'
+require 'rawr/rawr_environment'
 
 require 'fileutils'
 
-require 'core_ext'
-require 'platform'
-require 'configuration'
-require 'creator'
-require 'jar_builder'
+require 'rawr/core_ext'
+require 'rawr/platform'
+require 'rawr/configuration'
+require 'rawr/creator'
+require 'rawr/jar_builder'
 
 def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
@@ -126,7 +126,7 @@ namespace :rawr do
     directory dest_dir
     file dest_file_path => [ orig_file_path, dest_dir ] do
       puts "Compile #{orig_file_path} into #{dest_file_path}"
-      require 'command'
+      require 'rawr/command'
       Rawr::Command.compile_ruby_dirs(CONFIG.source_dirs,
                                       CONFIG.compiled_ruby_files_path,
                                       CONFIG.source_exclude_filter,
@@ -215,13 +215,13 @@ namespace :rawr do
   namespace :bundle do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
     task :app => [ "rawr:jar", CONFIG.osx_output_dir ] do
-      require 'app_bundler'
+      require 'rawr/app_bundler'
       Rawr::AppBundler.new.deploy CONFIG
     end
 
     desc "Bundles the jar from rawr:jar into a native Windows application (.exe)"
     task :exe => [ "rawr:jar", CONFIG.windows_output_dir ] do
-      require 'exe_bundler'
+      require 'rawr/exe_bundler'
       Rawr::ExeBundler.new.deploy CONFIG
     end
   end
@@ -229,14 +229,14 @@ namespace :rawr do
   namespace :get do
     desc "Fetch the most recent stable jruby-complete.jar"
     task 'current-stable-jruby' do
-      require 'jruby_release'
+      require 'rawr/jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'stable', 'lib/java'
     end
 
     desc "Fetch the most recent build of  jruby-complete.jar. Might be an RC"
     task 'current-jruby' do
-      require 'jruby_release'
+      require 'rawr/jruby_release'
       #TODO: jruby-complete location should be formally recognized by config
       Rawr::JRubyRelease.get 'current', 'lib/java'
     end

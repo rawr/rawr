@@ -1,5 +1,5 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require 'app_bundler'
+require 'rawr/app_bundler'
 
 describe Rawr::AppBundler do
   include CustomFileMatchers

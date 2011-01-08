@@ -1,4 +1,4 @@
-require 'bundler'
+require 'rawr/bundler'
 
 module Rawr
   class WebBundler < Bundler

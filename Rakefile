@@ -12,7 +12,7 @@ rescue LoadError
 end
 
 ensure_in_path 'lib'
-require 'rawr_version'
+require 'rawr/rawr_version'
 
 Bones {
 

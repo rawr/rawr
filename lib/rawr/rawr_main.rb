@@ -1,4 +1,4 @@
-require 'jruby_release'
+require 'rawr/jruby_release'
 
 class String
   def to_b
@@ -125,9 +125,9 @@ module Rawr
 
         if download_jruby
 
-          require 'jruby_release'
+          require 'rawr/jruby_release'
           warn "Downloading jruby-complete.jar. This may take a moment..."
-          require 'jruby_release'
+          require 'rawr/jruby_release'
           ::Rawr::JRubyRelease.get 'stable', 'lib/java'
 
         else

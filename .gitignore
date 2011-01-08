@@ -6,3 +6,5 @@ META-INF
 doc
 temp_deploy
 tasks/neurogami.rake
+test/unit/SPECJAR.jar
+.redcar
