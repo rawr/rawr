@@ -45,7 +45,7 @@ task :update_version_readme do
 end
 
 task 'gem:package' => [:update_version_readme]
-
+gem 'rspec', '1.3.0'
 require 'spec/rake/spectask'
 
 desc "Run all specs"

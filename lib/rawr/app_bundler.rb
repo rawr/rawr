@@ -57,7 +57,7 @@ module Rawr
       stub_destination = "#{@mac_app_path}/Contents/MacOS"
       stub_file = "JavaApplicationStub"
       
-      cp "#{File.expand_path(File.dirname(__FILE__))}/../data/#{stub_file}", stub_destination
+      cp "#{File.expand_path(File.dirname(__FILE__))}/../../data/#{stub_file}", stub_destination
       chmod 0755, "#{stub_destination}/#{stub_file}"
     end
 
