@@ -9,7 +9,7 @@ end
 module Rawr
   class Main
 
-    @@wordy = false
+    @@wordy = ENV['RAWR_WORDY']
 
     def self.errors
       @@errors ||= []
@@ -21,7 +21,6 @@ module Rawr
       if options_hash[:command].nil? || options_hash[:command].empty?
         @@errors << "You must pass a command.  Right now, the only one you can use is 'install'."
       end
-
 
       @@errors.empty? 
     end

@@ -96,7 +96,6 @@ class RawrChoices < UserChoices::Command
   end
 
   def add_choices builder
-
     default_java_class = 'org.rubyforge.rawr.Main'
     default_java_main_directory = 'src'
     default_build_configuration_file =  'build_configuration.rb'
@@ -151,13 +150,11 @@ class RawrChoices < UserChoices::Command
     #   :command => ['install',   'foo/bar'] 
     # in our options hash
     builder.add_choice(:command) { | command_line | command_line.uses_arglist } 
-
   end
 
 
   def execute
      warn "Running in #{Rawr::ruby_environment}"
-
     if Rawr::Main.valid_options?  @user_choices
       warn "Create rawr files using #{@user_choices.pretty_inspect}"
       Rawr::Main.project @user_choices
@@ -167,6 +164,7 @@ class RawrChoices < UserChoices::Command
   end
 
 end
+
 
 S4tUtils.with_pleasant_exceptions do
   RawrChoices.new.execute
