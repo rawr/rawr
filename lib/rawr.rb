@@ -14,22 +14,22 @@ end
 
 def generate_copy_tasks_for(files, source_or_not)
   copied_file_list = FileList.new
-  
+
   files.each do |file_info|
     orig_file_path = File.join(file_info.directory, file_info.filename)
     dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
     dest_dir = File.dirname(dest_file_path)
-    
+
     copied_file_list.add(dest_file_path)
-    
+
     directory dest_dir
-    
+
     file dest_file_path => [ orig_file_path, dest_dir ] do
       puts "Copying #{source_or_not} file #{orig_file_path} to #{dest_file_path}"
       copy orig_file_path, dest_file_path
     end
   end
-  
+
   return copied_file_list
 end
 
@@ -56,115 +56,77 @@ elsif specified_config_file
 end
 
 namespace :rawr do
-  
+
   PACKAGED_EXTRA_USER_JARS = FileList.new
   extra_user_jars_list = CONFIG.extra_user_jars
   extra_user_jars_list.each { |jar_nick, jar_settings|
     jar_file_path = File.join(CONFIG.jar_output_dir, jar_nick.to_s + '.jar')
-    
+
     PACKAGED_EXTRA_USER_JARS.add(jar_file_path)
-   
-# In order for @items to be set, JarBuilder.new has to have jar_settings contain an :items entry that points to the list of files
+
+    # In order for @items to be set, JarBuilder.new has to have jar_settings contain an :items entry that points to the list of files
     jar_builder = Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings)
     jar_builders ||= Hash.new
     jar_builders[jar_nick] = jar_builder
     files_to_add = FileList[jar_builder.files_to_add].pathmap(File.join(jar_builder.directory, '%p'))
-    
+
     file jar_file_path => CONFIG.jar_output_dir
     file jar_file_path => files_to_add do
       jar_builders[jar_nick].build
     end
   }
-  
+
   desc "Build all additional user jars"
   task :build_extra_jars => PACKAGED_EXTRA_USER_JARS
-  
+
   desc "Removes generated content"
   task :clean do
     FileUtils.remove_dir(CONFIG.output_dir) if File.directory? CONFIG.output_dir
   end
-  
+
   directory CONFIG.compile_dir
   directory CONFIG.compiled_mirah_classes_path
   directory CONFIG.compiled_java_classes_path
   directory CONFIG.compiled_ruby_files_path
   directory CONFIG.compiled_non_source_files_path
-  
+
   directory CONFIG.meta_inf_dir
-  
+
   directory CONFIG.jar_output_dir
 
   COMPILED_MIRAH_CLASSES = FileList.new
   mirah_source_file_list = CONFIG.mirah_source_files
 
-#  mirah_source_file_list.each { |file_info|
-#    delimiter = Platform.instance.argument_delimiter
-#    file_name = file_info.filename
-#    directory = file_info.directory
-#    source_file = File.join(directory, file_name)
-#    target_file = File.join(CONFIG.compiled_mirah_classes_path, file_name.pathmap('%X.class'))
-#    COMPILED_MIRAH_CLASSES.add(target_file)
-#=begin
-#  mirahc [flags] <files or "-e SCRIPT">
-#  -c, --classpath PATH	Add PATH to the Java classpath for compilation
-#  --cd DIR		Switch to the specified DIR befor compilation
-#  -d, --dir DIR		Use DIR as the base dir for compilation, packages
-#  -e CODE		Compile or run the inline script following -e
-#  			  (the class will be named "DashE")
-#  --explicit-packages	Require explicit 'package' lines in source
-#  -h, --help		Print this help message
-#  -I DIR		Add DIR to the Ruby load path before running
-#  -j, --java		Output .java source (jrubyc only)
-#  --jvm VERSION		Emit JVM bytecode targeting specified JVM
-#  			  version (1.4, 1.5, 1.6, 1.7)
-#  -p, --plugin PLUGIN	require 'mirah/plugin/PLUGIN' before running
-#  -v, --version		Print the version of Mirah to the console
-#  -V, --verbose		Verbose logging
-
-#=end
-#    target_jvm_version = [ '--jvm', CONFIG.target_jvm_version.to_s ]
-#    classpath = ['-c', (CONFIG.classpath + CONFIG.source_dirs).join(delimiter) ]
-#    # sourcepath = [] # ??? what do we put here ?[ '-sourcepath', CONFIG.source_dirs.join(delimiter) ]
-#    
-#    outdir = ''  #[ '-d', CONFIG.compiled_java_classes_path ]
-#    base_mirahc_args = target_jvm_version + classpath  
-#    
-#    file target_file => [ source_file, CONFIG.compiled_mirah_classes_path ] do
-#      sh 'mirahc', *(base_mirahc_args + [source_file])
-#    end
-#  }
-
-  
   COMPILED_JAVA_CLASSES = FileList.new
   java_source_file_list = CONFIG.java_source_files
-  java_source_file_list.each { |file_info|
+  java_source_file_list.each do |file_info|
     delimiter = Platform.instance.argument_delimiter
     file_name = file_info.filename
     directory = file_info.directory
     source_file = File.join(directory, file_name)
     target_file = File.join(CONFIG.compiled_java_classes_path, file_name.pathmap('%X.class'))
     COMPILED_JAVA_CLASSES.add(target_file)
-    
+
     target_jvm_version = [ '-target', CONFIG.target_jvm_version.to_s ]
     classpath = ['-cp', (CONFIG.classpath + CONFIG.source_dirs).join(delimiter) ]
     sourcepath = [ '-sourcepath', CONFIG.source_dirs.join(delimiter) ]
     outdir = [ '-d', CONFIG.compiled_java_classes_path ]
     base_javac_args = target_jvm_version + classpath + sourcepath + outdir
-    
+
     file target_file => [ source_file, CONFIG.compiled_java_classes_path ] do
       sh 'javac', *(base_javac_args + [source_file])
     end
-  }
-  
+  end
+
   COMPILED_RUBY_CLASSES = FileList.new
   ruby_source_file_list = CONFIG.ruby_source_files_to_compile
-  ruby_source_file_list.each { |file_info|
+  ruby_source_file_list.each do |file_info|
     orig_file_path = File.join(file_info.directory, file_info.filename)
     dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename.pathmap('%X.class'))
     dest_dir = File.dirname(dest_file_path)
-    
+
     COMPILED_RUBY_CLASSES.add(dest_file_path)
-    
+
     directory dest_dir
     file dest_file_path => [ orig_file_path, dest_dir ] do
       puts "Compile #{orig_file_path} into #{dest_file_path}"
@@ -174,67 +136,85 @@ namespace :rawr do
                                       CONFIG.source_exclude_filter,
                                       CONFIG.target_jvm_version)
     end
-  }
-  
+  end 
+
   COPIED_SOURCE_FILES = generate_copy_tasks_for(CONFIG.ruby_source_files_to_copy, "source")
   COPIED_NON_SOURCE_FILES = generate_copy_tasks_for(CONFIG.non_source_file_list, "non-source")
-  
+
   desc 'Compiles all the Java source, Mirah source, and Ruby source files in the source_dirs entry in the build_configuration.rb file.'
   task :compile => COMPILED_JAVA_CLASSES
-  task :compile => COMPILED_MIRAH_CLASSES
+  task :compile => :compile_mirah_classes
   task :compile => COMPILED_RUBY_CLASSES
   task :compile => COPIED_SOURCE_FILES
   task :compile => COPIED_NON_SOURCE_FILES
-  
+
   desc "Compiles the Java source files specified in the source_dirs entry"
   task :compile_java_classes => COMPILED_JAVA_CLASSES
 
-   
+
   desc "Compiles the Mirah source files specified in the source_dirs entry"
   task :compile_mirah_classes => [ CONFIG.compile_dir ] do
     mirah_source_file_list = CONFIG.source_dirs.find_files_and_filter('*.mirah', CONFIG.source_exclude_filter)
     mirah_source_file_list.each do |file_info|
       filename = file_info.filename
       directory = file_info.directory
-      
+      directory.strip!
+      directory.sub! CONFIG.mirah_source_root, ''
+
+      while directory =~ /^\//
+        directory.strip!
+        directory.sub! /^\//, ''
+      end
+
       relative_dir, name = File.split(filename)
-      
+
       if name[0..0] =~ /\d/
         processed_file = relative_dir + '/$' + name
       else
         processed_file = filename
       end
-      
+
       processed_file = processed_file.sub(/\.mirah$/, '.class')
-      target_file = "#{CONFIG.compile_dir}/#{processed_file}"
-      
-      if file_is_newer?("#{directory}/#{filename}", target_file)
-        FileUtils.mkdir_p(File.dirname("#{CONFIG.compile_dir}/#{processed_file}"))
+      target_file = "#{CONFIG.compiled_java_classes_path}/#{processed_file}"
+
+      if file_is_newer? "#{CONFIG.mirah_source_root}/#{directory}/#{filename}", target_file
+        FileUtils.mkdir_p(File.dirname("#{CONFIG.compiled_java_classes_path}/#{processed_file}"))
 =begin
   mirahc [flags] <files or "-e SCRIPT">
   -c, --classpath PATH	Add PATH to the Java classpath for compilation
   --cd DIR		Switch to the specified DIR befor compilation
   -d, --dir DIR		Use DIR as the base dir for compilation, packages
   -e CODE		Compile or run the inline script following -e
-  			  (the class will be named "DashE")
+          (the class will be named "DashE")
   --explicit-packages	Require explicit 'package' lines in source
   -h, --help		Print this help message
   -I DIR		Add DIR to the Ruby load path before running
   -j, --java		Output .java source (jrubyc only)
   --jvm VERSION		Emit JVM bytecode targeting specified JVM
-  			  version (1.4, 1.5, 1.6, 1.7)
+          version (1.4, 1.5, 1.6, 1.7)
   -p, --plugin PLUGIN	require 'mirah/plugin/PLUGIN' before running
   -v, --version		Print the version of Mirah to the console
   -V, --verbose		Verbose logging
 
 =end
+
+        raise "Failed to force relative directory path for #{directory}!" if directory =~ /^\//
+        path = directory.to_s.strip.empty? ? filename  : "#{directory}/#{filename}"
+        processed_path = directory.to_s.strip.empty? ? "#{CONFIG.mirah_source_root}/#{processed_file}" : "#{CONFIG.mirah_source_root}/#{directory}/#{processed_file}"
+        sh "mirahc --jvm #{CONFIG.target_jvm_version} --cd #{CONFIG.mirah_source_root} #{path}"
         
-        sh "mirahc  #{directory}/#{filename}"
-        File.move("#{directory}/#{processed_file}", "#{CONFIG.compile_dir}/#{processed_file}")
+        # Decided that since the result is a Java class file, then it should go with any other
+        # compiled Java results
+
+        copy_to_file = target_file  
+        copy_to_dir = File.dirname target_file
+        
+        FileUtils.mkdir_p(copy_to_dir) unless File.exist? copy_to_dir
+        File.move   processed_path, copy_to_file 
       end
     end
   end
-  
+
   desc "Compiles the Ruby source files specified in the source_dirs entry"
   task :compile_ruby_classes => COMPILED_RUBY_CLASSES
 
@@ -244,29 +224,29 @@ namespace :rawr do
     duby_source_file_list.each do |file_info|
       filename = file_info.filename
       directory = file_info.directory
-      
+
       relative_dir, name = File.split(filename)
-      
+
       if name[0..0] =~ /\d/
         processed_file = relative_dir + '/$' + name
       else
         processed_file = filename
       end
-      
+
       processed_file = processed_file.sub(/\.duby$/, '.class')
       target_file = "#{CONFIG.compile_dir}/#{processed_file}"
-      
+
       if file_is_newer?("#{directory}/#{filename}", target_file)
         FileUtils.mkdir_p(File.dirname("#{CONFIG.compile_dir}/#{processed_file}"))
-        
+
         sh "dubyc -J-classpath #{directory}/#{filename}"
         File.move("#{directory}/#{processed_file}", "#{CONFIG.compile_dir}/#{processed_file}")
       end
     end
   end
-  
+
   task :copy_other_file_in_source_dirs => COPIED_NON_SOURCE_FILES
-  
+
   file CONFIG.base_jar_complete_path => COMPILED_JAVA_CLASSES
   file CONFIG.base_jar_complete_path => COMPILED_RUBY_CLASSES
   file CONFIG.base_jar_complete_path => COPIED_SOURCE_FILES
@@ -279,13 +259,13 @@ namespace :rawr do
     builder = Rawr::JarBuilder.new(CONFIG.project_name,
                                    CONFIG.base_jar_complete_path,
                                    {:directory => CONFIG.compile_dir,
-                                    :dir_mapping => root_as_base})
+                                     :dir_mapping => root_as_base})
     builder.build
   end
-  
+
   desc "Create a base jar file"
   task :base_jar => CONFIG.base_jar_complete_path
-  
+
   desc "Uses compiled output and creates an executable jar file."
   task :jar => CONFIG.base_jar_complete_path
   task :jar => PACKAGED_EXTRA_USER_JARS
@@ -297,10 +277,10 @@ namespace :rawr do
       copy file, destination_file_path
     end
   end
-  
+
   directory CONFIG.windows_output_dir
   directory CONFIG.osx_output_dir
-  
+
   namespace :bundle do
     desc "Bundles the jar from rawr:jar into a native Mac OS X application (.app)"
     task :app => [ "rawr:jar", CONFIG.osx_output_dir ] do

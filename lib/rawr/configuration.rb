@@ -21,7 +21,9 @@ module Rawr
       
       Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
       Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
+      Option.new(:mirah_source_root, String, 'src', "The base directory that holds Mirah files, or subdirectories with Mirah files."),
       Option.new(:compile_ruby_files, Boolean, true, "Whether Ruby source files should be compiled into .class files"),
+
       
       Option.new(:java_lib_files, [FilePath], [], "A list of individual Java library files to include."),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java'], "A list of directories for rawr to include . All files in the given directories get bundled up."),
@@ -152,7 +154,6 @@ module Rawr
       extra_user_jars
     end
     
-    
     # Derived, non-configurable settings
     
     def compile_dir
@@ -236,7 +237,7 @@ module Rawr
     end
     
     # FIXME: the following fields are required for compatibility with Rawr::Options
-    #        document and expose them through the normal option system
+    #        Document and expose them through the normal option system
     def minimum_windows_jvm_version
       self.target_jvm_version
     end
