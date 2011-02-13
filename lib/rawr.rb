@@ -161,10 +161,10 @@ namespace :rawr do
       directory.strip!
       directory.sub! CONFIG.mirah_source_root, ''
 
-      while directory =~ /^\//
+      #while directory =~ /^\//
         directory.strip!
         directory.sub! /^\//, ''
-      end
+     # end
 
       relative_dir, name = File.split(filename)
 
@@ -179,26 +179,7 @@ namespace :rawr do
 
       if file_is_newer? "#{CONFIG.mirah_source_root}/#{directory}/#{filename}", target_file
         FileUtils.mkdir_p(File.dirname("#{CONFIG.compiled_java_classes_path}/#{processed_file}"))
-=begin
-  mirahc [flags] <files or "-e SCRIPT">
-  -c, --classpath PATH	Add PATH to the Java classpath for compilation
-  --cd DIR		Switch to the specified DIR befor compilation
-  -d, --dir DIR		Use DIR as the base dir for compilation, packages
-  -e CODE		Compile or run the inline script following -e
-          (the class will be named "DashE")
-  --explicit-packages	Require explicit 'package' lines in source
-  -h, --help		Print this help message
-  -I DIR		Add DIR to the Ruby load path before running
-  -j, --java		Output .java source (jrubyc only)
-  --jvm VERSION		Emit JVM bytecode targeting specified JVM
-          version (1.4, 1.5, 1.6, 1.7)
-  -p, --plugin PLUGIN	require 'mirah/plugin/PLUGIN' before running
-  -v, --version		Print the version of Mirah to the console
-  -V, --verbose		Verbose logging
 
-=end
-
-        raise "Failed to force relative directory path for #{directory}!" if directory =~ /^\//
         path = directory.to_s.strip.empty? ? filename  : "#{directory}/#{filename}"
         processed_path = directory.to_s.strip.empty? ? "#{CONFIG.mirah_source_root}/#{processed_file}" : "#{CONFIG.mirah_source_root}/#{directory}/#{processed_file}"
         sh "mirahc --jvm #{CONFIG.target_jvm_version} --cd #{CONFIG.mirah_source_root} #{path}"
@@ -210,7 +191,7 @@ namespace :rawr do
         copy_to_dir = File.dirname target_file
         
         FileUtils.mkdir_p(copy_to_dir) unless File.exist? copy_to_dir
-        File.move   processed_path, copy_to_file 
+        FileUtils.mv processed_path, copy_to_file 
       end
     end
   end
