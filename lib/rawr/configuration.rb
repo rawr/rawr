@@ -159,10 +159,14 @@ module Rawr
       File.join(self.output_dir, 'classes')
     end
     
+    def compiled_mirah_classes_path
+      File.join(self.compile_dir, 'mirah')
+    end
+    
     def compiled_java_classes_path
       File.join(self.compile_dir, 'java')
     end
-    
+
     def compiled_ruby_files_path
       File.join(self.compile_dir, 'ruby')
     end
@@ -193,6 +197,10 @@ module Rawr
     
     def base_jar_complete_path
       File.join(self.jar_output_dir, self.base_jar_filename)
+    end
+
+    def mirah_source_files
+      FileList[self.source_dirs].find_files_and_filter('*.mirah', self.source_exclude_filter)
     end
     
     def java_source_files
