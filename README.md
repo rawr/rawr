@@ -27,7 +27,7 @@ SYNOPSIS
 REQUIREMENTS
 ------------
 
-* JRuby >= 1.4
+* JRuby >= 1.5
 * javac
 * Rake
 
@@ -39,6 +39,11 @@ INSTALL
 
 STUFF
 -----
+`Rawr` 1.6.0 adds support for compiling [Mirah](http://www.mirah.org/) source code.  
+
+There was already code in place for `duby` files, but a) duby morphed in Mirah, and b) the compilation command is somewhat different.
+
+There's a new `build_configuration.rb` option to define the root folder for your Mirah files, and the resulting compiled `.class` files end up where any `.java` files would go.
 
 `Rawr` 1.4.2 introduced the use of Brian Marick's [user-choices](http://user-choices.rubyforge.org/)  library to handle initial configuration properties.
 
