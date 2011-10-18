@@ -33,7 +33,7 @@ gem.need_zip false
 
 }
 
-task :default => 'spec'
+# task :default => 'spec'
 
 task :update_version_readme do
   readme = IO.readlines( 'README.md')
