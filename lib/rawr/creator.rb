@@ -8,9 +8,9 @@ module Rawr
       end
     end
     
-    def self.create_manifest_file(options)
-      metainf_dir_path = File.join(options.compile_dir, 'META-INF')
-      manifest_path = File.join(metainf_dir_path, 'MANIFEST.MF')
+    def self.create_manifest_file options
+      metainf_dir_path = File.join options.compile_dir, 'META-INF'
+      manifest_path = File.join metainf_dir_path, 'MANIFEST.MF'
       
       lib_dirs = options.classpath.map {|cp| cp.gsub('../', '')}
       lib_jars = options.jars.keys.map {|key| key.to_s + ".jar"}
@@ -23,7 +23,7 @@ module Rawr
       end
     end
     
-    def self.create_java_main_file(java_file, java_package, java_class)
+    def self.create_java_main_file java_file, java_package, java_class
       File.open(java_file, "w+") do |java_main_file|
         java_main_file << <<-ENDL
 package #{java_package};
@@ -40,10 +40,8 @@ import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaEmbedUtils;
 
-public class #{java_class}
-{
-  public static void main(String[] args) throws Exception
-  {   
+public class #{java_class} {
+  public static void main(String[] args) throws Exception {   
     RubyInstanceConfig config = new RubyInstanceConfig();
     config.setArgv(args);
     Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0), config);
@@ -58,12 +56,10 @@ public class #{java_class}
         config_data = getConfigFileContents(ins);
       }
     }
-    catch(IOException ioe)
-    {
+    catch(IOException ioe) {
       System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + ioe);
     }
-    catch(java.lang.NullPointerException npe)
-    {
+    catch(java.lang.NullPointerException npe) {
       System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + npe );
     }
 

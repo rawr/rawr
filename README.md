@@ -1,4 +1,4 @@
-Rawr 1.6.0
+Rawr 1.6.1
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -39,7 +39,7 @@ INSTALL
 
 STUFF
 -----
-`Rawr` 1.6.0 adds support for compiling [Mirah](http://www.mirah.org/) source code.  
+`Rawr` 1.6.0 added support for compiling [Mirah](http://www.mirah.org/) source code.  
 
 There was already code in place for `duby` files, but a) duby morphed in Mirah, and b) the compilation command is somewhat different.
 
