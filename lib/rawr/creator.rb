@@ -2,9 +2,10 @@ require 'rawr/configuration'
 
 module Rawr
   class Creator
-    def self.create_run_config_file(options)
+    def self.create_run_config_file options
       File.open(File.join(options.compile_dir, 'run_configuration'), "w+") do |run_config_file|
         run_config_file << "main_ruby_file: " + options.main_ruby_file + "\n"
+        run_config_file << "source_dirs: " + options.source_dirs.join(';') + "\n"
       end
     end
     
@@ -41,34 +42,58 @@ import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaEmbedUtils;
 
 public class #{java_class} {
+  public static void debuggery(String message){
+    
+    System.err.println("DEBUGGERY:" + message); // JGBDEBUG
+
+    }
+
   public static void main(String[] args) throws Exception {   
     RubyInstanceConfig config = new RubyInstanceConfig();
     config.setArgv(args);
     Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0), config);
-    String mainRubyFile = "main";
-   
+    String mainRubyFile  = "main";
+    String runConfigFile = "run_configuration";
+
     ArrayList<String> config_data = new ArrayList<String>();
     try{
-      java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
+      java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream(runConfigFile);
       if (ins == null ) {
-        System.err.println("Did not find configuration file 'run_configuration', using defaults.");
+        System.err.println("- - - Did not find configuration file '" + runConfigFile + "', using defaults.");
       } else {
+        System.err.println("* *  * Loaded configuration file '" + runConfigFile + "'! :) ");
         config_data = getConfigFileContents(ins);
       }
     }
     catch(IOException ioe) {
-      System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + ioe);
+      System.err.println("- - - Error loading run configuration file '" + runConfigFile + "', using defaults: " + ioe);
     }
     catch(java.lang.NullPointerException npe) {
-      System.err.println("Error loading run configuration file 'run_configuration', using defaults: " + npe );
+      System.err.println("- --  Error loading run configuration file '" + runConfigFile + "', using defaults: " + npe );
     }
 
     for(String line : config_data) {
-        String[] parts = line.split(":");
-        if("main_ruby_file".equals(parts[0].replaceAll(" ", ""))) {
-            mainRubyFile = parts[1].replaceAll(" ", "");
+      System.err.println("DEBUG:  config_data line '" + line + "'" ); // DEBUG
+
+      String[] parts = line.split(":");
+      if("main_ruby_file".equals(parts[0].replaceAll(" ", ""))) {
+        mainRubyFile = parts[1].replaceAll(" ", "");
+      }
+
+      if("source_dirs".equals(parts[0].replaceAll(" ", ""))) {
+        String[] source_dirs = parts[1].split(";");
+
+        for(String s : parts[1].split(";") ){
+          String d = s.replaceAll(" ", "");
+          runtime.evalScriptlet( "$: << '"+d+"/'" );
         }
+      }
     }
+
+    debuggery("***** config_data is " + config_data.toString() ) ;   
+    debuggery("File.exists?('src/" + mainRubyFile + "') =  " + runtime.evalScriptlet("File.exists?('src/"+mainRubyFile+".rb') ")) ;   
+    debuggery("$: is \\n" + runtime.evalScriptlet( "$:.sort.join(\\"\\n\\")" ) );   
+    debuggery("Try to require '" + mainRubyFile + "'");
 
     runtime.evalScriptlet("require '" + mainRubyFile + "'");
   }

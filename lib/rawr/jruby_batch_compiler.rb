@@ -38,7 +38,6 @@ module Rawr
         reject_directories!(glob)
         strip_directory!(glob, directory)
         reject_excluded_matches!(glob, excludes)
-        puts "files for #{directory}: #{glob.size}"
         file_globs << OpenStruct.new(:files => glob, :directory => directory)
         file_globs
       end
