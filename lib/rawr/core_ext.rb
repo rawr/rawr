@@ -57,4 +57,3 @@ class Array
 end
 
 
-STDERR.send :warn, "Loaded #{__FILE__}" # JGBDEBUG

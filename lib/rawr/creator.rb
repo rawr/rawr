@@ -43,9 +43,7 @@ import org.jruby.javasupport.JavaEmbedUtils;
 
 public class #{java_class} {
   public static void debuggery(String message){
-    
     System.err.println("DEBUGGERY:" + message); // JGBDEBUG
-
     }
 
   public static void main(String[] args) throws Exception {   
@@ -59,21 +57,19 @@ public class #{java_class} {
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream(runConfigFile);
       if (ins == null ) {
-        System.err.println("- - - Did not find configuration file '" + runConfigFile + "', using defaults.");
+        System.err.println("Did not find configuration file '" + runConfigFile + "', using defaults.");
       } else {
-        System.err.println("* *  * Loaded configuration file '" + runConfigFile + "'! :) ");
         config_data = getConfigFileContents(ins);
       }
     }
     catch(IOException ioe) {
-      System.err.println("- - - Error loading run configuration file '" + runConfigFile + "', using defaults: " + ioe);
+      System.err.println("Error loading run configuration file '" + runConfigFile + "', using defaults: " + ioe);
     }
     catch(java.lang.NullPointerException npe) {
-      System.err.println("- --  Error loading run configuration file '" + runConfigFile + "', using defaults: " + npe );
+      System.err.println("Error loading run configuration file '" + runConfigFile + "', using defaults: " + npe );
     }
 
     for(String line : config_data) {
-      System.err.println("DEBUG:  config_data line '" + line + "'" ); // DEBUG
 
       String[] parts = line.split(":");
       if("main_ruby_file".equals(parts[0].replaceAll(" ", ""))) {
@@ -89,11 +85,6 @@ public class #{java_class} {
         }
       }
     }
-
-    debuggery("***** config_data is " + config_data.toString() ) ;   
-    debuggery("File.exists?('src/" + mainRubyFile + "') =  " + runtime.evalScriptlet("File.exists?('src/"+mainRubyFile+".rb') ")) ;   
-    debuggery("$: is \\n" + runtime.evalScriptlet( "$:.sort.join(\\"\\n\\")" ) );   
-    debuggery("Try to require '" + mainRubyFile + "'");
 
     runtime.evalScriptlet("require '" + mainRubyFile + "'");
   }

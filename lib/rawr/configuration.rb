@@ -64,7 +64,7 @@ module Rawr
   
     def load_from_file!(file_path)
       configuration_file = File.readlines(file_path).join
-      instance_eval(configuration_file)
+      instance_eval configuration_file
       self.class.current_config = self
     end
     
