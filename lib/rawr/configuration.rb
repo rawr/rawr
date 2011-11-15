@@ -17,7 +17,7 @@ module Rawr
       Option.new(:executable_type, String, 'gui', "The type of executable to create (console or gui)"),
 
       Option.new(:main_ruby_file, String, 'main', "The main ruby file to invoke, minus the .rb extension"),
-      Option.new(:main_java_file, String, 'com.neurogami.rawr.Main', 'The fully-qualified name of the main Java file used to initiate the application.'),
+      Option.new(:main_java_file, String, 'org.monkeybars.rawr.Main', 'The fully-qualified name of the main Java file used to initiate the application.'),
       
       Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
       Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),

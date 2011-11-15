@@ -96,7 +96,7 @@ class RawrChoices < UserChoices::Command
   end
 
   def add_choices builder
-    default_java_class = 'com.neurogami.rawr.Main'
+    default_java_class = 'org.monkeybars.rawr.Main'
     default_java_main_directory = 'src'
     default_build_configuration_file =  'build_configuration.rb'
 
