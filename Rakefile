@@ -1,10 +1,5 @@
 require 'rake'
 
-#gem 'rdoc'
-#require 'rdoc'
-
-#load 'tasks/setup.rb'
-
 begin
   require 'bones'
 rescue LoadError
