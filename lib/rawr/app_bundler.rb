@@ -47,7 +47,7 @@ module Rawr
     def deploy_artwork
       if @mac_icon_default
         #give us a default icon, which Rawr provides. This comes from the default icon in the Jar Bundler for OSX.
-        cp "#{File.expand_path(File.dirname(__FILE__))}/../data/GenericJavaApp.icns", "#{@mac_app_path}/Contents/Resources"
+        cp "#{File.expand_path(File.dirname(__FILE__))}/../../data/GenericJavaApp.icns", "#{@mac_app_path}/Contents/Resources"
       else
         cp @mac_icon_path, "#{@mac_app_path}/Contents/Resources"
       end
