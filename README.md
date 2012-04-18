@@ -1,4 +1,4 @@
-Rawr 1.6.2
+Rawr 1.6.3
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -41,6 +41,8 @@ Note: You probably do ont want to use `sudo` if you are using a Ruby installed u
 
 STUFF
 -----
+`Rawr` 1.6.3 has rb source compilation turned off by default since it appears to not work with current versions of Java.
+
 `Rawr` 1.6.0 added support for compiling [Mirah](http://www.mirah.org/) source code.  
 
 There was already code in place for `duby` files, but a) duby morphed in Mirah, and b) the compilation command is somewhat different.

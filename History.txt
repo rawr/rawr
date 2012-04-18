@@ -1,3 +1,6 @@
+== 1.6.3 / 2012-04-18
+* Set the default for compiling rb files into class files to false
+
 == 1.6.2 / 2011-11-15
 * Changed how files are added o the load path
 
