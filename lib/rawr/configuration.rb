@@ -22,7 +22,7 @@ module Rawr
       Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
       Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
       Option.new(:mirah_source_root, String, 'src', "The base directory that holds Mirah files, or subdirectories with Mirah files."),
-      Option.new(:compile_ruby_files, Boolean, true, "Whether Ruby source files should be compiled into .class files"),
+      Option.new(:compile_ruby_files, Boolean, false, "Whether Ruby source files should be compiled into .class files. Setting this to true currently breaks packaging"),
 
       
       Option.new(:java_lib_files, [FilePath], [], "A list of individual Java library files to include."),
