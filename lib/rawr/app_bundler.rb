@@ -12,6 +12,7 @@ module Rawr
       @classpath = options.classpath
       @main_java_class = options.main_java_file
       @built_jar_path = options.jar_output_dir
+      @working_directory = options.mac_plist_working_directory
       
       @mac_path = options.osx_output_dir
       @mac_app_path = "#{@mac_path}/#{@project_name}.app"
@@ -109,6 +110,8 @@ module Rawr
             <array>
                 <string>$JAVAROOT/#{@project_name}.jar</string>
             </array>
+        <key>WorkingDirectory</key>
+            <string>#{@working_directory}</string>
         <key>Properties</key>
         <dict>
             <key>apple.laf.useScreenMenuBar</key>
