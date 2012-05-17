@@ -37,6 +37,7 @@ module Rawr
       
       # Platform-specific options
       Option.new(:mac_do_not_generate_plist, false),
+      Option.new(:mac_plist_working_directory, String, '$APP_PACKAGE', "working directory specified in plist file"),
       Option.new(:mac_icon_path, FilePath),
       Option.new(:windows_icon_path, FilePath)
     ]
