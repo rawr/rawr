@@ -1,7 +1,7 @@
 require 'fileutils'
 
 module Rawr
-  class Bundler
+  class RawrBundler
     
 #    def add_trailing_slash path
 #      raise "Nil passed to add_trailing_slash." if path.nil?

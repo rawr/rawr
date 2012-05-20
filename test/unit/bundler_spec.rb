@@ -1,9 +1,9 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require 'rawr/bundler'
+require 'rawr/rawr_bundler'
 
-describe Rawr::Bundler do
+describe Rawr::RawrBundler do
   before :each do
-    @bundler = Rawr::Bundler.new
+    @bundler = Rawr::RawrBundler.new
   end
 
 #  it "converts the classpath into a relative classpath" do
