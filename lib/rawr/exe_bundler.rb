@@ -1,10 +1,10 @@
 require 'fileutils'
 
-require 'rawr/bundler'
+require 'rawr/rawr_bundler'
 require 'rawr/platform'
 
 module Rawr
-  class ExeBundler < Bundler  
+  class ExeBundler < RawrBundler
     include FileUtils
 
     def link_launch4j_bin(prefix, root_path)
