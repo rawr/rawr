@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+    <key>CFBundleName</key>
+    <string><%= @project_name %></string>
+    <key>CFBundleVersion</key>
+    <string>100.0</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <string>true</string>
+    <key>CFBundleExecutable</key>
+    <string>JavaApplicationStub</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleIconFile</key>
+    <string><%= mac_icon_filename %></string>
+    <key>Java</key>
+    <dict>
+        <key>MainClass</key>
+        <string><%= @main_java_class %></string>
+        <key>JVMVersion</key>
+        <string><%= @target_jvm_version %>*</string>
+        <key>ClassPath</key>
+            <array>
+                <string>$JAVAROOT/<%= @project_name %>.jar</string>
+            </array>
+        <key>WorkingDirectory</key>
+            <string><%= @working_directory %></string>
+        <key>Properties</key>
+        <dict>
+            <key>apple.laf.useScreenMenuBar</key>
+            <string>true</string>
+            <% unless @java_library_path.nil? || @java_library_path.strip.empty? %>
+            <key>java.library.path</key>
+            <string>$JAVAROOT/<%= @java_library_path %></string>
+            <% end %>
+        </dict>
+        <key>VMOptions</key>
+          <array>
+            <% @jvm_arguments.split(' ').each do |arg| %>
+            <string><%= arg %></string>
+            <% end %>
+          </array>
+    </dict>
+</dict>
+</plist>
