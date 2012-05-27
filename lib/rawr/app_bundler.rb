@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'rawr/bundler'
+require 'rawr/bundler_template'
 
 # See http://developer.apple.com/documentation/Java/Reference/Java_InfoplistRef/Articles/JavaDictionaryInfo.plistKeys.html for details
 
@@ -77,55 +78,7 @@ module Rawr
       mac_icon_filename = @mac_icon_path.sub(File.dirname(@mac_icon_path) + '/', '')
 
       File.open "Info.plist", 'w' do |file|
-        file << <<-INFO_ENDL
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
-<plist version="0.9">
-<dict>
-    <key>CFBundleName</key>
-    <string>#{@project_name}</string>
-    <key>CFBundleVersion</key>
-    <string>100.0</string>
-    <key>CFBundleAllowMixedLocalizations</key>
-    <string>true</string>
-    <key>CFBundleExecutable</key>
-    <string>JavaApplicationStub</string>
-    <key>CFBundleDevelopmentRegion</key>
-    <string>English</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleSignature</key>
-    <string>????</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundleIconFile</key>
-    <string>#{mac_icon_filename}</string>
-    <key>Java</key>
-    <dict>
-        <key>MainClass</key>
-        <string>#{@main_java_class}</string>
-        <key>JVMVersion</key>
-        <string>#{@target_jvm_version}*</string>
-        <key>ClassPath</key>
-            <array>
-                <string>$JAVAROOT/#{@project_name}.jar</string>
-            </array>
-        <key>WorkingDirectory</key>
-            <string>#{@working_directory}</string>
-        <key>Properties</key>
-        <dict>
-            <key>apple.laf.useScreenMenuBar</key>
-            <string>true</string>
-            #{"<key>java.library.path</key>\n<string>$JAVAROOT/" + @java_library_path + "</string>" unless @java_library_path.nil? || @java_library_path.strip.empty?}
-        </dict>
-        <key>VMOptions</key>
-          <array>
-            #{@jvm_arguments.split(' ').map {|arg| "<string>" + arg + "</string>\n"}}
-          </array>
-    </dict>
-</dict>
-</plist>
-INFO_ENDL
+        file << BundlerTemplate.find('app_bundler', 'Info.plist').result(binding)
       end
     end
   end
