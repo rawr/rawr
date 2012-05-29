@@ -2,6 +2,7 @@ require 'fileutils'
 
 require 'rawr/bundler'
 require 'rawr/platform'
+require 'rawr/bundler_template'
 
 module Rawr
   class ExeBundler < Bundler  
@@ -45,34 +46,7 @@ module Rawr
 
       
       File.open(@launch4j_config_file, 'w') do |file|
-        file << <<-CONFIG_ENDL
-<launch4jConfig>
-<dontWrapJar>true</dontWrapJar>
-<headerType>#{@executable_type}</headerType>
-<jar>#{@project_name}.jar</jar>
-<outfile>#{@project_name}.exe</outfile>
-<errTitle></errTitle>
-<jarArgs></jarArgs>
-<chdir></chdir>
-<customProcName>true</customProcName>
-<stayAlive>false</stayAlive>
-<icon>#{@icon_path}</icon>
-<jre>
-  <path></path>
-  <minVersion>#{@minimum_windows_jvm_version}.0</minVersion>
-  <maxVersion></maxVersion>
-  <initialHeapSize>0</initialHeapSize>
-  <maxHeapSize>0</maxHeapSize>
-  <args>#{ @jvm_arguments unless @jvm_arguments.nil? || @jvm_arguments.strip.empty? } #{ "-Djava.library.path=" + @java_library_path unless @java_library_path.nil? || @java_library_path.strip.empty?}</args>
-</jre>
-<messages>
-  <startupErr>#{@startup_error_message}</startupErr>
-  <bundledJreErr>#{@bundled_jre_error_message}</bundledJreErr>
-  <jreVersionErr>#{@jre_version_error_message}</jreVersionErr>
-  <launcherErr>#{@launcher_error_message}</launcherErr>
-</messages>
-</launch4jConfig>          
-CONFIG_ENDL
+        file << BundlerTemplate.find('exe_bundler', 'configuration.xml').result(binding)
       end
 
       file_dir_name = File.dirname(__FILE__)
