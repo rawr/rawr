@@ -1,3 +1,5 @@
+require "bundler/setup" unless Object::const_defined?("Bundler")
+
 require 'rake'
 
 begin
@@ -40,11 +42,10 @@ task :update_version_readme do
 end
 
 task 'gem:package' => [:update_version_readme]
-gem 'rspec', '1.3.0'
-require 'spec/rake/spectask'
+require "rspec/core/rake_task"
 
 desc "Run all specs"
-Spec::Rake::SpecTask.new('specs:run') do |t|
-  t.spec_files = FileList['test/**/*_spec.rb']
+RSpec::Core::RakeTask.new('specs:run') do |t|
+  t.pattern = 'test/**/*_spec.rb'
 end
 

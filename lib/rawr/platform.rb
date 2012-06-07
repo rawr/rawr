@@ -4,7 +4,7 @@ require 'singleton'
 class Platform
   include Singleton
   
-  @@operating_system = Config::CONFIG['host_os']
+  @@operating_system = RbConfig::CONFIG['host_os']
   
   def using_unix?
     @using_unix ||= !using_windows?
