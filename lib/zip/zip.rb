@@ -1,7 +1,7 @@
 require 'delegate'
 require 'singleton'
 require 'tempfile'
-require 'ftools'
+require 'fileutils'
 require 'stringio'
 require 'zlib'
 require 'zip/stdrubyext'
@@ -663,8 +663,9 @@ module Zip
         # ignore setuid/setgid bits by default.  honor if @restore_ownership
         unix_perms_mask = 01777
         unix_perms_mask = 07777 if (@restore_ownership)
-      	File::chmod(@unix_perms & unix_perms_mask, destPath) if (@restore_permissions && @unix_perms)
-        File::chown(@unix_uid, @unix_gid, destPath) if (@restore_ownership && @unix_uid && @unix_gid && Process::egid == 0)
+        FileUtils::chmod(@unix_perms & unix_perms_mask, destPath) if (@restore_permissions && @unix_perms)
+        FileUtils::chown(@unix_uid, @unix_gid, destPath) if (@restore_ownership && @unix_uid && @unix_gid && Process::egid == 0)
+        
         # File::utimes()
       end
     end
@@ -1567,7 +1568,7 @@ module Zip
       tmpFilename = tmpfile.path
       tmpfile.close
       if yield tmpFilename
-	File.move(tmpFilename, name)
+	      File.rename(tmpFilename, name)
       end
     end
     
