@@ -8,3 +8,5 @@ temp_deploy
 tasks/neurogami.rake
 test/unit/SPECJAR.jar
 .redcar
+Gemfile.lock
+.rvmrc
