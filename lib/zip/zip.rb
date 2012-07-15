@@ -664,7 +664,7 @@ module Zip
         unix_perms_mask = 01777
         unix_perms_mask = 07777 if (@restore_ownership)
         FileUtils::chmod(@unix_perms & unix_perms_mask, destPath) if (@restore_permissions && @unix_perms)
-        FileUtils::chown(@unix_uid, @unix_gid, destPath) if (@restore_ownership && @unix_uid && @unix_gid && Process::egid == 0
+        FileUtils::chown(@unix_uid, @unix_gid, destPath) if (@restore_ownership && @unix_uid && @unix_gid && Process::egid == 0)
                                                              # File::utimes()
       end
     end
@@ -855,13 +855,13 @@ module Zip
           raise ZipDestinationFileExistsError,
       "Cannot create directory '#{destPath}'. "+
       "A file already exists with that name"
-  end
+        end
       end
       Dir.mkdir destPath
       set_extra_attributes_on_path(destPath)
     end
 
-# BUG: create_symlink() does not use &onExistsProc
+    # BUG: create_symlink() does not use &onExistsProc
     def create_symlink(destPath)
       stat = nil
       begin
@@ -882,7 +882,7 @@ module Zip
               "A symlink already exists with that name"
           end
         else
-    raise ZipDestinationFileExistsError,
+          raise ZipDestinationFileExistsError,
       "Cannot create symlink '#{destPath}'. "+
       "A file already exists with that name"
         end
@@ -911,25 +911,25 @@ module Zip
   # java.util.zip.ZipOutputStream is the original inspiration for this 
   # class.
 
-      class ZipOutputStream
-        include IOExtras::AbstractOutputStream
+  class ZipOutputStream
+    include IOExtras::AbstractOutputStream
 
-        attr_accessor :comment
+    attr_accessor :comment
 
-        # Opens the indicated zip file. If a file with that name already
-        # exists it will be overwritten.
-        def initialize(fileName)
-          super()
-          @fileName = fileName
-          @outputStream = File.new(@fileName, "wb")
-          @entrySet = ZipEntrySet.new
-          @compressor = NullCompressor.instance
-          @closed = false
-          @currentEntry = nil
-          @comment = nil
-        end
+    # Opens the indicated zip file. If a file with that name already
+    # exists it will be overwritten.
+    def initialize(fileName)
+      super()
+      @fileName = fileName
+      @outputStream = File.new(@fileName, "wb")
+      @entrySet = ZipEntrySet.new
+      @compressor = NullCompressor.instance
+      @closed = false
+      @currentEntry = nil
+      @comment = nil
+    end
 
-        # Same as #initialize but if a block is passed the opened
+    # Same as #initialize but if a block is passed the opened
     # stream is passed to the block and closed when the block
     # returns.    
     def ZipOutputStream.open(fileName)
@@ -1034,810 +1034,810 @@ module Zip
   end
 
 
-class Compressor #:nodoc:all
-  def finish
-  end
-end
-
-class PassThruCompressor < Compressor #:nodoc:all
-  def initialize(outputStream)
-    super()
-    @outputStream = outputStream
-    @crc = Zlib::crc32
-    @size = 0
-  end
-
-  def << (data)
-    val = data.to_s
-    @crc = Zlib::crc32(val, @crc)
-    @size += val.size
-    @outputStream << val
-  end
-
-  attr_reader :size, :crc
-end
-
-class NullCompressor < Compressor #:nodoc:all
-  include Singleton
-
-  def << (data)
-    raise IOError, "closed stream"
-  end
-
-  attr_reader :size, :compressed_size
-end
-
-class Deflater < Compressor #:nodoc:all
-  def initialize(outputStream, level = Zlib::DEFAULT_COMPRESSION)
-    super()
-    @outputStream = outputStream
-    @zlibDeflater = Zlib::Deflate.new(level, -Zlib::MAX_WBITS)
-    @size = 0
-    @crc = Zlib::crc32
-  end
-
-  def << (data)
-    val = data.to_s
-    @crc = Zlib::crc32(val, @crc)
-    @size += val.size
-    @outputStream << @zlibDeflater.deflate(data)
-  end
-
-  def finish
-    until @zlibDeflater.finished?
-      @outputStream << @zlibDeflater.finish
+  class Compressor #:nodoc:all
+    def finish
     end
   end
 
-  attr_reader :size, :crc
-end
-
-
-class ZipEntrySet #:nodoc:all
-  include Enumerable
-
-  def initialize(anEnumerable = [])
-    super()
-    @entrySet = {}
-    anEnumerable.each { |o| push(o) }
-  end
-
-  def include?(entry)
-    @entrySet.include?(entry.to_s)
-  end
-
-  def <<(entry)
-    @entrySet[entry.to_s] = entry
-  end
-  alias :push :<<
-
-  def size
-    @entrySet.size
-  end
-  alias :length :size
-
-  def delete(entry)
-    @entrySet.delete(entry.to_s) ? entry : nil
-  end
-
-  def each(&aProc)
-    @entrySet.values.each(&aProc)
-  end
-
-  def entries
-    @entrySet.values
-  end
-
-  # deep clone
-  def dup
-    newZipEntrySet = ZipEntrySet.new(@entrySet.values.map { |e| e.dup })
-  end
-
-  def == (other)
-    return false unless other.kind_of?(ZipEntrySet)
-    return @entrySet == other.entrySet      
-  end
-
-  def parent(entry)
-    @entrySet[entry.parent_as_string]
-  end
-
-  def glob(pattern, flags = File::FNM_PATHNAME|File::FNM_DOTMATCH)
-    entries.select { 
-      |entry| 
-      File.fnmatch(pattern, entry.name.chomp('/'), flags) 
-    } 
-  end	
-
-  #TODO    attr_accessor :auto_create_directories
-  protected
-  attr_accessor :entrySet
-end
-
-
-class ZipCentralDirectory
-  include Enumerable
-
-  END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50
-  MAX_END_OF_CENTRAL_DIRECTORY_STRUCTURE_SIZE = 65536 + 18
-  STATIC_EOCD_SIZE = 22
-
-  attr_reader :comment
-
-  # Returns an Enumerable containing the entries.
-  def entries
-    @entrySet.entries
-  end
-
-  def initialize(entries = ZipEntrySet.new, comment = "")  #:nodoc:
-    super()
-    @entrySet = entries.kind_of?(ZipEntrySet) ? entries : ZipEntrySet.new(entries)
-    @comment = comment
-  end
-
-  def write_to_stream(io)  #:nodoc:
-    offset = io.tell
-    @entrySet.each { |entry| entry.write_c_dir_entry(io) }
-    write_e_o_c_d(io, offset)
-  end
-
-  def write_e_o_c_d(io, offset)  #:nodoc:
-    io <<
-    [END_OF_CENTRAL_DIRECTORY_SIGNATURE,
-      0                                  , # @numberOfThisDisk
-      0                                  , # @numberOfDiskWithStartOfCDir
-      @entrySet? @entrySet.size : 0        ,
-      @entrySet? @entrySet.size : 0        ,
-      cdir_size                           ,
-      offset                             ,
-      @comment ? @comment.length : 0     ].pack('VvvvvVVv')
-    io << @comment
-  end
-  private :write_e_o_c_d
-
-  def cdir_size  #:nodoc:
-    # does not include eocd
-    @entrySet.inject(0) { |value, entry| entry.cdir_header_size + value }
-  end
-  private :cdir_size
-
-  def read_e_o_c_d(io) #:nodoc:
-    buf = get_e_o_c_d(io)
-    @numberOfThisDisk                     = ZipEntry::read_zip_short(buf)
-    @numberOfDiskWithStartOfCDir          = ZipEntry::read_zip_short(buf)
-    @totalNumberOfEntriesInCDirOnThisDisk = ZipEntry::read_zip_short(buf)
-    @size                                 = ZipEntry::read_zip_short(buf)
-    @sizeInBytes                          = ZipEntry::read_zip_long(buf)
-    @cdirOffset                           = ZipEntry::read_zip_long(buf)
-    commentLength                         = ZipEntry::read_zip_short(buf)
-    @comment                              = buf.read(commentLength)
-    raise ZipError, "Zip consistency problem while reading eocd structure" unless buf.size == 0
-  end
-
-  def read_central_directory_entries(io)  #:nodoc:
-    begin
-      io.seek(@cdirOffset, IO::SEEK_SET)
-    rescue Errno::EINVAL
-      raise ZipError, "Zip consistency problem while reading central directory entry"
-    end
-    @entrySet = ZipEntrySet.new
-    @size.times {
-      @entrySet << ZipEntry.read_c_dir_entry(io)
-    }
-  end
-
-  def read_from_stream(io)  #:nodoc:
-    read_e_o_c_d(io)
-    read_central_directory_entries(io)
-  end
-
-  def get_e_o_c_d(io)  #:nodoc:
-    begin
-      io.seek(-MAX_END_OF_CENTRAL_DIRECTORY_STRUCTURE_SIZE, IO::SEEK_END)
-    rescue Errno::EINVAL
-      io.seek(0, IO::SEEK_SET)
-    rescue Errno::EFBIG # FreeBSD 4.9 raise Errno::EFBIG instead of Errno::EINVAL
-      io.seek(0, IO::SEEK_SET)
+  class PassThruCompressor < Compressor #:nodoc:all
+    def initialize(outputStream)
+      super()
+      @outputStream = outputStream
+      @crc = Zlib::crc32
+      @size = 0
     end
 
-    # 'buf = io.read' substituted with lump of code to work around FreeBSD 4.5 issue
-    retried = false
-    buf = nil
-    begin
-      buf = io.read
-    rescue Errno::EFBIG # FreeBSD 4.5 may raise Errno::EFBIG
-      raise if (retried)
-      retried = true
-
-      io.seek(0, IO::SEEK_SET)
-      retry
+    def << (data)
+      val = data.to_s
+      @crc = Zlib::crc32(val, @crc)
+      @size += val.size
+      @outputStream << val
     end
 
-    sigIndex = buf.rindex([END_OF_CENTRAL_DIRECTORY_SIGNATURE].pack('V'))
-    raise ZipError, "Zip end of central directory signature not found" unless sigIndex
-    buf=buf.slice!((sigIndex+4)...(buf.size))
-    def buf.read(count)
-      slice!(0, count)
+    attr_reader :size, :crc
+  end
+
+  class NullCompressor < Compressor #:nodoc:all
+    include Singleton
+
+    def << (data)
+      raise IOError, "closed stream"
     end
-    return buf
+
+    attr_reader :size, :compressed_size
   end
 
-  # For iterating over the entries.
-  def each(&proc)
-    @entrySet.each(&proc)
-  end
-
-  # Returns the number of entries in the central directory (and 
-  # consequently in the zip archive).
-  def size
-    @entrySet.size
-  end
-
-  def ZipCentralDirectory.read_from_stream(io)  #:nodoc:
-    cdir  = new
-    cdir.read_from_stream(io)
-    return cdir
-  rescue ZipError
-    return nil
-  end
-
-  def == (other) #:nodoc:
-    return false unless other.kind_of?(ZipCentralDirectory)
-    @entrySet.entries.sort == other.entries.sort && comment == other.comment
-  end
-end
-
-
-class ZipError < StandardError ; end
-
-class ZipEntryExistsError            < ZipError; end
-class ZipDestinationFileExistsError  < ZipError; end
-class ZipCompressionMethodError      < ZipError; end
-class ZipEntryNameError              < ZipError; end
-class ZipInternalError               < ZipError; end
-
-# ZipFile is modeled after java.util.zip.ZipFile from the Java SDK.
-# The most important methods are those inherited from
-# ZipCentralDirectory for accessing information about the entries in
-# the archive and methods such as get_input_stream and
-# get_output_stream for reading from and writing entries to the
-# archive. The class includes a few convenience methods such as
-# #extract for extracting entries to the filesystem, and #remove,
-# #replace, #rename and #mkdir for making simple modifications to
-# the archive.
-#
-# Modifications to a zip archive are not committed until #commit or
-# #close is called. The method #open accepts a block following 
-# the pattern from File.open offering a simple way to 
-# automatically close the archive when the block returns. 
-#
-# The following example opens zip archive <code>my.zip</code> 
-# (creating it if it doesn't exist) and adds an entry 
-# <code>first.txt</code> and a directory entry <code>a_dir</code> 
-# to it.
-#
-#   require 'zip/zip'
-#   
-#   Zip::ZipFile.open("my.zip", Zip::ZipFile::CREATE) {
-#    |zipfile|
-#     zipfile.get_output_stream("first.txt") { |f| f.puts "Hello from ZipFile" }
-#     zipfile.mkdir("a_dir")
-#   }
-#
-# The next example reopens <code>my.zip</code> writes the contents of
-# <code>first.txt</code> to standard out and deletes the entry from 
-# the archive.
-#
-#   require 'zip/zip'
-#   
-#   Zip::ZipFile.open("my.zip", Zip::ZipFile::CREATE) {
-#     |zipfile|
-#     puts zipfile.read("first.txt")
-#     zipfile.remove("first.txt")
-#   }
-#
-# ZipFileSystem offers an alternative API that emulates ruby's 
-# interface for accessing the filesystem, ie. the File and Dir classes.
-
-class ZipFile < ZipCentralDirectory
-
-  CREATE = 1
-
-  attr_reader :name
-
-  # default -> false
-  attr_accessor :restore_ownership
-  # default -> false
-  attr_accessor :restore_permissions
-  # default -> true
-  attr_accessor :restore_times
-
-  # Opens a zip archive. Pass true as the second parameter to create
-  # a new archive if it doesn't exist already.
-  def initialize(fileName, create = nil)
-    super()
-    @name = fileName
-    @comment = ""
-    if (File.exists?(fileName))
-      File.open(name, "rb") { |f| read_from_stream(f) }
-    elsif (create)
-      @entrySet = ZipEntrySet.new
-    else
-      raise ZipError, "File #{fileName} not found"
+  class Deflater < Compressor #:nodoc:all
+    def initialize(outputStream, level = Zlib::DEFAULT_COMPRESSION)
+      super()
+      @outputStream = outputStream
+      @zlibDeflater = Zlib::Deflate.new(level, -Zlib::MAX_WBITS)
+      @size = 0
+      @crc = Zlib::crc32
     end
-    @create = create
-    @storedEntries = @entrySet.dup
 
-    @restore_ownership = false
-    @restore_permissions = false
-    @restore_times = true
-  end
+    def << (data)
+      val = data.to_s
+      @crc = Zlib::crc32(val, @crc)
+      @size += val.size
+      @outputStream << @zlibDeflater.deflate(data)
+    end
 
-  # Same as #new. If a block is passed the ZipFile object is passed
-  # to the block and is automatically closed afterwards just as with
-  # ruby's builtin File.open method.
-  def ZipFile.open(fileName, create = nil)
-    zf = ZipFile.new(fileName, create)
-    if block_given?
-      begin
-        yield zf
-      ensure
-        zf.close
+    def finish
+      until @zlibDeflater.finished?
+        @outputStream << @zlibDeflater.finish
       end
-    else
-      zf
     end
+
+    attr_reader :size, :crc
   end
 
-  # Returns the zip files comment, if it has one
-  attr_accessor :comment
 
-  # Iterates over the contents of the ZipFile. This is more efficient
-  # than using a ZipInputStream since this methods simply iterates
-  # through the entries in the central directory structure in the archive
-  # whereas ZipInputStream jumps through the entire archive accessing the
-  # local entry headers (which contain the same information as the 
-  # central directory).
-  def ZipFile.foreach(aZipFileName, &block)
-    ZipFile.open(aZipFileName) {
-      |zipFile|
-      zipFile.each(&block)
-    }
-  end
+  class ZipEntrySet #:nodoc:all
+    include Enumerable
 
-  # Returns an input stream to the specified entry. If a block is passed
-  # the stream object is passed to the block and the stream is automatically
-  # closed afterwards just as with ruby's builtin File.open method.
-  def get_input_stream(entry, &aProc)
-    get_entry(entry).get_input_stream(&aProc)
-  end
-
-  # Returns an output stream to the specified entry. If a block is passed
-  # the stream object is passed to the block and the stream is automatically
-  # closed afterwards just as with ruby's builtin File.open method.
-  def get_output_stream(entry, &aProc)
-    newEntry = entry.kind_of?(ZipEntry) ? entry : ZipEntry.new(@name, entry.to_s)
-    if newEntry.directory?
-      raise ArgumentError,
-    "cannot open stream to directory entry - '#{newEntry}'"
+    def initialize(anEnumerable = [])
+      super()
+      @entrySet = {}
+      anEnumerable.each { |o| push(o) }
     end
-    zipStreamableEntry = ZipStreamableStream.new(newEntry)
-    @entrySet << zipStreamableEntry
-    zipStreamableEntry.get_output_stream(&aProc)      
+
+    def include?(entry)
+      @entrySet.include?(entry.to_s)
+    end
+
+    def <<(entry)
+      @entrySet[entry.to_s] = entry
+    end
+    alias :push :<<
+
+    def size
+      @entrySet.size
+    end
+    alias :length :size
+
+    def delete(entry)
+      @entrySet.delete(entry.to_s) ? entry : nil
+    end
+
+    def each(&aProc)
+      @entrySet.values.each(&aProc)
+    end
+
+    def entries
+      @entrySet.values
+    end
+
+    # deep clone
+    def dup
+      newZipEntrySet = ZipEntrySet.new(@entrySet.values.map { |e| e.dup })
+    end
+
+    def == (other)
+      return false unless other.kind_of?(ZipEntrySet)
+      return @entrySet == other.entrySet      
+    end
+
+    def parent(entry)
+      @entrySet[entry.parent_as_string]
+    end
+
+    def glob(pattern, flags = File::FNM_PATHNAME|File::FNM_DOTMATCH)
+      entries.select { 
+        |entry| 
+        File.fnmatch(pattern, entry.name.chomp('/'), flags) 
+      } 
+    end	
+
+    #TODO    attr_accessor :auto_create_directories
+    protected
+    attr_accessor :entrySet
   end
 
-  # Returns the name of the zip archive
-  def to_s
-    @name
-  end
 
-  # Returns a string containing the contents of the specified entry
-  def read(entry)
-    get_input_stream(entry) { |is| is.read } 
-  end
+  class ZipCentralDirectory
+    include Enumerable
 
-  # Convenience method for adding the contents of a file to the archive
-  def add(entry, srcPath, &continueOnExistsProc)
-    continueOnExistsProc ||= proc { false }
-    check_entry_exists(entry, continueOnExistsProc, "add")
-    newEntry = entry.kind_of?(ZipEntry) ? entry : ZipEntry.new(@name, entry.to_s)
-    newEntry.gather_fileinfo_from_srcpath(srcPath)
-    @entrySet << newEntry
-  end
+    END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50
+    MAX_END_OF_CENTRAL_DIRECTORY_STRUCTURE_SIZE = 65536 + 18
+    STATIC_EOCD_SIZE = 22
 
-  # Removes the specified entry.
-  def remove(entry)
-    @entrySet.delete(get_entry(entry))
-  end
+    attr_reader :comment
 
-  # Renames the specified entry.
-  def rename(entry, newName, &continueOnExistsProc)
-    foundEntry = get_entry(entry)
-    check_entry_exists(newName, continueOnExistsProc, "rename")
-    foundEntry.name=newName
-  end
+    # Returns an Enumerable containing the entries.
+    def entries
+      @entrySet.entries
+    end
 
-  # Replaces the specified entry with the contents of srcPath (from 
-  # the file system).
-  def replace(entry, srcPath)
-    check_file(srcPath)
-    add(remove(entry), srcPath)
-  end
+    def initialize(entries = ZipEntrySet.new, comment = "")  #:nodoc:
+      super()
+      @entrySet = entries.kind_of?(ZipEntrySet) ? entries : ZipEntrySet.new(entries)
+      @comment = comment
+    end
 
-  # Extracts entry to file destPath.
-  def extract(entry, destPath, &onExistsProc)
-    onExistsProc ||= proc { false }
-    foundEntry = get_entry(entry)
-    foundEntry.extract(destPath, &onExistsProc)
-  end
+    def write_to_stream(io)  #:nodoc:
+      offset = io.tell
+      @entrySet.each { |entry| entry.write_c_dir_entry(io) }
+      write_e_o_c_d(io, offset)
+    end
 
-  # Commits changes that has been made since the previous commit to 
-  # the zip archive.
-  def commit
-    return if ! commit_required?
-    on_success_replace(name) {
-      |tmpFile|
-      ZipOutputStream.open(tmpFile) {
-        |zos|
+    def write_e_o_c_d(io, offset)  #:nodoc:
+      io <<
+      [END_OF_CENTRAL_DIRECTORY_SIGNATURE,
+        0                                  , # @numberOfThisDisk
+        0                                  , # @numberOfDiskWithStartOfCDir
+        @entrySet? @entrySet.size : 0        ,
+        @entrySet? @entrySet.size : 0        ,
+        cdir_size                           ,
+        offset                             ,
+        @comment ? @comment.length : 0     ].pack('VvvvvVVv')
+      io << @comment
+    end
+    private :write_e_o_c_d
 
-        @entrySet.each { |e| e.write_to_zip_output_stream(zos) }
-        zos.comment = comment
+    def cdir_size  #:nodoc:
+      # does not include eocd
+      @entrySet.inject(0) { |value, entry| entry.cdir_header_size + value }
+    end
+    private :cdir_size
+
+    def read_e_o_c_d(io) #:nodoc:
+      buf = get_e_o_c_d(io)
+      @numberOfThisDisk                     = ZipEntry::read_zip_short(buf)
+      @numberOfDiskWithStartOfCDir          = ZipEntry::read_zip_short(buf)
+      @totalNumberOfEntriesInCDirOnThisDisk = ZipEntry::read_zip_short(buf)
+      @size                                 = ZipEntry::read_zip_short(buf)
+      @sizeInBytes                          = ZipEntry::read_zip_long(buf)
+      @cdirOffset                           = ZipEntry::read_zip_long(buf)
+      commentLength                         = ZipEntry::read_zip_short(buf)
+      @comment                              = buf.read(commentLength)
+      raise ZipError, "Zip consistency problem while reading eocd structure" unless buf.size == 0
+    end
+
+    def read_central_directory_entries(io)  #:nodoc:
+      begin
+        io.seek(@cdirOffset, IO::SEEK_SET)
+      rescue Errno::EINVAL
+        raise ZipError, "Zip consistency problem while reading central directory entry"
+      end
+      @entrySet = ZipEntrySet.new
+      @size.times {
+        @entrySet << ZipEntry.read_c_dir_entry(io)
       }
-      true
-    }
-    initialize(name)
-  end
-
-  # Closes the zip file committing any changes that has been made.
-  def close
-    commit
-  end
-
-  # Returns true if any changes has been made to this archive since
-  # the previous commit
-  def commit_required?
-    return @entrySet != @storedEntries || @create == ZipFile::CREATE
-  end
-
-  # Searches for entry with the specified name. Returns nil if 
-  # no entry is found. See also get_entry
-  def find_entry(entry)
-    @entrySet.detect { 
-      |e| 
-      e.name.sub(/\/$/, "") == entry.to_s.sub(/\/$/, "")
-    }
-  end
-
-  # Searches for an entry just as find_entry, but throws Errno::ENOENT
-  # if no entry is found.
-  def get_entry(entry)
-    selectedEntry = find_entry(entry)
-    unless selectedEntry
-      raise Errno::ENOENT, entry
     end
-    selectedEntry.restore_ownership = @restore_ownership
-    selectedEntry.restore_permissions = @restore_permissions
-    selectedEntry.restore_times = @restore_times
 
-    return selectedEntry
-  end
-
-  # Creates a directory
-  def mkdir(entryName, permissionInt = 0755)
-    if find_entry(entryName)
-      raise Errno::EEXIST, "File exists - #{entryName}"
+    def read_from_stream(io)  #:nodoc:
+      read_e_o_c_d(io)
+      read_central_directory_entries(io)
     end
-    @entrySet << ZipStreamableDirectory.new(@name, entryName.to_s.ensure_end("/"), nil, permissionInt)
+
+    def get_e_o_c_d(io)  #:nodoc:
+      begin
+        io.seek(-MAX_END_OF_CENTRAL_DIRECTORY_STRUCTURE_SIZE, IO::SEEK_END)
+      rescue Errno::EINVAL
+        io.seek(0, IO::SEEK_SET)
+      rescue Errno::EFBIG # FreeBSD 4.9 raise Errno::EFBIG instead of Errno::EINVAL
+        io.seek(0, IO::SEEK_SET)
+      end
+
+      # 'buf = io.read' substituted with lump of code to work around FreeBSD 4.5 issue
+      retried = false
+      buf = nil
+      begin
+        buf = io.read
+      rescue Errno::EFBIG # FreeBSD 4.5 may raise Errno::EFBIG
+        raise if (retried)
+        retried = true
+
+        io.seek(0, IO::SEEK_SET)
+        retry
+      end
+
+      sigIndex = buf.rindex([END_OF_CENTRAL_DIRECTORY_SIGNATURE].pack('V'))
+      raise ZipError, "Zip end of central directory signature not found" unless sigIndex
+      buf=buf.slice!((sigIndex+4)...(buf.size))
+      def buf.read(count)
+        slice!(0, count)
+      end
+      return buf
+    end
+
+    # For iterating over the entries.
+    def each(&proc)
+      @entrySet.each(&proc)
+    end
+
+    # Returns the number of entries in the central directory (and 
+    # consequently in the zip archive).
+    def size
+      @entrySet.size
+    end
+
+    def ZipCentralDirectory.read_from_stream(io)  #:nodoc:
+      cdir  = new
+      cdir.read_from_stream(io)
+      return cdir
+    rescue ZipError
+      return nil
+    end
+
+    def == (other) #:nodoc:
+      return false unless other.kind_of?(ZipCentralDirectory)
+      @entrySet.entries.sort == other.entries.sort && comment == other.comment
+    end
   end
 
-  private
 
-  def is_directory(newEntry, srcPath)
-    srcPathIsDirectory = File.directory?(srcPath)
-    if newEntry.is_directory && ! srcPathIsDirectory
-      raise ArgumentError,
+  class ZipError < StandardError ; end
+
+  class ZipEntryExistsError            < ZipError; end
+  class ZipDestinationFileExistsError  < ZipError; end
+  class ZipCompressionMethodError      < ZipError; end
+  class ZipEntryNameError              < ZipError; end
+  class ZipInternalError               < ZipError; end
+
+  # ZipFile is modeled after java.util.zip.ZipFile from the Java SDK.
+  # The most important methods are those inherited from
+  # ZipCentralDirectory for accessing information about the entries in
+  # the archive and methods such as get_input_stream and
+  # get_output_stream for reading from and writing entries to the
+  # archive. The class includes a few convenience methods such as
+  # #extract for extracting entries to the filesystem, and #remove,
+  # #replace, #rename and #mkdir for making simple modifications to
+  # the archive.
+  #
+  # Modifications to a zip archive are not committed until #commit or
+  # #close is called. The method #open accepts a block following 
+  # the pattern from File.open offering a simple way to 
+  # automatically close the archive when the block returns. 
+  #
+  # The following example opens zip archive <code>my.zip</code> 
+  # (creating it if it doesn't exist) and adds an entry 
+  # <code>first.txt</code> and a directory entry <code>a_dir</code> 
+  # to it.
+  #
+  #   require 'zip/zip'
+  #   
+  #   Zip::ZipFile.open("my.zip", Zip::ZipFile::CREATE) {
+  #    |zipfile|
+  #     zipfile.get_output_stream("first.txt") { |f| f.puts "Hello from ZipFile" }
+  #     zipfile.mkdir("a_dir")
+  #   }
+  #
+  # The next example reopens <code>my.zip</code> writes the contents of
+  # <code>first.txt</code> to standard out and deletes the entry from 
+  # the archive.
+  #
+  #   require 'zip/zip'
+  #   
+  #   Zip::ZipFile.open("my.zip", Zip::ZipFile::CREATE) {
+  #     |zipfile|
+  #     puts zipfile.read("first.txt")
+  #     zipfile.remove("first.txt")
+  #   }
+  #
+  # ZipFileSystem offers an alternative API that emulates ruby's 
+  # interface for accessing the filesystem, ie. the File and Dir classes.
+
+  class ZipFile < ZipCentralDirectory
+
+    CREATE = 1
+
+    attr_reader :name
+
+    # default -> false
+    attr_accessor :restore_ownership
+    # default -> false
+    attr_accessor :restore_permissions
+    # default -> true
+    attr_accessor :restore_times
+
+    # Opens a zip archive. Pass true as the second parameter to create
+    # a new archive if it doesn't exist already.
+    def initialize(fileName, create = nil)
+      super()
+      @name = fileName
+      @comment = ""
+      if (File.exists?(fileName))
+        File.open(name, "rb") { |f| read_from_stream(f) }
+      elsif (create)
+        @entrySet = ZipEntrySet.new
+      else
+        raise ZipError, "File #{fileName} not found"
+      end
+      @create = create
+      @storedEntries = @entrySet.dup
+
+      @restore_ownership = false
+      @restore_permissions = false
+      @restore_times = true
+    end
+
+    # Same as #new. If a block is passed the ZipFile object is passed
+    # to the block and is automatically closed afterwards just as with
+    # ruby's builtin File.open method.
+    def ZipFile.open(fileName, create = nil)
+      zf = ZipFile.new(fileName, create)
+      if block_given?
+        begin
+          yield zf
+        ensure
+          zf.close
+        end
+      else
+        zf
+      end
+    end
+
+    # Returns the zip files comment, if it has one
+    attr_accessor :comment
+
+    # Iterates over the contents of the ZipFile. This is more efficient
+    # than using a ZipInputStream since this methods simply iterates
+    # through the entries in the central directory structure in the archive
+    # whereas ZipInputStream jumps through the entire archive accessing the
+    # local entry headers (which contain the same information as the 
+    # central directory).
+    def ZipFile.foreach(aZipFileName, &block)
+      ZipFile.open(aZipFileName) {
+        |zipFile|
+        zipFile.each(&block)
+      }
+    end
+
+    # Returns an input stream to the specified entry. If a block is passed
+    # the stream object is passed to the block and the stream is automatically
+    # closed afterwards just as with ruby's builtin File.open method.
+    def get_input_stream(entry, &aProc)
+      get_entry(entry).get_input_stream(&aProc)
+    end
+
+    # Returns an output stream to the specified entry. If a block is passed
+    # the stream object is passed to the block and the stream is automatically
+    # closed afterwards just as with ruby's builtin File.open method.
+    def get_output_stream(entry, &aProc)
+      newEntry = entry.kind_of?(ZipEntry) ? entry : ZipEntry.new(@name, entry.to_s)
+      if newEntry.directory?
+        raise ArgumentError,
+    "cannot open stream to directory entry - '#{newEntry}'"
+      end
+      zipStreamableEntry = ZipStreamableStream.new(newEntry)
+      @entrySet << zipStreamableEntry
+      zipStreamableEntry.get_output_stream(&aProc)      
+    end
+
+    # Returns the name of the zip archive
+    def to_s
+      @name
+    end
+
+    # Returns a string containing the contents of the specified entry
+    def read(entry)
+      get_input_stream(entry) { |is| is.read } 
+    end
+
+    # Convenience method for adding the contents of a file to the archive
+    def add(entry, srcPath, &continueOnExistsProc)
+      continueOnExistsProc ||= proc { false }
+      check_entry_exists(entry, continueOnExistsProc, "add")
+      newEntry = entry.kind_of?(ZipEntry) ? entry : ZipEntry.new(@name, entry.to_s)
+      newEntry.gather_fileinfo_from_srcpath(srcPath)
+      @entrySet << newEntry
+    end
+
+    # Removes the specified entry.
+    def remove(entry)
+      @entrySet.delete(get_entry(entry))
+    end
+
+    # Renames the specified entry.
+    def rename(entry, newName, &continueOnExistsProc)
+      foundEntry = get_entry(entry)
+      check_entry_exists(newName, continueOnExistsProc, "rename")
+      foundEntry.name=newName
+    end
+
+    # Replaces the specified entry with the contents of srcPath (from 
+    # the file system).
+    def replace(entry, srcPath)
+      check_file(srcPath)
+      add(remove(entry), srcPath)
+    end
+
+    # Extracts entry to file destPath.
+    def extract(entry, destPath, &onExistsProc)
+      onExistsProc ||= proc { false }
+      foundEntry = get_entry(entry)
+      foundEntry.extract(destPath, &onExistsProc)
+    end
+
+    # Commits changes that has been made since the previous commit to 
+    # the zip archive.
+    def commit
+      return if ! commit_required?
+      on_success_replace(name) {
+        |tmpFile|
+        ZipOutputStream.open(tmpFile) {
+          |zos|
+
+          @entrySet.each { |e| e.write_to_zip_output_stream(zos) }
+          zos.comment = comment
+        }
+        true
+      }
+      initialize(name)
+    end
+
+    # Closes the zip file committing any changes that has been made.
+    def close
+      commit
+    end
+
+    # Returns true if any changes has been made to this archive since
+    # the previous commit
+    def commit_required?
+      return @entrySet != @storedEntries || @create == ZipFile::CREATE
+    end
+
+    # Searches for entry with the specified name. Returns nil if 
+    # no entry is found. See also get_entry
+    def find_entry(entry)
+      @entrySet.detect { 
+        |e| 
+        e.name.sub(/\/$/, "") == entry.to_s.sub(/\/$/, "")
+      }
+    end
+
+    # Searches for an entry just as find_entry, but throws Errno::ENOENT
+    # if no entry is found.
+    def get_entry(entry)
+      selectedEntry = find_entry(entry)
+      unless selectedEntry
+        raise Errno::ENOENT, entry
+      end
+      selectedEntry.restore_ownership = @restore_ownership
+      selectedEntry.restore_permissions = @restore_permissions
+      selectedEntry.restore_times = @restore_times
+
+      return selectedEntry
+    end
+
+    # Creates a directory
+    def mkdir(entryName, permissionInt = 0755)
+      if find_entry(entryName)
+        raise Errno::EEXIST, "File exists - #{entryName}"
+      end
+      @entrySet << ZipStreamableDirectory.new(@name, entryName.to_s.ensure_end("/"), nil, permissionInt)
+    end
+
+    private
+
+    def is_directory(newEntry, srcPath)
+      srcPathIsDirectory = File.directory?(srcPath)
+      if newEntry.is_directory && ! srcPathIsDirectory
+        raise ArgumentError,
     "entry name '#{newEntry}' indicates directory entry, but "+
     "'#{srcPath}' is not a directory"
-    elsif ! newEntry.is_directory && srcPathIsDirectory
-      newEntry.name += "/"
+      elsif ! newEntry.is_directory && srcPathIsDirectory
+        newEntry.name += "/"
+      end
+      return newEntry.is_directory && srcPathIsDirectory
     end
-    return newEntry.is_directory && srcPathIsDirectory
+
+    def check_entry_exists(entryName, continueOnExistsProc, procedureName)
+      continueOnExistsProc ||= proc { false }
+      if @entrySet.detect { |e| e.name == entryName }
+        if continueOnExistsProc.call
+          remove get_entry(entryName)
+        else
+          raise ZipEntryExistsError, 
+            procedureName+" failed. Entry #{entryName} already exists"
+        end
+      end
+    end
+
+    def check_file path
+      unless File.readable? path
+        raise Errno::ENOENT, path
+      end
+    end
+
+    def on_success_replace aFilename
+      tmpfile = get_tempfile
+      tmpFilename = tmpfile.path
+      tmpfile.close
+      if yield tmpFilename
+        File.rename tmpFilename, name
+      end
+    end
+
+    def get_tempfile
+      tempFile = Tempfile.new(File.basename(name), File.dirname(name))
+      tempFile.binmode
+      tempFile
+    end
+
   end
 
-  def check_entry_exists(entryName, continueOnExistsProc, procedureName)
-    continueOnExistsProc ||= proc { false }
-    if @entrySet.detect { |e| e.name == entryName }
-      if continueOnExistsProc.call
-        remove get_entry(entryName)
+  class ZipStreamableDirectory < ZipEntry
+    def initialize(zipfile, entry, srcPath = nil, permissionInt = nil)
+      super(zipfile, entry)
+
+      @ftype = :directory
+      entry.get_extra_attributes_from_path(srcPath) if (srcPath)
+      @unix_perms = permissionInt if (permissionInt)
+    end
+  end
+
+  class ZipStreamableStream < DelegateClass(ZipEntry) #nodoc:all
+    def initialize(entry)
+      super(entry)
+      @tempFile = Tempfile.new(File.basename(name), File.dirname(zipfile))
+      @tempFile.binmode
+    end
+
+    def get_output_stream
+      if block_given?
+        begin
+          yield(@tempFile)
+        ensure
+          @tempFile.close
+        end
       else
-        raise ZipEntryExistsError, 
-          procedureName+" failed. Entry #{entryName} already exists"
-      end
-    end
-  end
-
-  def check_file path
-    unless File.readable? path
-      raise Errno::ENOENT, path
-    end
-  end
-
-  def on_success_replace aFilename
-    tmpfile = get_tempfile
-    tmpFilename = tmpfile.path
-    tmpfile.close
-    if yield tmpFilename
-      File.rename tmpFilename, name
-    end
-  end
-
-  def get_tempfile
-    tempFile = Tempfile.new(File.basename(name), File.dirname(name))
-    tempFile.binmode
-    tempFile
-  end
-
-end
-
-class ZipStreamableDirectory < ZipEntry
-  def initialize(zipfile, entry, srcPath = nil, permissionInt = nil)
-    super(zipfile, entry)
-
-    @ftype = :directory
-    entry.get_extra_attributes_from_path(srcPath) if (srcPath)
-    @unix_perms = permissionInt if (permissionInt)
-  end
-end
-
-class ZipStreamableStream < DelegateClass(ZipEntry) #nodoc:all
-  def initialize(entry)
-    super(entry)
-    @tempFile = Tempfile.new(File.basename(name), File.dirname(zipfile))
-    @tempFile.binmode
-  end
-
-  def get_output_stream
-    if block_given?
-      begin
-        yield(@tempFile)
-      ensure
-        @tempFile.close
-      end
-    else
-      @tempFile
-    end
-  end
-
-  def get_input_stream
-    if ! @tempFile.closed?
-      raise StandardError, "cannot open entry for reading while its open for writing - #{name}"
-    end
-    @tempFile.open # reopens tempfile from top
-    @tempFile.binmode
-    if block_given?
-      begin
-        yield(@tempFile)
-      ensure
-        @tempFile.close
-      end
-    else
-      @tempFile
-    end
-  end
-
-  def write_to_zip_output_stream(aZipOutputStream)
-    aZipOutputStream.put_next_entry(self)
-    get_input_stream { |is| IOExtras.copy_stream(aZipOutputStream, is) } 
-  end
-end
-
-class ZipExtraField < Hash
-  ID_MAP = {}
-
-  # Meta class for extra fields
-  class Generic
-    def self.register_map
-      if self.const_defined?(:HEADER_ID)
-        ID_MAP[self.const_get(:HEADER_ID)] = self
+        @tempFile
       end
     end
 
-    def self.name
-      self.to_s.split("::")[-1]
-    end
-
-    # return field [size, content] or false
-    def initial_parse(binstr)
-      if ! binstr
-        # If nil, start with empty.
-        return false
-      elsif binstr[0,2] != self.class.const_get(:HEADER_ID)
-        $stderr.puts "Warning: weired extra feild header ID. skip parsing"
-        return false
+    def get_input_stream
+      if ! @tempFile.closed?
+        raise StandardError, "cannot open entry for reading while its open for writing - #{name}"
       end
-      [binstr[2,2].unpack("v")[0], binstr[4..-1]]
+      @tempFile.open # reopens tempfile from top
+      @tempFile.binmode
+      if block_given?
+        begin
+          yield(@tempFile)
+        ensure
+          @tempFile.close
+        end
+      else
+        @tempFile
+      end
     end
 
-    def ==(other)
-      self.class != other.class and return false
-      each { |k, v|
-        v != other[k] and return false
-      }
-      true
-    end
-
-    def to_local_bin
-      s = pack_for_local
-      self.class.const_get(:HEADER_ID) + [s.length].pack("v") + s
-    end
-
-    def to_c_dir_bin
-      s = pack_for_c_dir
-      self.class.const_get(:HEADER_ID) + [s.length].pack("v") + s
+    def write_to_zip_output_stream(aZipOutputStream)
+      aZipOutputStream.put_next_entry(self)
+      get_input_stream { |is| IOExtras.copy_stream(aZipOutputStream, is) } 
     end
   end
 
-  # Info-ZIP Additional timestamp field
-  class UniversalTime < Generic
-    HEADER_ID = "UT"
-    register_map
+  class ZipExtraField < Hash
+    ID_MAP = {}
 
-    def initialize(binstr = nil)
-      @ctime = nil
-      @mtime = nil
-      @atime = nil
-      @flag  = nil
-      binstr and merge(binstr)
+    # Meta class for extra fields
+    class Generic
+      def self.register_map
+        if self.const_defined?(:HEADER_ID)
+          ID_MAP[self.const_get(:HEADER_ID)] = self
+        end
+      end
+
+      def self.name
+        self.to_s.split("::")[-1]
+      end
+
+      # return field [size, content] or false
+      def initial_parse(binstr)
+        if ! binstr
+          # If nil, start with empty.
+          return false
+        elsif binstr[0,2] != self.class.const_get(:HEADER_ID)
+          $stderr.puts "Warning: weired extra feild header ID. skip parsing"
+          return false
+        end
+        [binstr[2,2].unpack("v")[0], binstr[4..-1]]
+      end
+
+      def ==(other)
+        self.class != other.class and return false
+        each { |k, v|
+          v != other[k] and return false
+        }
+        true
+      end
+
+      def to_local_bin
+        s = pack_for_local
+        self.class.const_get(:HEADER_ID) + [s.length].pack("v") + s
+      end
+
+      def to_c_dir_bin
+        s = pack_for_c_dir
+        self.class.const_get(:HEADER_ID) + [s.length].pack("v") + s
+      end
     end
-    attr_accessor :atime, :ctime, :mtime, :flag
 
-    def merge(binstr)
-      binstr == "" and return
-      size, content = initial_parse(binstr)
-      size or return
-      @flag, mtime, atime, ctime = content.unpack("CVVV")
-      mtime and @mtime ||= Time.at(mtime)
-      atime and @atime ||= Time.at(atime)
-      ctime and @ctime ||= Time.at(ctime)
+    # Info-ZIP Additional timestamp field
+    class UniversalTime < Generic
+      HEADER_ID = "UT"
+      register_map
+
+      def initialize(binstr = nil)
+        @ctime = nil
+        @mtime = nil
+        @atime = nil
+        @flag  = nil
+        binstr and merge(binstr)
+      end
+      attr_accessor :atime, :ctime, :mtime, :flag
+
+      def merge(binstr)
+        binstr == "" and return
+        size, content = initial_parse(binstr)
+        size or return
+        @flag, mtime, atime, ctime = content.unpack("CVVV")
+        mtime and @mtime ||= Time.at(mtime)
+        atime and @atime ||= Time.at(atime)
+        ctime and @ctime ||= Time.at(ctime)
+      end
+
+      def ==(other)
+        @mtime == other.mtime &&
+          @atime == other.atime &&
+          @ctime == other.ctime
+      end
+
+      def pack_for_local
+        s = [@flag].pack("C")
+        @flag & 1 != 0 and s << [@mtime.to_i].pack("V")
+        @flag & 2 != 0 and s << [@atime.to_i].pack("V")
+        @flag & 4 != 0 and s << [@ctime.to_i].pack("V")
+        s
+      end
+
+      def pack_for_c_dir
+        s = [@flag].pack("C")
+        @flag & 1 == 1 and s << [@mtime.to_i].pack("V")
+        s
+      end
     end
 
-    def ==(other)
-      @mtime == other.mtime &&
-        @atime == other.atime &&
-        @ctime == other.ctime
+    # Info-ZIP Extra for UNIX uid/gid
+    class IUnix < Generic
+      HEADER_ID = "Ux"
+      register_map
+
+      def initialize binstr = nil
+        @uid = 0
+        @gid = 0
+        binstr and merge(binstr)
+      end
+      attr_accessor :uid, :gid
+
+      def merge binstr
+        binstr == "" and return
+        size, content = initial_parse(binstr)
+        # size: 0 for central direcotry. 4 for local header
+        return if(! size || size == 0)
+        uid, gid = content.unpack("vv")
+        @uid ||= uid
+        @gid ||= gid
+      end
+
+      def ==(other)
+        @uid == other.uid &&
+          @gid == other.gid
+      end
+
+      def pack_for_local
+        [@uid, @gid].pack("vv")
+      end
+
+      def pack_for_c_dir
+        ""
+      end
     end
 
-    def pack_for_local
-      s = [@flag].pack("C")
-      @flag & 1 != 0 and s << [@mtime.to_i].pack("V")
-      @flag & 2 != 0 and s << [@atime.to_i].pack("V")
-      @flag & 4 != 0 and s << [@ctime.to_i].pack("V")
-      s
-    end
-
-    def pack_for_c_dir
-      s = [@flag].pack("C")
-      @flag & 1 == 1 and s << [@mtime.to_i].pack("V")
-      s
-    end
-  end
-
-  # Info-ZIP Extra for UNIX uid/gid
-  class IUnix < Generic
-    HEADER_ID = "Ux"
-    register_map
-
+    ## start main of ZipExtraField < Hash
     def initialize binstr = nil
-      @uid = 0
-      @gid = 0
       binstr and merge(binstr)
     end
-    attr_accessor :uid, :gid
 
     def merge binstr
       binstr == "" and return
-      size, content = initial_parse(binstr)
-      # size: 0 for central direcotry. 4 for local header
-      return if(! size || size == 0)
-      uid, gid = content.unpack("vv")
-      @uid ||= uid
-      @gid ||= gid
-    end
-
-    def ==(other)
-      @uid == other.uid &&
-        @gid == other.gid
-    end
-
-    def pack_for_local
-      [@uid, @gid].pack("vv")
-    end
-
-    def pack_for_c_dir
-        ""
-    end
-  end
-
-  ## start main of ZipExtraField < Hash
-  def initialize binstr = nil
-    binstr and merge(binstr)
-  end
-
-  def merge binstr
-    binstr == "" and return
-    i = 0 
-    while i < binstr.length
-      id = binstr[i,2]
-      len = binstr[i+2,2].to_s.unpack("v")[0] 
-      if id && ID_MAP.member?(id)
-        field_name = ID_MAP[id].name
-        if self.member?(field_name)
-          self[field_name].mergea(binstr[i, len+4])
-        else
-          field_obj = ID_MAP[id].new(binstr[i, len+4])
-          self[field_name] = field_obj
-        end
-      elsif id
-        unless self["Unknown"]
-          s = ""
-          class << s
-            alias_method :to_c_dir_bin, :to_s
-            alias_method :to_local_bin, :to_s
+      i = 0 
+      while i < binstr.length
+        id = binstr[i,2]
+        len = binstr[i+2,2].to_s.unpack("v")[0] 
+        if id && ID_MAP.member?(id)
+          field_name = ID_MAP[id].name
+          if self.member?(field_name)
+            self[field_name].mergea(binstr[i, len+4])
+          else
+            field_obj = ID_MAP[id].new(binstr[i, len+4])
+            self[field_name] = field_obj
           end
-          self["Unknown"] = s
+        elsif id
+          unless self["Unknown"]
+            s = ""
+            class << s
+              alias_method :to_c_dir_bin, :to_s
+              alias_method :to_local_bin, :to_s
+            end
+            self["Unknown"] = s
+          end
+          if ! len || len+4 > binstr[i..-1].length
+            self["Unknown"] << binstr[i..-1]
+            break;
+          end
+          self["Unknown"] << binstr[i, len+4]
         end
-        if ! len || len+4 > binstr[i..-1].length
-          self["Unknown"] << binstr[i..-1]
-          break;
+        i += len+4
+      end
+    end
+
+    def create name
+      field_class = nil
+      ID_MAP.each { |id, klass|
+        if klass.name == name
+          field_class = klass
+          break
         end
-        self["Unknown"] << binstr[i, len+4]
+      }
+      if ! field_class
+        raise ZipError, "Unknown extra field '#{name}'"
       end
-      i += len+4
+      self[name] = field_class.new()
     end
-  end
 
-  def create name
-    field_class = nil
-    ID_MAP.each { |id, klass|
-      if klass.name == name
-        field_class = klass
-        break
-      end
-    }
-    if ! field_class
-      raise ZipError, "Unknown extra field '#{name}'"
+    def to_local_bin
+      s = ""
+      each { |k, v|
+        s << v.to_local_bin
+      }
+      s
     end
-    self[name] = field_class.new()
-  end
+    alias :to_s :to_local_bin
 
-  def to_local_bin
-    s = ""
-    each { |k, v|
-      s << v.to_local_bin
-    }
-    s
-  end
-  alias :to_s :to_local_bin
+    def to_c_dir_bin
+      s = ""
+      each { |k, v|
+        s << v.to_c_dir_bin
+      }
+      s
+    end
 
-  def to_c_dir_bin
-    s = ""
-    each { |k, v|
-      s << v.to_c_dir_bin
-    }
-    s
-  end
-
-  def c_dir_length
-    to_c_dir_bin.length
-  end
-  def local_length
-    to_local_bin.length
-  end
-  alias :c_dir_size :c_dir_length
-  alias :local_size :local_length
-  alias :length     :local_length
-  alias :size       :local_length
-end # end ZipExtraField
+    def c_dir_length
+      to_c_dir_bin.length
+    end
+    def local_length
+      to_local_bin.length
+    end
+    alias :c_dir_size :c_dir_length
+    alias :local_size :local_length
+    alias :length     :local_length
+    alias :size       :local_length
+  end # end ZipExtraField
 
 end # Zip namespace module
 
