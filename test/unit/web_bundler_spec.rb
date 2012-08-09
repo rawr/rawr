@@ -1,5 +1,5 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', 'spec_helpers')
-require 'rawr/bundler'
+require 'rawr/rawr_bundler'
 require 'rawr/web_bundler'
 require 'rexml/document'
 

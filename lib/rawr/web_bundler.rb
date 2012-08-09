@@ -1,7 +1,7 @@
-require 'rawr/bundler'
+require 'rawr/rawr_bundler'
 
 module Rawr
-  class WebBundler < Bundler
+  class WebBundler < RawrBundler
     def self_sign_pass_phrase(options)
       return nil unless options[:web_start]
       return nil unless options[:web_start][:self_sign]

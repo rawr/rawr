@@ -1,10 +1,10 @@
 require 'fileutils'
-require 'rawr/bundler'
+require 'rawr/rawr_bundler'
 
 # See http://developer.apple.com/documentation/Java/Reference/Java_InfoplistRef/Articles/JavaDictionaryInfo.plistKeys.html for details
 
 module Rawr
-  class AppBundler < Bundler  
+  class AppBundler < RawrBundler
     include FileUtils
 
     def deploy(options)
