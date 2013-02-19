@@ -107,11 +107,12 @@ namespace :rawr do
     target_file = File.join(CONFIG.compiled_java_classes_path, file_name.pathmap('%X.class'))
     COMPILED_JAVA_CLASSES.add(target_file)
 
+    source_jvm_version = [ '-source', CONFIG.source_jvm_version.to_s ]
     target_jvm_version = [ '-target', CONFIG.target_jvm_version.to_s ]
     classpath = ['-cp', (CONFIG.classpath + CONFIG.source_dirs).join(delimiter) ]
     sourcepath = [ '-sourcepath', CONFIG.source_dirs.join(delimiter) ]
     outdir = [ '-d', CONFIG.compiled_java_classes_path ]
-    base_javac_args = target_jvm_version + classpath + sourcepath + outdir
+    base_javac_args = source_jvm_version + target_jvm_version + classpath + sourcepath + outdir
 
     file target_file => [ source_file, CONFIG.compiled_java_classes_path ] do
       sh 'javac', *(base_javac_args + [source_file])
