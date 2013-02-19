@@ -29,6 +29,7 @@ module Rawr
       Option.new(:java_lib_dirs, [FilePath], ['lib/java'], "A list of directories for rawr to include . All files in the given directories get bundled up."),
       Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
       
+      Option.new(:source_jvm_version, Numeric, 1.6),
       Option.new(:target_jvm_version, Numeric, 1.6),
       Option.new(:jvm_arguments, [String], ''),
       Option.new(:java_library_path, [String], ''),
