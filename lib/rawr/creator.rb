@@ -4,9 +4,11 @@ require 'rawr/bundler_template'
 module Rawr
   class Creator
     def self.create_run_config_file options
+      slash = options.compile_ruby_files ? ' ' : '/'
       File.open(File.join(options.compile_dir, 'run_configuration'), "w+") do |run_config_file|
-        run_config_file << "main_ruby_file: " + options.main_ruby_file + "\n"
-        run_config_file << "source_dirs: " + options.source_dirs.join(';') + "\n"
+        run_config_file.puts "load_path_slash:#{slash}"
+        run_config_file.puts "main_ruby_file: " + options.main_ruby_file
+        run_config_file.puts "source_dirs: " + options.source_dirs.join(';')
       end
     end
     
