@@ -8,19 +8,27 @@ require 'rawr/configuration'
 require 'rawr/creator'
 require 'rawr/jar_builder'
 
+
+def verbalize s
+  if CONFIG.verbose
+    warn '.' * 80
+    warn s
+    warn '.' * 80
+  end
+end
 def file_is_newer?(source, target)
   !File.exists?(target) || (File.mtime(target) < File.mtime(source))
 end
 
-def generate_copy_tasks_for(files, source_or_not)
+def generate_copy_tasks_for files, source_or_not
   copied_file_list = FileList.new
 
   files.each do |file_info|
-    orig_file_path = File.join(file_info.directory, file_info.filename)
-    dest_file_path = File.join(CONFIG.compiled_ruby_files_path, file_info.filename)
-    dest_dir = File.dirname(dest_file_path)
+    orig_file_path = File.join file_info.directory, file_info.filename
+    dest_file_path = File.join CONFIG.compiled_ruby_files_path, file_info.filename
+    dest_dir       = File.dirname dest_file_path
 
-    copied_file_list.add(dest_file_path)
+    copied_file_list.add dest_file_path
 
     directory dest_dir
 
@@ -36,11 +44,11 @@ end
 
 
 specified_config_file = false
-if Object.constants.include?('RAWR_CONFIG_FILE')
+if Object.constants.include? 'RAWR_CONFIG_FILE'
   # RAWR_CONFIG_FILE can be set in the project's Rakefile
   specified_config_file = true
 else
-  if ENV.include?('RAWR_CONFIG_FILE')
+  if ENV.include? 'RAWR_CONFIG_FILE'
     RAWR_CONFIG_FILE = ENV["RAWR_CONFIG_FILE"]
     specified_config_file = true
   else
@@ -49,10 +57,10 @@ else
 end
 
 CONFIG = Rawr::Configuration.default
-if File.exist?(RAWR_CONFIG_FILE)
-  CONFIG.load_from_file!(RAWR_CONFIG_FILE)
+if File.exist? RAWR_CONFIG_FILE
+  CONFIG.load_from_file! RAWR_CONFIG_FILE
 elsif specified_config_file
-  raise "Rawr configuration file \"#{RAWR_CONFIG_FILE}\" does not exist."
+  raise %~Rawr configuration file "#{RAWR_CONFIG_FILE}" does not exist.~
 end
 
 namespace :rawr do
@@ -63,6 +71,7 @@ namespace :rawr do
     jar_file_path = File.join(CONFIG.jar_output_dir, jar_nick.to_s + '.jar')
 
     PACKAGED_EXTRA_USER_JARS.add(jar_file_path)
+    jar_settings[:verbose] = CONFIG.verbose
 
     # In order for @items to be set, JarBuilder.new has to have jar_settings contain an :items entry that points to the list of files
     jar_builder = Rawr::JarBuilder.new(jar_nick, jar_file_path, jar_settings)
@@ -235,13 +244,15 @@ namespace :rawr do
   file CONFIG.base_jar_complete_path => COPIED_NON_SOURCE_FILES
   file CONFIG.base_jar_complete_path => CONFIG.meta_inf_dir
   file CONFIG.base_jar_complete_path => CONFIG.jar_output_dir do
-    Rawr::Creator.create_manifest_file(CONFIG)
-    Rawr::Creator.create_run_config_file(CONFIG)
+    Rawr::Creator.create_manifest_file CONFIG
+    Rawr::Creator.create_run_config_file CONFIG
     root_as_base = proc do |path| path.sub(/^(java|ruby|non-source)./, '') end
     builder = Rawr::JarBuilder.new(CONFIG.project_name,
                                    CONFIG.base_jar_complete_path,
                                    {:directory => CONFIG.compile_dir,
-                                     :dir_mapping => root_as_base})
+                                     :dir_mapping => root_as_base,
+                                     :verbose => CONFIG.verbose
+                                     })
     builder.build
   end
 
@@ -253,9 +264,9 @@ namespace :rawr do
   task :jar => PACKAGED_EXTRA_USER_JARS
   task :jar do
     (CONFIG.classpath + CONFIG.files_to_copy).each do |file|
-      destination_file = file.gsub('../', '')
-      destination_file_path = File.join(CONFIG.jar_output_dir, destination_file)
-      FileUtils.mkdir_p(File.dirname(destination_file_path))
+      destination_file = file.gsub '../', ''
+      destination_file_path = File.join CONFIG.jar_output_dir, destination_file
+      FileUtils.mkdir_p File.dirname(destination_file_path)
       copy file, destination_file_path
     end
   end

@@ -2,47 +2,58 @@ require 'set'
 
 module Rawr
   class Configuration
-    
-    class << self; attr_accessor :current_config; end
-    
-    Option = Struct.new(:name, :type, :default, :comment, :value)
-    FilePath = String
-    Boolean = Set.new([TrueClass, FalseClass])
 
-    
+    class << self; attr_accessor :current_config; end
+
+    Option = Struct.new :name, :type, :default, :comment, :value
+    FilePath = String
+    Boolean = Set.new [TrueClass, FalseClass]
+
+    # Some questions worth asking:
+    #  - What happens if you use a custom value for 'output_dir'?  What would be a reason for doing that?
+    #  
+    #  - Is there a reason one might want multiple 'source_dirs' values?  Instead of, say, using  subfolders of a single 'source_dirs' value (such as `src`)?
+    #  
+    #  - What would you pass to 'files_to_copy', and where are they copied to?
+    #      The code has this: ` destination_file = file.gsub '../', ''`
+    #      But why would you pass file paths that had '../' ?
+    #
+    #  - Does the Mirah stuff actually work?
+    #
     OPTIONS = [
       Option.new(:project_name, String, File.basename(Dir.pwd) , "The name for your resulting application file (e.g., if the project_name is 'foo' then you'll get foo.jar, foo.exe, etc.)", nil), 
       Option.new(:output_dir, FilePath, 'package'),
-      
+
       Option.new(:executable_type, String, 'gui', "The type of executable to create (console or gui)"),
 
       Option.new(:main_ruby_file, String, 'main', "The main ruby file to invoke, minus the .rb extension"),
       Option.new(:main_java_file, String, 'org.monkeybars.rawr.Main', 'The fully-qualified name of the main Java file used to initiate the application.'),
-      
+
       Option.new(:source_dirs, [FilePath], ['src'], "A list of directories where source files reside"),
       Option.new(:source_exclude_filter, [Regexp], [], "A list of regexps of files to exclude"),
       Option.new(:mirah_source_root, String, 'src', "The base directory that holds Mirah files, or subdirectories with Mirah files."),
       Option.new(:compile_ruby_files, Boolean, false, "Whether Ruby source files should be compiled into .class files. Setting this to true currently breaks packaging"),
 
-      
+
       Option.new(:java_lib_files, [FilePath], [], "A list of individual Java library files to include."),
       Option.new(:java_lib_dirs, [FilePath], ['lib/java'], "A list of directories for rawr to include . All files in the given directories get bundled up."),
-      Option.new(:files_to_copy, [FilePath], []), #FIXME: maybe needs file.sub(pwd, '')
-      
-      Option.new(:source_jvm_version, Numeric, 1.6),
-      Option.new(:target_jvm_version, Numeric, 1.6),
+      Option.new(:files_to_copy, [FilePath], [], "A list of files that will be copied into the `<output_dir>/jar` folder.  Note that the files maintain their directory path when copied. "), #FIXME: maybe needs file.sub(pwd, '')
+
+      Option.new(:source_jvm_version, Numeric, 1.7),
+      Option.new(:target_jvm_version, Numeric, 1.7),
       Option.new(:jvm_arguments, [String], ''),
       Option.new(:java_library_path, [String], ''),
-      
+
       Option.new(:extra_user_jars, Hash, Hash.new),
-      
+      Option.new(:verbose, Boolean, false),
+
       # Platform-specific options
       Option.new(:mac_do_not_generate_plist, Boolean, false),
       Option.new(:mac_plist_working_directory, String, '$APP_PACKAGE', "working directory specified in plist file"),
       Option.new(:mac_icon_path, FilePath),
       Option.new(:windows_icon_path, FilePath)
     ]
-    
+
     def self.project_name= name
       o = Rawr::Configuration::OPTIONS.find { |opt| opt.name == :project_name }
       raise "Failed to find option :project_name to set new value" unless o 
@@ -50,7 +61,7 @@ module Rawr
       o.default = name
     end
 
-     def self.project_name
+    def self.project_name
       o = Rawr::Configuration::OPTIONS.find { |opt| opt.name == :project_name }
       raise "Failed to locate project_name from #{o.pretty_inspect}" if o.value.to_s.strip.empty? && o.default.to_s.strip.empty? 
       o.value || o.default
@@ -59,25 +70,25 @@ module Rawr
     def initialize
       self.class.current_config = self
     end
-    
+
     def self.default
       return self.new
     end
-  
+
     def load_from_file!(file_path)
       configuration_file = File.readlines(file_path).join
       instance_eval configuration_file
       self.class.current_config = self
     end
-    
+
     def configuration
       yield self
     end
-    
+
     def option(name)
       OPTIONS.find { |opt| opt.name.to_s == name.to_s }
     end
-    
+
     def method_missing(sym, *args)
       method = sym.to_s
       value = args.first # Assert args.size == 1
@@ -87,20 +98,20 @@ module Rawr
         get_option(method)
       end
     end
-    
+
     def set_option option_name, value
       opt = option option_name
       if opt.nil? then raise "Unknown Rawr option #{option_name}" end
       opt.value = value unless !option_accepts_value?(opt, value, true)
     end
-    
+
     def get_option(option_name)
       opt = option(option_name)
       if opt.nil? then raise "Unknown Rawr option #{option_name}" end
       value = opt.value
       return !value.nil? ? value : opt.default
     end
-    
+
     def option_accepts_value?(option, value, raise_on_mismatch)
       type = option.type
       if type.is_a?(Array)
@@ -110,7 +121,7 @@ module Rawr
         base_type = type
         allows_lists = false
       end
-      
+
       is_compatible = proc { |object, type_spec|
         if type_spec.is_a?(Set)
           type_spec.any? { |t| object.is_a?(t) }
@@ -118,7 +129,7 @@ module Rawr
           object.is_a?(type_spec)
         end
       }
-      
+
       if value.is_a? Array
         if !allows_lists then
           if raise_on_mismatch
@@ -130,42 +141,42 @@ module Rawr
       else
         acceptable_value = is_compatible[value, base_type]
       end
-      
+
       if raise_on_mismatch && !acceptable_value
         type_info =  type.is_a?(Array) ? "a list of " : "of type "
-        
+
         types = type.is_a?(Set) ? type : [type]
         type_info += types.collect { |t| t.to_s }.join(" or ")
-        
+
         values = [value].flatten(1)
         value_info = values.collect { |v| v.inspect + ":" + v.class.to_s }.join(", ")
         if value.is_a?(Array)
           value_info = "[" + value_info + "]"
         end
-        
+
         raise "'#{option.name}' must be #{type_info}, #{value_info} given"
       end
-      
+
       return acceptable_value
     end
-    
-    
-    
+
+
+
     # FIXME: add checks to inner fields
     def jars
       extra_user_jars
     end
-    
+
     # Derived, non-configurable settings
-    
+
     def compile_dir
       File.join(self.output_dir, 'classes')
     end
-    
+
     def compiled_mirah_classes_path
       File.join(self.compile_dir, 'mirah')
     end
-    
+
     def compiled_java_classes_path
       File.join(self.compile_dir, 'java')
     end
@@ -173,31 +184,31 @@ module Rawr
     def compiled_ruby_files_path
       File.join(self.compile_dir, 'ruby')
     end
-    
+
     def compiled_non_source_files_path
       File.join(self.compile_dir, 'non-source')
     end
-    
+
     def meta_inf_dir
       File.join(self.compile_dir, "META-INF")
     end
-    
+
     def jar_output_dir
       File.join(self.output_dir, 'jar')
     end
-    
+
     def windows_output_dir
       File.join(self.output_dir, 'windows')
     end
-    
+
     def osx_output_dir
       File.join(self.output_dir, 'osx')
     end
-    
+
     def base_jar_filename
       self.project_name + ".jar"
     end
-    
+
     def base_jar_complete_path
       File.join(self.jar_output_dir, self.base_jar_filename)
     end
@@ -205,57 +216,57 @@ module Rawr
     def mirah_source_files
       FileList[self.source_dirs].find_files_and_filter('*.mirah', self.source_exclude_filter)
     end
-    
+
     def java_source_files
       FileList[self.source_dirs].find_files_and_filter('*.java', self.source_exclude_filter)
     end
-    
+
     def ruby_source_files
       FileList[self.source_dirs].find_files_and_filter('*.rb', self.source_exclude_filter)
     end
-    
+
     def ruby_source_files_to_compile
       self.compile_ruby_files ? self.ruby_source_files : FileList.new
     end
-    
+
     def ruby_source_files_to_copy
       self.compile_ruby_files ? FileList.new : self.ruby_source_files
     end
-    
+
     def non_source_file_list
       FileList[self.source_dirs].find_files_and_filter('*', self.source_exclude_filter + [/\.(rb|java|class)$/])
     end
-    
+
     def classpath
       pwd = File.join(Dir::pwd, '')
-      
+
       jars = self.java_lib_dirs.map {|directory|
         Dir.glob(File.join(directory, '**' , '*.jar'))
       }.flatten
-      
+
       files = self.java_lib_files
-      
+
       return (jars + files).map{ |file_path| file_path.sub(pwd, '') }
     end
-    
+
     # FIXME: the following fields are required for compatibility with Rawr::Options
     #        Document and expose them through the normal option system
     def minimum_windows_jvm_version
       self.target_jvm_version
     end
-    
+
     def windows_startup_error_message
       "There was an error starting the application."
     end
-    
+
     def windows_bundled_jre_error_message
       "There was an error with the bundled JRE for this app."
     end
-    
+
     def windows_jre_version_error_message
       "This application requires a newer version of Java. Please visit http://www.java.com"
     end
-    
+
     def windows_launcher_error_message
       "There was an error launching the application."
     end

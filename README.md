@@ -1,4 +1,4 @@
-Rawr 1.6.4
+Rawr 1.6.5
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -27,7 +27,7 @@ SYNOPSIS
 REQUIREMENTS
 ------------
 
-* JRuby >= 1.5
+* JRuby >= 1.7.0
 * javac
 * Rake
 

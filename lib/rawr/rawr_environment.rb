@@ -17,7 +17,7 @@ module Rawr
   
   def ensure_jruby_environment
     begin
-      include Java
+      require 'java'
     rescue NameError
       warn <<-ERROR
 Rawr will only work from JRuby.
@@ -27,7 +27,7 @@ First, remove the Rawr gem in your other environment to prevent conflicts:
 
 Second, install this gem in your JRuby environment with the following command:
 
-  jruby -S gem install rawr
+  jruby -S gem install rawr --source http://gems.neurogami.com
 
   ERROR
 
