@@ -41,7 +41,7 @@ Note: You probably do not want to use `sudo` if you are using a Ruby installed u
 
 STUFF
 -----
-`Rawr` 1.6.3 has rb source compilation turned off by default since it appears to not work with current versions of Java.
+`Rawr` 1.6.6 has rb source compilation turned off by default but compilation is working again since `Rawr` 1.6.5, if you want to turn it on in `build_configuration.rb`.
 
 `Rawr` 1.6.0 added support for compiling [Mirah](http://www.mirah.org/) source code.  
 
