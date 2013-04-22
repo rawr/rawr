@@ -90,8 +90,8 @@ class RawrChoices < UserChoices::Command
                        "Usage:  rawr [options] install [project/path]\n" +
                        "Sets up rawr in the current directory, or in 'project/path' if one is given.\n#{@parser}"
 
-    builder.add_source(EnvironmentSource, :with_prefix, "rawr_")
-    builder.add_source(YamlConfigFileSource, :from_file, ".rawr") 
+    builder.add_source EnvironmentSource, :with_prefix, "rawr_"
+    builder.add_source YamlConfigFileSource, :from_file, ".rawr"
 
   end
 

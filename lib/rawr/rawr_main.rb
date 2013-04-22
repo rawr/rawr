@@ -63,9 +63,7 @@ module Rawr
 
     def self.handle_install current_options
       adjust current_options
-      
-      java_class = current_options[:class].split(".")
-      java_class = current_options[:class].split(".")
+
       java_class = current_options[:class].split(".")
 
       raise "No main java class was defined." if java_class.empty?
@@ -81,27 +79,26 @@ module Rawr
       w "The choice to download a JRuby jar is #{download_jruby}, as determined by :no_download = #{current_options[:no_download].inspect} and   :no_jar = #{current_options[:no_jar].inspect}"
 
       install_dir = current_options[:command].empty? ? Dir.pwd : current_options[:command].join(' ') 
-      
-      current_options['project_name'] =  if install_dir == '.'
-                                               Dir.pwd.split(File::SEPARATOR).last
-                                             else
-                                               install_dir.split(File::SEPARATOR).last
-                                             end
-      
+
+      current_options['project_name'] = if install_dir == '.'
+                                          Dir.pwd.split(File::SEPARATOR).last
+                                        else
+                                          install_dir.split(File::SEPARATOR).last
+                                        end
+
       w "install_dir is '#{install_dir}'"
-     
-     w "current_options['project_name']  = #{current_options['project_name'] 
-     }"
+
+      w "current_options['project_name']  = #{current_options['project_name'] }"
       FileUtils.mkdir_p install_dir unless install_dir == '.'
 
       FileUtils.cd install_dir do
 
         if write_config_file
-          warn "write config file"
+          puts "write config file"
           if File.exist? config_path
             warn "Configuration file '#{config_path}' exists, skipping"
           else
-            warn "Creating Rawr configuration file #{config_path}"
+            puts "Creating Rawr configuration file #{config_path}"
             ::Rawr::Creator.create_default_config_file(config_path, java_class.join("."), current_options['project_name'])
           end
         else
@@ -112,12 +109,34 @@ module Rawr
         resolved_dir = File.expand_path("#{directory}/#{java_class[0...-1].join('/')}")
         resolved_file = "#{resolved_dir}/#{java_class.last}.java"
 
+        puts "Check for '#{resolved_file}' for main java file"
+
         if File.exist? resolved_file
           warn "Java class '#{resolved_file}' exists, skipping"
         else
-          warn "Creating Java class #{resolved_file}"
-          FileUtils.mkdir_p(resolved_dir)
-          ::Rawr::Creator.create_java_main_file(resolved_file, resolved_package, java_class.last)
+          puts "Creating Java class #{resolved_file}"
+          FileUtils.mkdir_p resolved_dir
+          ::Rawr::Creator.create_java_main_file resolved_file, resolved_package, java_class.last
+        end
+
+        resolved_dir = File.expand_path 'src/org/monkeybars/rawr'
+        resolved_file = "#{resolved_dir}/Path.java"
+
+        puts "******* Creating Java class Path.java using '#{resolved_dir}',  '#{resolved_file}'*********"
+        begin
+          FileUtils.mkdir_p resolved_dir
+        rescue 
+          warn "Error calling 'FileUtils.mkdir_p #{resolved_dir}': #{$!}"
+          raise
+        end
+
+
+
+        begin
+          ::Rawr::Creator.create_java_path_file resolved_file, resolved_package
+        rescue 
+          warn "Error calling ::Rawr::Creator.create_java_path_file #{resolved_file}, #{resolved_package}: #{$!}"
+          raise
         end
 
         create_rakefile

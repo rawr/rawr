@@ -1,4 +1,4 @@
-Rawr 1.6.5
+Rawr 1.6.6
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -36,7 +36,7 @@ INSTALL
 
     sudo gem install rawr --source http://gems.neurogami.com
 
-Note: You probably do ont want to use `sudo` if you are using a Ruby installed using `rvm`.
+Note: You probably do not want to use `sudo` if you are using a Ruby installed using `rvm`.
 
 
 STUFF
@@ -57,16 +57,20 @@ You can use command-line arguments much as before, or use a configuration file (
 
 Or all of them; you can mix and match.
 
-For example, if you have a prefered name or location for the main Java class then you might want to stick that in the config
-file or some environment variables to avid having to pass them as command-line arguments on each invocation of `rawr`.
+For example, if you have a preferred name or location for the main Java class then you might want to stick that in the config
+file or some environment variables to avoid having to pass them as command-line arguments on each invocation of `rawr`:
+
+    # in ~/.rawr
+    local_jruby_jar: /home/james/JRUBY_JARS/1.7.3/jruby-complete.jar
+    
 
 Please read the docs for `user-choices`, but one key thing to know is the precedence for options.
 
-Any option value passed on the command-line overrules any previous value.
+- Any option value passed on the command-line overrules any previous value.
 
-Any option defined in an environment variable overrules the value in a config files.
+- Any option defined in an environment variable overrules the value in a config files.
 
-Option values in the config file will be used so long as they are not overridden by the above conditions.
+- Option values in the config file will be used so long as they are not overridden by the above conditions.
 
 
 

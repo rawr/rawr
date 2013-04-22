@@ -29,10 +29,20 @@ module Rawr
     
     def self.create_java_main_file java_file, java_package, java_class
       File.open(java_file, "w+") do |java_main_file|
-        java_main_file << BundlerTemplate.find('java_runner', 'runner.java').result(binding)
+        java_main_file.puts BundlerTemplate.find('java_runner', 'runner.java').result(binding)
       end
     end
    
+    def self.create_java_path_file java_file, java_package
+      begin 
+      File.open(java_file, "w+") do |f|
+        f.puts BundlerTemplate.find('java_runner', 'path.java').result(binding)
+      end
+      rescue 
+          puts "!!!!!!! Error creating Path.java: #{$!}"
+          raise
+      end
+    end
     
     def self.w msg
       warn(msg) if  ENV['WORDY']
