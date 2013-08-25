@@ -65,6 +65,7 @@ public class <%= java_class %> {
     }
 
     runtime.evalScriptlet("require '" + mainRubyFile + "'");
+    JavaEmbedUtils.terminate(runtime);
   }
 
   public static URL getResource(String path) {
