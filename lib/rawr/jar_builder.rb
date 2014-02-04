@@ -62,12 +62,11 @@ module Rawr
 
     attr_reader :directory
 
-
-
     def select_files_for_jar items
       real_files = FileList[items].pathmap(File.join(@directory, '%p'))
       selected_files = real_files.find_files_and_filter '*', [@exclude]
       relative_selected_files = selected_files.map { |file_info|
+        verbalize "select_files_for_jar mapping #{file_info}"
         full_path = File.join file_info.directory, file_info.filename
         full_path.sub File.join(@directory, ''), ''
       }
@@ -97,7 +96,6 @@ module Rawr
       return select_files_for_jar(@items.nil? ? [''] : @items)
     end
 
-    # This currently returns an array with the files included on the jar
     def build
       warn "@verbose = #{@verbose}" 
       verbalize "Build the jar file using files_to_add:\n#{files_to_add.sort.inspect}"
@@ -109,6 +107,7 @@ module Rawr
 
           files_to_add.each do |file|
 
+            verbalize "* * files_to_add.each starts with '#{file}'"
             remapped_file_path = @dir_mapping[file]
             verbalize "Adding '#{file}', remapped to '#{remapped_file_path}'"
             file_path_in_zip = if @location_in_jar.empty?

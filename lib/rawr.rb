@@ -24,8 +24,13 @@ def generate_copy_tasks_for files, source_or_not
   copied_file_list = FileList.new
 
   files.each do |file_info|
+    verbalize "generate_copy_tasks_for has '#{file_info}'"
     orig_file_path = File.join file_info.directory, file_info.filename
-    dest_file_path = File.join CONFIG.compiled_ruby_files_path, file_info.filename
+    verbalize "generate_copy_tasks_for has '#{orig_file_path}'"
+# This is losing the top dir of the path
+    # dest_file_path = File.join CONFIG.compiled_ruby_files_path, file_info.filename
+    # If we use the orig_file_path then we get the full path.  On Ubuntu it is a relative path
+    dest_file_path = File.join CONFIG.compiled_ruby_files_path, orig_file_path # JGBDEBUG need to check this on  Windows
     dest_dir       = File.dirname dest_file_path
 
     copied_file_list.add dest_file_path
@@ -246,11 +251,13 @@ namespace :rawr do
   file CONFIG.base_jar_complete_path => CONFIG.jar_output_dir do
     Rawr::Creator.create_manifest_file CONFIG
     Rawr::Creator.create_run_config_file CONFIG
+    
     root_as_base = proc do |path| path.sub(/^(java|ruby|non-source)./, '') end
+
     builder = Rawr::JarBuilder.new(CONFIG.project_name,
                                    CONFIG.base_jar_complete_path,
                                    {:directory => CONFIG.compile_dir,
-                                     :dir_mapping => root_as_base,
+                                      :dir_mapping => root_as_base,
                                      :verbose => CONFIG.verbose
                                      })
     builder.build

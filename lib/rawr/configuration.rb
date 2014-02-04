@@ -75,7 +75,7 @@ module Rawr
       return self.new
     end
 
-    def load_from_file!(file_path)
+    def load_from_file! file_path
       configuration_file = File.readlines(file_path).join
       instance_eval configuration_file
       self.class.current_config = self
@@ -85,11 +85,11 @@ module Rawr
       yield self
     end
 
-    def option(name)
+    def option name
       OPTIONS.find { |opt| opt.name.to_s == name.to_s }
     end
 
-    def method_missing(sym, *args)
+    def method_missing sym, *args
       method = sym.to_s
       value = args.first # Assert args.size == 1
       if method.to_s =~ /=$/
