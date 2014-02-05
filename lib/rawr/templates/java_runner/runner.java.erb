@@ -61,8 +61,7 @@ public class <%= java_class %> {
          System.err.println("Add '" +  d + trailingPathSlash + "' to $:"); // JGBDEBUG
           runtime.evalScriptlet( "$: << '" + d + "'" );
           //runtime.evalScriptlet( "$: << '" + d + trailingPathSlash + "'" );
-          // What if we are not in a jar? Then this Main file never gets called, correct?
-//          runtime.evalScriptlet( "$: << 'file://" + (new Path()).getJarPath() + "!/" +  d + "'" );
+          runtime.evalScriptlet( "$: << 'file://" + (new Path()).getJarPath() + "!/" +  d + "'" );
         }
       }
     }
