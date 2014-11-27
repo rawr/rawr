@@ -5,23 +5,35 @@ module Rawr
   class JRubyRelease
     @@releases = nil
 
-    BASE_URL='http://repository.codehaus.org/org/jruby/jruby-complete'
+    #     BASE_URL='http://repository.codehaus.org/org/jruby/jruby-complete'
 
+    # Since jruby bailed on codehaus.org this stuff no longer gets the latest jar
+    #
+
+    BASE_URL=nil
     attr_accessor :version, :rc, :version_string
 
-    def self.get(version, destination)
+    def self.get version, destination
       release = case version
                 when 'current'
                   get_most_current_releases(1).first
                 when 'stable'
                   get_most_current_stable_releases(1).first
                 end
-      release.download
-      release.move_to destination
+      if release
+        release.download
+        release.move_to destination
+      end
     end
 
-    def self.get_most_current_releases(count=5)
+    def self.get_most_current_releases count=5
       @@releases ||= get_list
+
+      unless @@releases 
+        warn "rawr lo longer fetches jruby-complete jar.  A fix is being explored."
+        return [nil]
+      end
+
       if @@releases.size > count
         return [@@releases.last] if count == 1
         @@releases[(@@releases.size-(count+1))..(@@releases.size-1)]
@@ -30,8 +42,14 @@ module Rawr
       end
     end
 
-    def self.get_most_current_stable_releases(count=5)
+    def self.get_most_current_stable_releases count=5
       @@releases ||= get_list
+
+      unless @@releases 
+        warn "rawr lo longer fetches jruby-complete jar.  A fix is being explored."
+        return [nil]
+      end
+
       selected = @@releases.select{ |r| r.rc.to_s.strip.empty? }
       if selected .size > count
         return [selected.last] if count == 1
@@ -46,6 +64,7 @@ module Rawr
       # <a href="0.9.8/">
       #
       # so we want to find all of those and find the latest, but note any RC entries
+      return nil unless BASE_URL
       lines = open(BASE_URL).readlines
       lines.map!{|l| l =~ /(href=")([\.\dRC]+)(\/">)/ ? $2 : nil }
       lines.compact!
