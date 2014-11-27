@@ -49,3 +49,6 @@ Spec::Rake::SpecTask.new('specs:run') do |t|
   t.spec_files = FileList['test/**/*_spec.rb']
 end
 
+
+
+task :default => :gem

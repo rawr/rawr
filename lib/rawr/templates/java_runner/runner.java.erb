@@ -58,7 +58,7 @@ public class <%= java_class %> {
         
         for(String s : parts[1].split(";") ){
           String d = s.replaceAll(" ", "");
-         System.err.println("Add '" +  d + trailingPathSlash + "' to $:"); // JGBDEBUG
+         // System.err.println("Add '" +  d + trailingPathSlash + "' to $:"); // JGBDEBUG
           runtime.evalScriptlet( "$: << '" + d + "'" );
           //runtime.evalScriptlet( "$: << '" + d + trailingPathSlash + "'" );
           runtime.evalScriptlet( "$: << 'file://" + (new Path()).getJarPath() + "!/" +  d + "'" );

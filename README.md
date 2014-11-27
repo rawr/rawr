@@ -1,4 +1,4 @@
-Rawr 1.7.0
+Rawr 1.7.1
 ==========
 
 James Britt, Logan Barnett, David Koontz
@@ -41,6 +41,16 @@ Note: You probably do not want to use `sudo` if you are using a Ruby installed u
 
 STUFF
 -----
+
+`Rawr` 1.7.0 has some changes to how the application jar is assembled.  Many versions ago something changed such that when the application jar-building processing was collecting the files indicated by `build_configuration.rb` it was stripping some paths.  For example your project folder might have files in `src/` and `lib/ruby/` but those files would end up in the root of the generated jar.  For assorted reasons this did not seem to break anything, likely because these files were still available via `$:`. But this was just a coincidence.  
+
+Worse, if you had `lib/ruby/foo.rb` and `src/foo.rb` your generated jar file would only get one of them.  This is bad.
+
+Version 1.7.0 changes how such paths are handled and the behavior should be what it was way back in the early days of `Rawr`.
+
+If you find that this new version is breaking your existing applications please report this.  It _shouldn't_ (based on testing) but there may be cases where it does it and it would be good to know why.  If your program breaks with this version it may be that you need to change how to add pats to `$:` or how you reference files when calling `require`.  
+
+
 `Rawr` 1.6.6 has rb source compilation turned off by default but compilation is working again since `Rawr` 1.6.5, if you want to turn it on in `build_configuration.rb`.
 
 `Rawr` 1.6.0 added support for compiling [Mirah](http://www.mirah.org/) source code.  
