@@ -34,7 +34,7 @@ REQUIREMENTS
 INSTALL
 -------
 
-    sudo gem install rawr --source http://gems.neurogami.com
+    sudo gem install rawr --source http://gems.neurogami.com/gems/
 
 Note: You probably do not want to use `sudo` if you are using a Ruby installed using `rvm`.
 
