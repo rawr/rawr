@@ -11,8 +11,9 @@ module Rawr
   # @return [String] a short description of the current Ruby interpreter
   def ruby_environment
     env_pieces = RUBY_DESCRIPTION.match(/^(.*?\)) .*?(\[.*?\])/)
-    return env_pieces[1..2].join(' ')
+    env_pieces[1..2].join ' '
   end
+
   module_function :ruby_environment
   
   def ensure_jruby_environment
@@ -25,7 +26,7 @@ First, remove the Rawr gem in your other environment to prevent conflicts:
 
   gem uninstall rawr
 
-Second, install this gem in your JRuby environment with the following command:
+Second, install this gem in your JRuby environment with the following (or similar) )command:
 
   jruby -S gem install rawr --source http://gems.neurogami.com
 
