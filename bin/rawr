@@ -13,6 +13,7 @@ require 'rawr/creator'
 
 
 def create_rakefile
+
   if File.exist? "Rakefile"
     if !rakefile_contains_rawr?
       handle_existing_rakefile
@@ -44,6 +45,7 @@ end
 
 def create_new_rakefile
   warn "Creating Rakefile ..."
+
   File.open("Rakefile", "w") do |rakefile|
     rakefile.puts "require 'rawr'\n"
   end
@@ -51,6 +53,7 @@ end
 
 def rakefile_contains_rawr?
   File.open("Rakefile", "r") do |rakefile|
+    warn "EACH #{__FILE__}:#{__LINE__}"
     rakefile.each_line do |line|
       return true if line =~ /^ *require +['"]rawr['"]/
     end
@@ -91,14 +94,21 @@ class RawrChoices < UserChoices::Command
                        "Sets up rawr in the current directory, or in 'project/path' if one is given.\n#{@parser}"
 
     builder.add_source EnvironmentSource, :with_prefix, "rawr_"
-    builder.add_source YamlConfigFileSource, :from_file, ".rawr"
 
+    # It *seems* that if this file is not a useful Yaml file then we get an error
+    # We need a way to trap this.
+    begin
+    builder.add_source YamlConfigFileSource, :from_file, ".rawr"
+    rescue 
+       warn "There was an error loading config details from your .rawr file:\n#{$!}"
+       exit
+    end
   end
 
   def add_choices builder
     default_java_class = 'org.monkeybars.rawr.Main'
     default_java_main_directory = 'src'
-    default_build_configuration_file =  'build_configuration.rb'
+    default_build_configuration_file = 'build_configuration.rb'
 
     builder.add_choice(:wordy, :type=>:boolean , :default => false) { | command_line |
       command_line.uses_option "-w", "--wordy", 
@@ -154,7 +164,7 @@ class RawrChoices < UserChoices::Command
 
 
   def execute
-     warn "Running in #{Rawr::ruby_environment}"
+    warn "Running in #{Rawr::ruby_environment}"
     if Rawr::Main.valid_options?  @user_choices
       warn "Create rawr files using #{@user_choices.pretty_inspect}"
       Rawr::Main.project @user_choices

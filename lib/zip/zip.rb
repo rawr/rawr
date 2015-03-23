@@ -21,11 +21,11 @@ end
 
 module Zip
 
-  VERSION = '0.9.1'
+  VERSION = '0.9.2'
 
   RUBY_MINOR_VERSION = RUBY_VERSION.split(".")[1].to_i
 
-  RUNNING_ON_WINDOWS = Config::CONFIG['host_os'] =~ /^win|mswin/i
+  RUNNING_ON_WINDOWS = RbConfig::CONFIG['host_os'] =~ /^win|mswin/i
 
   # Ruby 1.7.x compatibility
   # In ruby 1.6.x and 1.8.0 reading from an empty stream returns 

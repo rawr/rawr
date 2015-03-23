@@ -16,6 +16,7 @@ module Rawr
     end
 
     def self.valid_options?  options_hash
+
       @@errors = []
 
       if options_hash[:command].nil? || options_hash[:command].empty?
