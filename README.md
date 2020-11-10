@@ -62,7 +62,7 @@ If you want to use code provided by a gem you need to unpack the gem files into 
 
 You might also want to alter `$:` (AKA `$LOAD_PATH`) so that your extracted and bundled gem files are first.
 
-When distrubuting a rawr-packaged program you need to keep in mind that you may not be able to control the end-user environment.
+When distributing a rawr-packaged program you need to keep in mind that you may not be able to control the end-user environment.
 
 If you are loading gem files you need to consider that an end-user might have a different version of the gem installed.
 
@@ -75,7 +75,7 @@ It sets up some load paths based on whether the code is running from a jar or no
 
 (Rawr was created out of a need to package Monkeybars programs.)
 
-Current versions of Ruby load `rubygems` by default.  The rubygems library alters the default `require` method such that if you try to load a file and it is not found an attempt is made to locate it among the installed gems.  If that suceeds then that gem path gets added to `$:` and the file gets loaded.
+Current versions of Ruby load `rubygems` by default.  The rubygems library alters the default `require` method such that if you try to load a file and it is not found an attempt is made to locate it among the installed gems.  If that succeeds then that gem path gets added to `$:` and the file gets loaded.
 
 The original `require` method is redefined, but first it is aliased (so that the method itself is still available).
 
